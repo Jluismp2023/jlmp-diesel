@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Consumo de Diésel</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: sans-serif; margin: 0; padding: 20px; background-color: #f4f4f9; }
+        h1, h2, h3 { color: #333; text-align: center; }
+        .container { max-width: 900px; margin: 20px auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        form { display: flex; flex-direction: column; gap: 15px; }
+        input, select, textarea, button { padding: 10px; border-radius: 4px; border: 1px solid #ddd; font-size: 16px; }
+        textarea { resize: vertical; min-height: 80px; }
+        button { cursor: pointer; }
+        button#btnGuardar { background-color: #007bff; color: white; border: none; transition: background-color 0.3s; }
+        button#btnGuardar:hover { background-color: #0056b3; }
+        table { width: 100%; margin-top: 20px; border-collapse: collapse; }
+        th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+        th { background-color: #007bff; color: white; }
+        #resumenTabla th { background-color: #28a745; }
+        #resumenTabla tfoot tr, #resumenEmpresaTabla tfoot tr { font-weight: bold; background-color: #e9ecef; border-top: 2px solid #343a40; }
+        .fila-grupo td { background-color: #6c757d; color: white; font-weight: bold; text-align: center; font-size: 1.1em; }
+        .btn-accion { padding: 5px 10px; margin-right: 5px; border-radius: 4px; border: none; color: white; font-size: 14px; }
+        .btn-modificar { background-color: #ffc107; }
+        .btn-borrar { background-color: #dc3545; }
+        #adminContainer { background-color: #f8f9fa; border: 1px solid #dee2e6; }
+        .admin-section { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 20px; }
+        .admin-box { flex: 1; min-width: 300px; padding: 10px; box-sizing: border-box;}
+        .lista-gestion { list-style-type: none; padding: 0; }
+        .lista-gestion li { display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #eee; }
+        .admin-form { display: flex; gap: 10px; margin-bottom: 15px; }
+        .admin-form input { flex-grow: 1; }
+
+        @media print {
+            body { margin: 0; padding: 0; background-color: white; color: black; }
+            .no-print { display: none !important; }
+            .container { box-shadow: none; border: 1px solid #ccc; margin: 20px 0; }
+            h1, h2 { page-break-after: avoid; }
+            tr { page-break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Control de Diésel de Volquetas</h1>
+        <div class="no-print" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+            <div>
+                <label for="filtroMes" style="font-weight: bold;">Filtrar por Mes:</label>
+                <select id="filtroMes"></select>
+            </div>
+             <button id="btnPrint" style="background-color: #17a2b8; color: white; padding: 10px 20px; border: none;">🖨️ Imprimir Reporte</button>
+        </div>
+    </div>
+
+    <div class="container no-print" id="formularioContainer">
+        <h2 id="formularioTitulo">Nuevo Registro</h2>
+        <form id="consumoForm">
+            <input type="hidden" id="registroId">
+            <label for="fecha">Fecha:</label>
+            <input type="date" id="fecha" required>
+            <label for="selectChofer">Nombre del Chofer:</label>
+            <select id="selectChofer" required></select>
+            <label for="selectVolqueta">Placa de la Volqueta:</label>
+            <select id="selectVolqueta" required></select>
+            <label for="galones">Galones de Diésel (Volumen):</label>
+            <input type="number" id="galones" step="0.01" required>
+            <label for="costo">Costo Total ($):</label>
+            <input type="number" id="costo" step="0.01" required>
+            <label for="selectEmpresa">Empresa:</label>
+            <select id="selectEmpresa" required></select>
+            <label for="descripcion">Descripción del Uso:</label>
+            <textarea id="descripcion" placeholder="Ej: Viaje a la cantera de Pasaje" required></textarea>
+            <button type="submit" id="btnGuardar">Guardar Registro</button>
+        </form>
+    </div>
+    
+    <div class="container">
+        <h2>Totales por Volqueta</h2>
+        <table id="resumenTabla">
+            <thead><tr><th>Volqueta (Placa)</th><th>Total Galones (Volumen)</th><th>Costo Total ($)</th></tr></thead>
+            <tbody id="resumenBody"></tbody>
+            <tfoot id="resumenFooter"></tfoot>
+        </table>
+    </div>
+    
+    <div class="container">
+        <h2>Gastos por Empresa</h2>
+        <table id="resumenEmpresaTabla">
+            <thead><tr><th>Empresa</th><th>Total Galones (Volumen)</th><th>Costo Total ($)</th></tr></thead>
+            <tbody id="resumenEmpresaBody"></tbody>
+            <tfoot id="resumenEmpresaFooter"></tfoot>
+        </table>
+    </div>
+    
+    <div class="container">
+        <h2>Gráfico de Consumo por Volqueta</h2>
+        <canvas id="graficoConsumo" style="max-height: 400px;"></canvas>
+    </div>
+
+    <div class="container">
+        <h2>Historial de Consumos</h2>
+        <table id="historialTabla">
+            <thead>
+                <tr>
+                    <th>Fecha</th><th>Mes</th><th>Chofer</th><th>Volqueta</th>
+                    <th>Galones</th><th>Costo ($)</th><th>Empresa</th><th>Descripción</th>
+                    <th class="no-print">Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="historialBody"></tbody>
+        </table>
+    </div>
+
+    <div class="container no-print" id="adminContainer">
+        <h2>Administración</h2>
+        <div class="admin-section">
+            <div class="admin-box"><h3>Gestionar Choferes</h3><form id="formAdminChofer" class="admin-form"><input type="text" id="nuevoChofer" placeholder="Nombre completo del chofer" required><button type="submit">Agregar</button></form><ul id="listaChoferes" class="lista-gestion"></ul></div>
+            <div class="admin-box"><h3>Gestionar Placas</h3><form id="formAdminPlaca" class="admin-form"><input type="text" id="nuevaPlaca" placeholder="Placa de la volqueta" required><button type="submit">Agregar</button></form><ul id="listaPlacas" class="lista-gestion"></ul></div>
+            <div class="admin-box"><h3>Gestionar Empresas</h3><form id="formAdminEmpresa" class="admin-form"><input type="text" id="nuevaEmpresa" placeholder="Nombre de la empresa" required><button type="submit">Agregar</button></form><ul id="listaEmpresas" class="lista-gestion"></ul></div>
+        </div>
+    </div>
+
+    <script>
+    let miGrafico = null; 
+    let filtroMesActual = 'todos';
+
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('fecha').valueAsDate = new Date();
+        // --- ASIGNACIÓN DE EVENTOS ---
+        // Formularios Principales
+        document.getElementById('consumoForm').addEventListener('submit', guardarOActualizar);
+        document.getElementById('btnPrint').addEventListener('click', () => window.print());
+        document.getElementById('filtroMes').addEventListener('change', (e) => {
+            filtroMesActual = e.target.value;
+            actualizarTodaLaUI();
+        });
+        // Formularios de Administración
+        document.getElementById('formAdminChofer').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('choferes', document.getElementById('nuevoChofer')); });
+        document.getElementById('formAdminPlaca').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('placas', document.getElementById('nuevaPlaca')); });
+        document.getElementById('formAdminEmpresa').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('empresas', document.getElementById('nuevaEmpresa')); });
+        // Clics en las tablas (Delegación de eventos)
+        document.getElementById('historialBody').addEventListener('click', manejarAccionesHistorial);
+        document.getElementById('adminContainer').addEventListener('click', manejarAccionesAdmin);
+        
+        actualizarTodaLaUI();
+    });
+    
+    // --- LÓGICA PRINCIPAL Y DE UI ---
+    function actualizarTodaLaUI() {
+        poblarFiltroDeMes();
+        const consumosFiltrados = obtenerConsumosFiltrados();
+        const datosResumenVolqueta = calcularYMostrarTotales(consumosFiltrados);
+        calcularYMostrarTotalesPorEmpresa(consumosFiltrados);
+        poblarSelectores();
+        mostrarListasAdmin();
+        mostrarHistorialAgrupado(consumosFiltrados);
+        crearOActualizarGrafico(datosResumenVolqueta);
+    }
+    
+    function guardarOActualizar(e) {
+        e.preventDefault();
+        const id = document.getElementById('registroId').value;
+        const datosConsumo = {
+            volqueta: document.getElementById('selectVolqueta').value, fecha: document.getElementById('fecha').value, galones: document.getElementById('galones').value,
+            costo: document.getElementById('costo').value, descripcion: document.getElementById('descripcion').value, chofer: document.getElementById('selectChofer').value,
+            empresa: document.getElementById('selectEmpresa').value
+        };
+        if (!datosConsumo.chofer || !datosConsumo.volqueta || !datosConsumo.empresa) { alert("Por favor, seleccione un valor en todos los menús desplegables."); return; }
+        let consumos = obtenerConsumosGuardados();
+        if (id) {
+            consumos = consumos.map(c => (c.id.toString() === id) ? { ...datosConsumo, id: parseInt(id) } : c);
+        } else {
+            datosConsumo.id = Date.now();
+            consumos.push(datosConsumo);
+        }
+        localStorage.setItem('consumosDiesel', JSON.stringify(consumos));
+        reiniciarFormulario();
+        actualizarTodaLaUI();
+    }
+
+    // --- LÓGICA DE ADMINISTRACIÓN (CORREGIDA Y ROBUSTA) ---
+    function agregarItemAdmin(tipo, inputElement) {
+        const valor = (tipo === 'placas') ? inputElement.value.trim().toUpperCase() : inputElement.value.trim();
+        if (valor) {
+            const lista = obtenerLista(tipo);
+            if (lista.map(v => v.toUpperCase()).includes(valor.toUpperCase())) { alert(`Este valor ya existe en la lista de ${tipo}.`); return; }
+            lista.push(valor);
+            guardarLista(tipo, lista);
+            inputElement.value = '';
+            actualizarTodaLaUI();
+        }
+    }
+
+    function manejarAccionesAdmin(e) {
+        const target = e.target.closest('button');
+        if (!target || target.type === 'submit') return; // Ignora clics que no sean en botones, o si es un botón de 'Agregar'
+        const tipo = target.dataset.tipo;
+        const valor = target.dataset.valor;
+        if (!tipo || !valor) return; // Ignora si no tiene la información necesaria
+        if (target.classList.contains('btn-modificar')) {
+            modificarItemAdmin(tipo, valor);
+        } else if (target.classList.contains('btn-borrar')) {
+            if (confirm(`¿Seguro que quieres borrar "${valor}" de la lista de opciones?`)) {
+                let lista = obtenerLista(tipo).filter(item => item !== valor);
+                guardarLista(tipo, lista);
+                actualizarTodaLaUI();
+            }
+        }
+    }
+    
+    function modificarItemAdmin(tipo, valorActual) {
+        const nuevoValor = prompt(`Modificar valor para "${valorActual}":`, valorActual);
+        if (nuevoValor === null) return;
+        if (nuevoValor.trim() === '') { alert("El nuevo valor no puede estar vacío."); return; }
+        const valorFormateado = (tipo === 'placas') ? nuevoValor.trim().toUpperCase() : nuevoValor.trim();
+        if (valorFormateado === valorActual) return;
+        let lista = obtenerLista(tipo);
+        if (lista.map(v => v.toUpperCase()).includes(valorFormateado.toUpperCase())) { alert(`El valor "${valorFormateado}" ya existe en la lista.`); return; }
+        if (confirm(`¿Estás seguro de cambiar "${valorActual}" por "${valorFormateado}"? Esto actualizará TODOS los registros del historial.`)) {
+            lista = lista.map(item => (item === valorActual) ? valorFormateado : item);
+            guardarLista(tipo, lista);
+            let consumos = obtenerConsumosGuardados();
+            const propiedad = { placas: 'volqueta', choferes: 'chofer', empresas: 'empresa' }[tipo];
+            consumos = consumos.map(consumo => {
+                if (consumo[propiedad] === valorActual) return { ...consumo, [propiedad]: valorFormateado };
+                return consumo;
+            });
+            localStorage.setItem('consumosDiesel', JSON.stringify(consumos));
+            actualizarTodaLaUI();
+        }
+    }
+    
+    function manejarAccionesHistorial(e) {
+        const target = e.target.closest('button');
+        if (!target) return;
+        const id = target.dataset.id;
+        if (!id) return;
+        if (target.classList.contains('btn-modificar')) cargarDatosParaModificar(id);
+        if (target.classList.contains('btn-borrar')) borrarConsumoHistorial(id);
+    }
+    
+    // --- FUNCIONES DE DATOS ---
+    function obtenerConsumosGuardados() { return JSON.parse(localStorage.getItem('consumosDiesel')) || []; }
+    function obtenerConsumosFiltrados() {
+        const todosLosConsumos = obtenerConsumosGuardados();
+        if (filtroMesActual === 'todos') return todosLosConsumos;
+        return todosLosConsumos.filter(c => c.fecha.startsWith(filtroMesActual));
+    }
+    function obtenerLista(tipo) { return JSON.parse(localStorage.getItem(`lista_${tipo}`)) || []; }
+    function guardarLista(tipo, lista) { lista.sort((a,b) => a.localeCompare(b)); localStorage.setItem(`lista_${tipo}`, JSON.stringify(lista)); }
+
+    // --- FUNCIONES DE RENDERIZADO DE UI ---
+    function calcularYMostrarTotales(consumos) { const resumenBody = document.getElementById('resumenBody'); const resumenFooter = document.getElementById('resumenFooter'); const totales = {}; consumos.forEach(c => { if (!totales[c.volqueta]) totales[c.volqueta] = { totalGalones: 0, totalCosto: 0 }; totales[c.volqueta].totalGalones += parseFloat(c.galones); totales[c.volqueta].totalCosto += parseFloat(c.costo); }); const placasOrdenadas = Object.keys(totales).sort(); let htmlBody = ''; let granTotalGalones = 0; let granTotalCosto = 0; placasOrdenadas.forEach(placa => { const total = totales[placa]; htmlBody += `<tr><td><strong>${placa}</strong></td><td>${total.totalGalones.toFixed(2)}</td><td>$${total.totalCosto.toFixed(2)}</td></tr>`; granTotalGalones += total.totalGalones; granTotalCosto += total.totalCosto; }); resumenBody.innerHTML = htmlBody; resumenFooter.innerHTML = `<tr><td>TOTAL GENERAL</td><td>${granTotalGalones.toFixed(2)}</td><td>$${granTotalCosto.toFixed(2)}</td></tr>`; return { labels: placasOrdenadas, data: placasOrdenadas.map(placa => totales[placa].totalCosto) }; }
+    function calcularYMostrarTotalesPorEmpresa(consumos) { const resumenBody = document.getElementById('resumenEmpresaBody'); const resumenFooter = document.getElementById('resumenEmpresaFooter'); const totales = {}; consumos.forEach(c => { if (!c.empresa) return; if (!totales[c.empresa]) totales[c.empresa] = { totalGalones: 0, totalCosto: 0 }; totales[c.empresa].totalGalones += parseFloat(c.galones); totales[c.empresa].totalCosto += parseFloat(c.costo); }); const empresasOrdenadas = Object.keys(totales).sort(); let htmlBody = ''; let granTotalGalones = 0; let granTotalCosto = 0; empresasOrdenadas.forEach(empresa => { const total = totales[empresa]; htmlBody += `<tr><td><strong>${empresa}</strong></td><td>${total.totalGalones.toFixed(2)}</td><td>$${total.totalCosto.toFixed(2)}</td></tr>`; granTotalGalones += total.totalGalones; granTotalCosto += total.totalCosto; }); resumenBody.innerHTML = htmlBody; resumenFooter.innerHTML = `<tr><td>TOTAL GENERAL</td><td>${granTotalGalones.toFixed(2)}</td><td>$${granTotalCosto.toFixed(2)}</td></tr>`; }
+    function mostrarHistorialAgrupado(consumos) { const historialBody = document.getElementById('historialBody'); historialBody.innerHTML = ''; consumos.sort((a,b) => a.volqueta.localeCompare(b.volqueta) || new Date(b.fecha) - new Date(a.fecha)); let placaActual = ""; consumos.forEach(consumo => { if (consumo.volqueta !== placaActual) { placaActual = consumo.volqueta; historialBody.innerHTML += `<tr class="fila-grupo"><td colspan="9">Volqueta: ${placaActual}</td></tr>`; } const nombreMes = new Date(consumo.fecha + 'T00:00:00').toLocaleDateString('es-EC', { month: 'long' }); historialBody.innerHTML += `<tr><td>${consumo.fecha}</td><td>${nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1)}</td><td>${consumo.chofer}</td><td>${consumo.volqueta}</td><td>${parseFloat(consumo.galones).toFixed(2)}</td><td>$${parseFloat(consumo.costo).toFixed(2)}</td><td>${consumo.empresa || ''}</td><td>${consumo.descripcion}</td><td class="no-print"><button class="btn-accion btn-modificar" data-id="${consumo.id}">Modificar</button><button class="btn-accion btn-borrar" data-id="${consumo.id}">Borrar</button></td></tr>`; }); }
+    function poblarFiltroDeMes() { const filtroSelect = document.getElementById('filtroMes'); const consumos = obtenerConsumosGuardados(); const mesesUnicos = [...new Set(consumos.map(c => c.fecha.substring(0, 7)))]; mesesUnicos.sort().reverse(); filtroSelect.innerHTML = '<option value="todos">Todos los Meses</option>'; mesesUnicos.forEach(mes => { const [year, month] = mes.split('-'); const fechaMes = new Date(year, month - 1); const nombreMes = fechaMes.toLocaleDateString('es-EC', { month: 'long', year: 'numeric' }); const opcion = document.createElement('option'); opcion.value = mes; opcion.textContent = nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1); filtroSelect.appendChild(opcion); }); filtroSelect.value = filtroMesActual; }
+    function poblarSelectores() { const selectores = { choferes: document.getElementById('selectChofer'), placas: document.getElementById('selectVolqueta'), empresas: document.getElementById('selectEmpresa') }; const titulos = { choferes: '--- Seleccione un Chofer ---', placas: '--- Seleccione una Placa ---', empresas: '--- Seleccione una Empresa ---' }; for (const tipo in selectores) { const select = selectores[tipo]; if (!select) continue; const valorActual = select.value; const lista = obtenerLista(tipo); select.innerHTML = `<option value="" disabled selected>${titulos[tipo]}</option>`; lista.forEach(item => select.innerHTML += `<option value="${item}">${item}</option>`); select.value = valorActual; } }
+    function mostrarListasAdmin() { const contenedores = { choferes: document.getElementById('listaChoferes'), placas: document.getElementById('listaPlacas'), empresas: document.getElementById('listaEmpresas') }; for (const tipo in contenedores) { contenedores[tipo].innerHTML = obtenerLista(tipo).map(item => `<li><span>${item}</span><div><button class="btn-accion btn-modificar" data-tipo="${tipo}" data-valor="${item}">Modificar</button><button class="btn-accion btn-borrar" data-tipo="${tipo}" data-valor="${item}">Borrar</button></div></li>`).join(''); } }
+    function crearOActualizarGrafico(datos) { const ctx = document.getElementById('graficoConsumo').getContext('2d'); if (miGrafico) { miGrafico.destroy(); } miGrafico = new Chart(ctx, { type: 'bar', data: { labels: datos.labels, datasets: [{ label: 'Costo Total de Consumo ($)', data: datos.data, backgroundColor: 'rgba(40, 167, 69, 0.7)', borderColor: 'rgba(40, 167, 69, 1)', borderWidth: 1 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { callback: function(value) { return '$' + value.toFixed(2); } } } }, plugins: { legend: { display: true, position: 'top', } } } }); }
+    function reiniciarFormulario() { document.getElementById('consumoForm').reset(); document.getElementById('registroId').value = ''; document.getElementById('fecha').valueAsDate = new Date(); document.getElementById('formularioTitulo').textContent = 'Nuevo Registro'; document.getElementById('btnGuardar').textContent = 'Guardar Registro'; poblarSelectores(); }
+    function borrarConsumoHistorial(id) { if (!confirm('¿Seguro que quieres borrar este registro del historial?')) return; let consumos = obtenerConsumosGuardados().filter(c => c.id.toString() !== id); localStorage.setItem('consumosDiesel', JSON.stringify(consumos)); actualizarTodaLaUI(); }
+    </script>
+</body>
+</html>
