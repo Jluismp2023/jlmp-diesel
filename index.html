@@ -13,25 +13,50 @@
         input, select, textarea, button { padding: 10px; border-radius: 4px; border: 1px solid #ddd; font-size: 16px; }
         button { cursor: pointer; }
         
-        /* --- ESTILOS MEJORADOS PARA PESTAÑAS (TABS) --- */
+        /* --- ESTILOS PARA PESTAÑAS --- */
         .main-tabs { border-bottom: 2px solid #007bff; overflow: hidden; }
         .main-tabs button { background-color: #f1f1f1; float: left; border: 1px solid #ccc; border-bottom: none; outline: none; cursor: pointer; padding: 14px 16px; transition: 0.3s; font-size: 17px; border-radius: 8px 8px 0 0; margin-right: 5px; }
         .main-tabs button:hover { background-color: #ddd; }
         .main-tabs button.active { background-color: #007bff; color: white; border-color: #007bff; }
         .main-tab-content { display: none; }
         
+        /* --- ESTILOS PARA LA FIRMA (SOLO IMPRESIÓN) --- */
+        .signature-block { display: none; }
+
+        /* --- ESTILOS PARA LA IMPRESIÓN --- */
         @media print {
+            body { margin: 0; padding: 10px; background-color: white; color: black; }
+            /* Oculta todo por defecto */
+            body > *:not(.printable-section) {
+                display: none;
+            }
+            /* Muestra solo la sección de reportes y la firma */
+            .printable-section {
+                display: block !important;
+            }
             .no-print { display: none !important; }
-            .container { box-shadow: none; border: 1px solid #ccc; margin: 20px 0; }
-            .main-tabs { display: none; }
-            .main-tab-content { display: block !important; }
+            .container { box-shadow: none; border: none; margin: 0; padding: 0; }
+            h1 { display: none; }
+
+            /* Estilos para la firma */
+            .signature-block {
+                display: block;
+                text-align: center;
+                margin-top: 80px;
+                page-break-inside: avoid; /* Evita que la firma se separe en dos páginas */
+            }
+            .signature-block .line {
+                width: 250px;
+                border-top: 1px solid black;
+                margin: 0 auto 10px auto;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div class="container no-print">
         <h1>Control de Diésel de Volquetas</h1>
-        <div class="no-print" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
             <div><label for="filtroMes" style="font-weight: bold;">Filtrar por Mes:</label><select id="filtroMes"></select></div>
             <button id="btnPrint" style="background-color: #17a2b8; color: white; padding: 10px 20px; border: none;">🖨️ Imprimir Reporte</button>
         </div>
@@ -62,7 +87,7 @@
         </div>
     </div>
 
-    <div id="tabReportes" class="main-tab-content">
+    <div id="tabReportes" class="main-tab-content printable-section">
         <div class="container" id="loaderContainer"><h2 id="loadingMessage" class="loader">Cargando datos desde la nube...</h2></div>
         <div class="container"><h2>Totales por Volqueta</h2><table id="resumenTabla"><thead><tr><th>Volqueta (Placa)</th><th>Total Galones (Volumen)</th><th>Costo Total ($)</th></tr></thead><tbody id="resumenBody"></tbody><tfoot id="resumenFooter"></tfoot></table></div>
         <div class="container"><h2>Gastos por Empresa</h2><table id="resumenEmpresaTabla"><thead><tr><th>Empresa</th><th>Total Galones (Volumen)</th><th>Costo Total ($)</th></tr></thead><tbody id="resumenEmpresaBody"></tbody><tfoot id="resumenEmpresaFooter"></tfoot></table></div>
@@ -79,6 +104,12 @@
                 <div class="admin-box" style="flex: 1; min-width: 300px;"><h3 style="text-align:center;">Gestionar Empresas</h3><form id="formAdminEmpresa" class="admin-form" style="display: flex; gap: 10px; margin-bottom: 15px;"><input type="text" id="nuevaEmpresa" placeholder="Nombre de la empresa" required style="flex-grow: 1;"><button type="submit">Agregar</button></form><ul id="listaEmpresas" class="lista-gestion" style="list-style-type: none; padding: 0;"></ul></div>
             </div>
         </div>
+    </div>
+    
+    <div class="signature-block printable-section">
+        <div class="line"></div>
+        Ing. José L. Macas P.<br>
+        RESIDENTE DE OBRA
     </div>
 
     <script type="module">
@@ -112,12 +143,9 @@
         }
 
         function asignarEventos() {
-            // Eventos Pestañas Principales
             document.getElementById('btnTabRegistrar').addEventListener('click', (e) => openMainTab(e, 'tabRegistrar'));
             document.getElementById('btnTabReportes').addEventListener('click', (e) => openMainTab(e, 'tabReportes'));
             document.getElementById('btnTabAdmin').addEventListener('click', (e) => openMainTab(e, 'tabAdmin'));
-            
-            // Otros eventos
             document.getElementById('consumoForm').addEventListener('submit', guardarOActualizar);
             document.getElementById('btnPrint').addEventListener('click', () => window.print());
             document.getElementById('filtroMes').addEventListener('change', (e) => {
@@ -130,7 +158,6 @@
             document.getElementById('formAdminEmpresa').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('empresas', document.getElementById('nuevaEmpresa')); });
         }
 
-        // --- LÓGICA DE LAS PESTAÑAS (TABS) ---
         function openMainTab(evt, tabName) {
             let i, tabcontent, tablinks;
             tabcontent = document.getElementsByClassName("main-tab-content");
@@ -173,7 +200,7 @@
         manejarAccionesHistorial = function(e) { const target = e.target.closest('button'); if (!target) return; const id = target.dataset.id; if (!id) return; if (target.classList.contains('btn-modificar')) cargarDatosParaModificar(id); if (target.classList.contains('btn-borrar')) borrarConsumoHistorial(id); };
         obtenerConsumosFiltrados = function() { if (filtroMesActual === 'todos') return todosLosConsumos; return todosLosConsumos.filter(c => c.fecha.startsWith(filtroMesActual)); };
         mostrarListasAdmin = function() { const contenedores = { choferes: 'listaChoferes', placas: 'listaPlacas', empresas: 'listaEmpresas' }; for (const tipo in contenedores) { const ul = document.getElementById(contenedores[tipo]); ul.innerHTML = ''; listasAdmin[tipo].forEach(item => { const li = document.createElement('li'); li.innerHTML = `<span>${item.nombre}</span><div><button class="btn-accion btn-modificar">Modificar</button><button class="btn-accion btn-borrar">Borrar</button></div>`; li.querySelector('.btn-modificar').addEventListener('click', () => modificarItemAdmin(item, tipo)); li.querySelector('.btn-borrar').addEventListener('click', () => borrarItemAdmin(item, tipo)); ul.appendChild(li); }); } };
-        cargarDatosParaModificar = function(id) { const consumo = todosLosConsumos.find(c => c.id === id); if (!consumo) return; document.getElementById('registroId').value = consumo.id; document.getElementById('fecha').value = consumo.fecha; document.getElementById('selectChofer').value = consumo.chofer; document.getElementById('selectVolqueta').value = consumo.volqueta; document.getElementById('galones').value = consumo.galones; document.getElementById('costo').value = consumo.costo; document.getElementById('descripcion').value = consumo.descripcion; document.getElementById('selectEmpresa').value = consumo.empresa || ""; document.getElementById('formularioTitulo').textContent = 'Modificar Registro'; document.getElementById('btnGuardar').textContent = 'Actualizar Registro'; document.getElementById('formularioContainer').scrollIntoView({ behavior: 'smooth' }); };
+        cargarDatosParaModificar = function(id) { const consumo = todosLosConsumos.find(c => c.id === id); if (!consumo) return; document.getElementById('registroId').value = consumo.id; document.getElementById('fecha').value = consumo.fecha; document.getElementById('selectChofer').value = consumo.chofer; document.getElementById('selectVolqueta').value = consumo.volqueta; document.getElementById('galones').value = consumo.galones; document.getElementById('costo').value = consumo.costo; document.getElementById('descripcion').value = consumo.descripcion; document.getElementById('selectEmpresa').value = consumo.empresa || ""; document.getElementById('formularioTitulo').textContent = 'Modificar Registro'; document.getElementById('btnGuardar').textContent = 'Actualizar Registro'; openMainTab({currentTarget: document.getElementById('btnTabRegistrar')}, 'tabRegistrar'); document.getElementById('formularioContainer').scrollIntoView({ behavior: 'smooth' }); };
         poblarSelectores = function() { const selectores = { choferes: document.getElementById('selectChofer'), placas: document.getElementById('selectVolqueta'), empresas: document.getElementById('selectEmpresa') }; const titulos = { choferes: '--- Seleccione un Chofer ---', placas: '--- Seleccione una Placa ---', empresas: '--- Seleccione una Empresa ---' }; for (const tipo in selectores) { const select = selectores[tipo]; if (!select) continue; const valorActual = select.value; select.innerHTML = `<option value="" disabled selected>${titulos[tipo]}</option>`; listasAdmin[tipo].forEach(item => select.innerHTML += `<option value="${item.nombre}">${item.nombre}</option>`); select.value = valorActual; } };
         poblarFiltroDeMes = function() { const filtroSelect = document.getElementById('filtroMes'); const mesesUnicos = [...new Set(todosLosConsumos.map(c => c.fecha.substring(0, 7)))]; mesesUnicos.sort().reverse(); filtroSelect.innerHTML = '<option value="todos">Todos los Meses</option>'; mesesUnicos.forEach(mes => { const [year, month] = mes.split('-'); const fechaMes = new Date(year, month - 1); const nombreMes = fechaMes.toLocaleDateString('es-EC', { month: 'long', year: 'numeric' }); const opcion = document.createElement('option'); opcion.value = mes; opcion.textContent = nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1); filtroSelect.appendChild(opcion); }); filtroSelect.value = filtroMesActual; };
         calcularYMostrarTotales = function(consumos) { const resumenBody = document.getElementById('resumenBody'); const resumenFooter = document.getElementById('resumenFooter'); const totales = {}; consumos.forEach(c => { if (!totales[c.volqueta]) totales[c.volqueta] = { totalGalones: 0, totalCosto: 0 }; totales[c.volqueta].totalGalones += parseFloat(c.galones); totales[c.volqueta].totalCosto += parseFloat(c.costo); }); const placasOrdenadas = Object.keys(totales).sort(); let htmlBody = ''; let granTotalGalones = 0; let granTotalCosto = 0; placasOrdenadas.forEach(placa => { const total = totales[placa]; htmlBody += `<tr><td><strong>${placa}</strong></td><td>${total.totalGalones.toFixed(2)}</td><td>$${total.totalCosto.toFixed(2)}</td></tr>`; granTotalGalones += total.totalGalones; granTotalCosto += total.totalCosto; }); resumenBody.innerHTML = htmlBody; resumenFooter.innerHTML = `<tr><td>TOTAL GENERAL</td><td>${granTotalGalones.toFixed(2)}</td><td>$${granTotalCosto.toFixed(2)}</td></tr>`; return { labels: placasOrdenadas, data: placasOrdenadas.map(placa => totales[placa].totalCosto) }; };
