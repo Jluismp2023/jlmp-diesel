@@ -16,18 +16,18 @@
         #resumenTabla tfoot tr, #resumenEmpresaTabla tfoot tr { font-weight: bold; background-color: #e9ecef; border-top: 2px solid #343a40; }
         
         /* --- ESTILOS PARA LAS PESTAÑAS (TABS) --- */
-        .tab-container { border: 1px solid #ccc; background-color: #f1f1f1; }
-        .tab-container button { background-color: inherit; float: left; border: none; outline: none; cursor: pointer; padding: 14px 16px; transition: 0.3s; font-size: 17px; }
+        .tab-container { border-bottom: 1px solid #ccc; overflow: hidden; }
+        .tab-container button { background-color: #f1f1f1; float: left; border: 1px solid #ccc; border-bottom: none; outline: none; cursor: pointer; padding: 14px 16px; transition: 0.3s; font-size: 17px; border-radius: 5px 5px 0 0; }
         .tab-container button:hover { background-color: #ddd; }
-        .tab-container button.active { background-color: #ccc; }
-        .tab-content { display: none; padding: 6px 12px; border: 1px solid #ccc; border-top: none; }
+        .tab-container button.active { background-color: #fff; border-bottom: 1px solid #fff; }
+        .tab-content { display: none; padding-top: 20px; }
         .clearfix::after { content: ""; clear: both; display: table; }
 
         @media print {
             .no-print { display: none !important; }
             .container { box-shadow: none; border: 1px solid #ccc; margin: 20px 0; }
-            .tab-container, .tab-content { border: none; }
-            .tab-content { display: block; } /* Mostrar todo el contenido al imprimir */
+            .tab-container { border: none; }
+            .tab-content { display: block !important; padding-top: 0; } /* Mostrar todo al imprimir */
         }
     </style>
 </head>
@@ -65,8 +65,8 @@
 
     <div class="container">
         <div class="tab-container clearfix">
-            <button class="tab-link active" onclick="openTab(event, 'historial')">Historial de Consumos</button>
-            <button class="tab-link" onclick="openTab(event, 'grafico')">Consumo por Placa</button>
+            <button class="tab-link active" id="btnTabHistorial">Historial de Consumos</button>
+            <button class="tab-link" id="btnTabGrafico">Consumo por Placa</button>
         </div>
 
         <div id="historial" class="tab-content" style="display: block;">
@@ -104,7 +104,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getFirestore, collection, getDocs, doc, addDoc, updateDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
         
-        // --- CONFIGURACIÓN DE FIREBASE ---
         const firebaseConfig = {
             apiKey: "AIzaSyCElg_et8_Z8ERTWo5tAwZJk2tb2ztUwlc",
             authDomain: "jlmp-diesel.firebaseapp.com",
@@ -125,21 +124,6 @@
             iniciarAplicacion();
         });
 
-        // --- LÓGICA DE LAS PESTAÑAS (NUEVO) ---
-        window.openTab = function(evt, tabName) {
-            let i, tabcontent, tablinks;
-            tabcontent = document.getElementsByClassName("tab-content");
-            for (i = 0; i < tabcontent.length; i++) {
-                tabcontent[i].style.display = "none";
-            }
-            tablinks = document.getElementsByClassName("tab-link");
-            for (i = 0; i < tablinks.length; i++) {
-                tablinks[i].className = tablinks[i].className.replace(" active", "");
-            }
-            document.getElementById(tabName).style.display = "block";
-            evt.currentTarget.className += " active";
-        }
-
         function iniciarAplicacion() {
             asignarEventos();
             reiniciarFormulario();
@@ -157,6 +141,24 @@
             document.getElementById('formAdminChofer').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('choferes', document.getElementById('nuevoChofer')); });
             document.getElementById('formAdminPlaca').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('placas', document.getElementById('nuevaPlaca')); });
             document.getElementById('formAdminEmpresa').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('empresas', document.getElementById('nuevaEmpresa')); });
+            // Eventos para las pestañas
+            document.getElementById('btnTabHistorial').addEventListener('click', (e) => openTab(e, 'historial'));
+            document.getElementById('btnTabGrafico').addEventListener('click', (e) => openTab(e, 'grafico'));
+        }
+
+        // --- LÓGICA DE LAS PESTAÑAS (TABS) ---
+        function openTab(evt, tabName) {
+            let i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tab-content");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+            tablinks = document.getElementsByClassName("tab-link");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            document.getElementById(tabName).style.display = "block";
+            evt.currentTarget.className += " active";
         }
         
         async function cargarDatosIniciales() { /* ...código sin cambios... */ }
