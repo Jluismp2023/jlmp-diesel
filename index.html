@@ -114,7 +114,8 @@
         let todosLosConsumos = [];
         let listasAdmin = { choferes: [], placas: [], empresas: [], proveedores: [] };
 
-        // --- SECCIÓN 3: DEFINICIÓN DE TODAS LAS FUNCIONES ---
+        // --- SECCIÓN 3: DECLARACIÓN DE TODAS LAS FUNCIONES ---
+        // (La corrección es declarar todas las funciones antes de usarlas)
 
         function openMainTab(evt, tabName) {
             let i, tabcontent, tablinks;
@@ -197,17 +198,34 @@
         function calcularYMostrarTotalesPorEmpresa(consumos) { const resumenBody = document.getElementById('resumenEmpresaBody'); const resumenFooter = document.getElementById('resumenEmpresaFooter'); const totales = {}; consumos.forEach(c => { if (!c.empresa) return; if (!totales[c.empresa]) totales[c.empresa] = { totalGalones: 0, totalCosto: 0 }; totales[c.empresa].totalGalones += parseFloat(c.galones); totales[c.empresa].totalCosto += parseFloat(c.costo); }); const empresasOrdenadas = Object.keys(totales).sort(); let htmlBody = ''; let granTotalGalones = 0; let granTotalCosto = 0; empresasOrdenadas.forEach(empresa => { const total = totales[empresa]; htmlBody += `<tr><td><strong>${empresa}</strong></td><td>${total.totalGalones.toFixed(2)}</td><td>$${total.totalCosto.toFixed(2)}</td></tr>`; granTotalGalones += total.totalGalones; granTotalCosto += total.totalCosto; }); resumenBody.innerHTML = htmlBody; resumenFooter.innerHTML = `<tr><td>TOTAL GENERAL</td><td>${granTotalGalones.toFixed(2)}</td><td>$${granTotalCosto.toFixed(2)}</td></tr>`; }
         function crearOActualizarGrafico(datos) { const ctx = document.getElementById('graficoConsumo').getContext('2d'); if (miGrafico) { miGrafico.destroy(); } miGrafico = new Chart(ctx, { type: 'bar', data: { labels: datos.labels, datasets: [{ label: 'Costo Total de Consumo ($)', data: datos.data, backgroundColor: 'rgba(40, 167, 69, 0.7)', borderColor: 'rgba(40, 167, 69, 1)', borderWidth: 1 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { callback: function(value) { return '$' + value.toFixed(2); } } } }, plugins: { legend: { display: true, position: 'top', } } } }); }
         function mostrarHistorialAgrupado(consumos) { const historialBody = document.getElementById('historialBody'); historialBody.innerHTML = ''; consumos.sort((a,b) => new Date(b.fecha) - new Date(a.fecha) || a.volqueta.localeCompare(b.volqueta)); let mesAnioActual = ""; consumos.forEach(consumo => { const fechaConsumo = new Date(consumo.fecha + 'T00:00:00'); const mesAnio = fechaConsumo.toLocaleDateString('es-EC', { month: 'long', year: 'numeric' }); if (mesAnio !== mesAnioActual) { mesAnioActual = mesAnio; const filaGrupo = document.createElement('tr'); filaGrupo.className = 'fila-grupo'; filaGrupo.innerHTML = `<td colspan="9">${mesAnioActual.charAt(0).toUpperCase() + mesAnioActual.slice(1)}</td>`; historialBody.appendChild(filaGrupo); } const filaDato = document.createElement('tr'); filaDato.innerHTML = `<td>${consumo.fecha}</td> <td>${consumo.chofer}</td> <td>${consumo.volqueta}</td> <td>${consumo.proveedor || ''}</td> <td>${parseFloat(consumo.galones).toFixed(2)}</td> <td>$${parseFloat(consumo.costo).toFixed(2)}</td> <td>${consumo.empresa || ''}</td> <td>${consumo.descripcion}</td> <td class="no-print"><button class="btn-accion btn-modificar" data-id="${consumo.id}" style="background-color: #ffc107; color: black;">Modificar</button><button class="btn-accion btn-borrar" data-id="${consumo.id}" style="background-color: #dc3545; color: white;">Borrar</button></td>`; historialBody.appendChild(filaDato); }); }
-        
+
         // --- SECCIÓN 4: ARRANQUE DE LA APLICACIÓN ---
-        window.addEventListener('DOMContentLoaded', () => {
-            iniciarAplicacion();
-        });
+        function asignarEventos() {
+            document.getElementById('btnTabRegistrar').addEventListener('click', (e) => openMainTab(e, 'tabRegistrar'));
+            document.getElementById('btnTabReportes').addEventListener('click', (e) => openMainTab(e, 'tabReportes'));
+            document.getElementById('btnTabAdmin').addEventListener('click', (e) => openMainTab(e, 'tabAdmin'));
+            document.getElementById('consumoForm').addEventListener('submit', guardarOActualizar);
+            document.getElementById('btnPrint').addEventListener('click', () => window.print());
+            document.getElementById('filtroMes').addEventListener('change', (e) => {
+                filtroMesActual = e.target.value;
+                actualizarTodaLaUI();
+            });
+            document.getElementById('historialBody').addEventListener('click', manejarAccionesHistorial);
+            document.getElementById('formAdminChofer').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('choferes', document.getElementById('nuevoChofer')); });
+            document.getElementById('formAdminPlaca').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('placas', document.getElementById('nuevaPlaca')); });
+            document.getElementById('formAdminEmpresa').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('empresas', document.getElementById('nuevaEmpresa')); });
+            document.getElementById('formAdminProveedor').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('proveedores', document.getElementById('nuevoProveedor')); });
+        }
 
         function iniciarAplicacion() {
             asignarEventos();
             reiniciarFormulario();
             cargarDatosIniciales();
         }
+
+        // Este es el punto de entrada que espera a que todo el HTML esté listo.
+        window.addEventListener('DOMContentLoaded', iniciarAplicacion);
+
     </script>
 </body>
 </html>
