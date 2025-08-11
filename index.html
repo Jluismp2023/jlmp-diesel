@@ -20,7 +20,16 @@
         #resumenTabla th, #resumenEmpresaTabla th, #resumenProveedorTabla th { background-color: #28a745; }
         #resumenTabla tfoot tr, #resumenEmpresaTabla tfoot tr, #resumenProveedorTabla tfoot tr { font-weight: bold; background-color: #e9ecef; border-top: 2px solid #343a40; }
         .fila-grupo td { background-color: #6c757d; color: white; font-weight: bold; text-align: center; font-size: 1.1em; }
-        @media print { /* Estilos de Impresión */ }
+        @media print {
+            body { margin: 0; padding: 10px; background-color: white; color: black; }
+            body > *:not(.printable-section) { display: none; }
+            .printable-section { display: block !important; }
+            .no-print { display: none !important; }
+            .container { box-shadow: none; border: none; margin: 0; padding: 0; }
+            h1 { display: none; }
+            .signature-block { display: block; text-align: center; margin-top: 80px; page-break-inside: avoid; }
+            .signature-block .line { width: 250px; border-top: 1px solid black; margin: 0 auto 10px auto; }
+        }
     </style>
 </head>
 <body>
@@ -80,12 +89,13 @@
     </div>
     
     <div class="signature-block printable-section">
-        <div class="line" style="width: 250px; border-top: 1px solid black; margin: 80px auto 10px auto;"></div>
+        <div class="line"></div>
         Ing. José L. Macas P.<br>
         RESIDENTE DE OBRA
     </div>
 
     <script type="module">
+        // --- SECCIÓN 1: CONFIGURACIÓN Y CONEXIÓN A FIREBASE ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getFirestore, collection, getDocs, doc, addDoc, updateDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
         
@@ -100,13 +110,13 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         
+        // --- SECCIÓN 2: VARIABLES GLOBALES ---
         let miGrafico = null;
         let filtroMesActual = 'todos';
         let todosLosConsumos = [];
         let listasAdmin = { choferes: [], placas: [], empresas: [], proveedores: [] };
 
-        // --- DECLARACIÓN DE TODAS LAS FUNCIONES ---
-        // (La corrección es declarar todas las funciones antes de usarlas)
+        // --- SECCIÓN 3: DEFINICIÓN DE TODAS LAS FUNCIONES ---
 
         function openMainTab(evt, tabName) {
             let i, tabcontent, tablinks;
@@ -116,6 +126,42 @@
             for (i = 0; i < tablinks.length; i++) { tablinks[i].className = tablinks[i].className.replace(" active", ""); }
             document.getElementById(tabName).style.display = "block";
             evt.currentTarget.className += " active";
+        }
+
+        async function cargarDatosIniciales() {
+            document.getElementById('loadingMessage').style.display = 'block';
+            try {
+                const [consumosRes, choferesRes, placasRes, empresasRes, proveedoresRes] = await Promise.all([
+                    getDocs(query(collection(db, "consumos"), orderBy("fecha", "desc"))),
+                    getDocs(query(collection(db, "choferes"), orderBy("nombre"))),
+                    getDocs(query(collection(db, "placas"), orderBy("nombre"))),
+                    getDocs(query(collection(db, "empresas"), orderBy("nombre"))),
+                    getDocs(query(collection(db, "proveedores"), orderBy("nombre")))
+                ]);
+                todosLosConsumos = consumosRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                listasAdmin.choferes = choferesRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                listasAdmin.placas = placasRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                listasAdmin.empresas = empresasRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                listasAdmin.proveedores = proveedoresRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                actualizarTodaLaUI();
+            } catch (error) {
+                console.error("Error cargando datos:", error);
+                document.getElementById('loadingMessage').textContent = "Error al cargar datos. Revisa la consola (F12) y las Reglas de Firestore.";
+            } finally {
+                document.getElementById('loaderContainer').style.display = 'none';
+            }
+        }
+
+        function actualizarTodaLaUI() {
+            poblarFiltroDeMes();
+            const consumosFiltrados = obtenerConsumosFiltrados();
+            calcularYMostrarTotales(consumosFiltrados);
+            calcularYMostrarTotalesPorEmpresa(consumosFiltrados);
+            calcularYMostrarTotalesPorProveedor(consumosFiltrados);
+            poblarSelectores();
+            mostrarListasAdmin();
+            mostrarHistorialAgrupado(consumosFiltrados);
+            crearOActualizarGrafico(calcularYMostrarTotales(consumosFiltrados));
         }
 
         function poblarSelectores() {
@@ -137,7 +183,24 @@
             document.getElementById('btnGuardar').textContent = 'Guardar Registro';
             poblarSelectores();
         }
-        
+
+        async function guardarOActualizar(e) {
+            e.preventDefault();
+            const id = document.getElementById('registroId').value;
+            const datosConsumo = {
+                volqueta: document.getElementById('selectVolqueta').value, fecha: document.getElementById('fecha').value,
+                galones: document.getElementById('galones').value, costo: document.getElementById('costo').value,
+                descripcion: document.getElementById('descripcion').value, chofer: document.getElementById('selectChofer').value,
+                empresa: document.getElementById('selectEmpresa').value, proveedor: document.getElementById('selectProveedor').value
+            };
+            if (!datosConsumo.chofer || !datosConsumo.volqueta || !datosConsumo.empresa || !datosConsumo.proveedor) { alert("Por favor, seleccione un valor en todos los menús desplegables."); return; }
+            try {
+                if (id) { await updateDoc(doc(db, "consumos", id), datosConsumo); } else { await addDoc(collection(db, "consumos"), datosConsumo); }
+                reiniciarFormulario();
+                await cargarDatosIniciales();
+            } catch (error) { console.error("Error guardando:", error); alert("No se pudo guardar el registro."); }
+        }
+
         async function agregarItemAdmin(tipo, inputElement) {
             const valor = (tipo === 'placas') ? inputElement.value.trim().toUpperCase() : inputElement.value.trim();
             if (valor) {
@@ -151,31 +214,18 @@
             }
         }
 
-        async function modificarItemAdmin(item, tipo) {
-            const valorActual = item.nombre;
-            const nuevoValor = prompt(`Modificar "${valorActual}":`, valorActual);
-            if (!nuevoValor || nuevoValor.trim() === '' || nuevoValor.trim() === valorActual) return;
-            const valorFormateado = (tipo === 'placas') ? nuevoValor.trim().toUpperCase() : nuevoValor.trim();
-            const propiedad = { placas: 'volqueta', choferes: 'chofer', empresas: 'empresa', proveedores: 'proveedor' }[tipo];
-            if (confirm(`¿Estás seguro de cambiar "${valorActual}" por "${valorFormateado}"? Esto actualizará TODOS los registros del historial.`)) {
-                try {
-                    await updateDoc(doc(db, tipo, item.id), { nombre: valorFormateado });
-                    const updates = todosLosConsumos
-                        .filter(consumo => consumo[propiedad] === valorActual)
-                        .map(consumo => updateDoc(doc(db, "consumos", consumo.id), { [propiedad]: valorFormateado }));
-                    await Promise.all(updates);
-                    await cargarDatosIniciales();
-                } catch(e) { console.error("Error modificando:", e); }
-            }
+        function manejarAccionesHistorial(e) {
+            const target = e.target.closest('button');
+            if (!target) return;
+            const id = target.dataset.id;
+            if (!id) return;
+            if (target.classList.contains('btn-modificar')) cargarDatosParaModificar(id);
+            if (target.classList.contains('btn-borrar')) borrarConsumoHistorial(id);
         }
 
-        async function borrarItemAdmin(item, tipo) {
-            if (confirm(`¿Seguro que quieres borrar "${item.nombre}" de la lista de opciones?`)) {
-                try {
-                    await deleteDoc(doc(db, tipo, item.id));
-                    await cargarDatosIniciales();
-                } catch(e) { console.error("Error borrando:", e); }
-            }
+        function obtenerConsumosFiltrados() {
+            if (filtroMesActual === 'todos') return todosLosConsumos;
+            return todosLosConsumos.filter(c => c.fecha.startsWith(filtroMesActual));
         }
 
         function mostrarListasAdmin() {
@@ -191,6 +241,70 @@
                     ul.appendChild(li);
                 });
             }
+        }
+
+        async function modificarItemAdmin(item, tipo) {
+            const valorActual = item.nombre;
+            const nuevoValor = prompt(`Modificar "${valorActual}":`, valorActual);
+            if (!nuevoValor || nuevoValor.trim() === '' || nuevoValor.trim() === valorActual) return;
+            const valorFormateado = (tipo === 'placas') ? nuevoValor.trim().toUpperCase() : nuevoValor.trim();
+            const propiedad = { placas: 'volqueta', choferes: 'chofer', empresas: 'empresa', proveedores: 'proveedor' }[tipo];
+            if (confirm(`¿Estás seguro de cambiar "${valorActual}" por "${valorFormateado}"? Esto actualizará TODOS los registros del historial.`)) {
+                try {
+                    await updateDoc(doc(db, tipo, item.id), { nombre: valorFormateado });
+                    const updates = todosLosConsumos.filter(consumo => consumo[propiedad] === valorActual).map(consumo => updateDoc(doc(db, "consumos", consumo.id), { [propiedad]: valorFormateado }));
+                    await Promise.all(updates);
+                    await cargarDatosIniciales();
+                } catch(e) { console.error("Error modificando:", e); }
+            }
+        }
+        
+        function cargarDatosParaModificar(id) {
+            const consumo = todosLosConsumos.find(c => c.id === id);
+            if (!consumo) return;
+            document.getElementById('registroId').value = consumo.id;
+            document.getElementById('fecha').value = consumo.fecha;
+            document.getElementById('selectChofer').value = consumo.chofer;
+            document.getElementById('selectVolqueta').value = consumo.volqueta;
+            document.getElementById('galones').value = consumo.galones;
+            document.getElementById('costo').value = consumo.costo;
+            document.getElementById('descripcion').value = consumo.descripcion;
+            document.getElementById('selectEmpresa').value = consumo.empresa || "";
+            document.getElementById('selectProveedor').value = consumo.proveedor || "";
+            document.getElementById('formularioTitulo').textContent = 'Modificar Registro';
+            document.getElementById('btnGuardar').textContent = 'Actualizar Registro';
+            openMainTab({currentTarget: document.getElementById('btnTabRegistrar')}, 'tabRegistrar');
+            document.getElementById('formularioContainer').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        async function borrarItemAdmin(item, tipo) {
+            if (confirm(`¿Seguro que quieres borrar "${item.nombre}" de la lista de opciones?`)) {
+                try { await deleteDoc(doc(db, tipo, item.id)); await cargarDatosIniciales(); } catch(e) { console.error("Error borrando:", e); }
+            }
+        }
+        
+        async function borrarConsumoHistorial(id) {
+            if (confirm('¿Seguro que quieres borrar este registro?')) {
+                try { await deleteDoc(doc(db, "consumos", id)); await cargarDatosIniciales(); } catch (e) { console.error("Error borrando consumo:", e); }
+            }
+        }
+        
+        function poblarFiltroDeMes() {
+            const filtroSelect = document.getElementById('filtroMes');
+            const mesesUnicos = [...new Set(todosLosConsumos.map(c => c.fecha.substring(0, 7)))];
+            mesesUnicos.sort().reverse();
+            const valorSeleccionado = filtroSelect.value;
+            filtroSelect.innerHTML = '<option value="todos">Todos los Meses</option>';
+            mesesUnicos.forEach(mes => {
+                const [year, month] = mes.split('-');
+                const fechaMes = new Date(year, month - 1);
+                const nombreMes = fechaMes.toLocaleDateString('es-EC', { month: 'long', year: 'numeric' });
+                const opcion = document.createElement('option');
+                opcion.value = mes;
+                opcion.textContent = nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1);
+                filtroSelect.appendChild(opcion);
+            });
+            filtroSelect.value = valorSeleccionado;
         }
 
         function calcularYMostrarTotales(consumos) {
@@ -256,31 +370,6 @@
                 historialBody.appendChild(filaDato);
             });
         }
-        
-        function poblarFiltroDeMes() {
-            const filtroSelect = document.getElementById('filtroMes');
-            const consumos = todosLosConsumos;
-            const mesesUnicos = [...new Set(consumos.map(c => c.fecha.substring(0, 7)))];
-            mesesUnicos.sort().reverse();
-            const valorSeleccionado = filtroSelect.value;
-            filtroSelect.innerHTML = '<option value="todos">Todos los Meses</option>';
-            mesesUnicos.forEach(mes => {
-                const [year, month] = mes.split('-');
-                const fechaMes = new Date(year, month - 1);
-                const nombreMes = fechaMes.toLocaleDateString('es-EC', { month: 'long', year: 'numeric' });
-                const opcion = document.createElement('option');
-                opcion.value = mes;
-                opcion.textContent = nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1);
-                filtroSelect.appendChild(opcion);
-            });
-            filtroSelect.value = valorSeleccionado;
-        }
-
-        async function guardarOActualizar(e) { e.preventDefault(); const id = document.getElementById('registroId').value; const datosConsumo = { volqueta: document.getElementById('selectVolqueta').value, fecha: document.getElementById('fecha').value, galones: document.getElementById('galones').value, costo: document.getElementById('costo').value, descripcion: document.getElementById('descripcion').value, chofer: document.getElementById('selectChofer').value, empresa: document.getElementById('selectEmpresa').value, proveedor: document.getElementById('selectProveedor').value }; if (!datosConsumo.chofer || !datosConsumo.volqueta || !datosConsumo.empresa || !datosConsumo.proveedor) { alert("Por favor, seleccione un valor en todos los menús desplegables."); return; } try { if (id) { await updateDoc(doc(db, "consumos", id), datosConsumo); } else { await addDoc(collection(db, "consumos"), datosConsumo); } reiniciarFormulario(); await cargarDatosIniciales(); } catch (error) { console.error("Error guardando:", error); alert("No se pudo guardar el registro."); } }
-        function manejarAccionesHistorial(e) { const target = e.target.closest('button'); if (!target) return; const id = target.dataset.id; if (!id) return; if (target.classList.contains('btn-modificar')) cargarDatosParaModificar(id); if (target.classList.contains('btn-borrar')) borrarConsumoHistorial(id); }
-        function obtenerConsumosFiltrados() { if (filtroMesActual === 'todos') return todosLosConsumos; return todosLosConsumos.filter(c => c.fecha.startsWith(filtroMesActual)); }
-        function cargarDatosParaModificar(id) { const consumo = todosLosConsumos.find(c => c.id === id); if (!consumo) return; document.getElementById('registroId').value = consumo.id; document.getElementById('fecha').value = consumo.fecha; document.getElementById('selectChofer').value = consumo.chofer; document.getElementById('selectVolqueta').value = consumo.volqueta; document.getElementById('galones').value = consumo.galones; document.getElementById('costo').value = consumo.costo; document.getElementById('descripcion').value = consumo.descripcion; document.getElementById('selectEmpresa').value = consumo.empresa || ""; document.getElementById('selectProveedor').value = consumo.proveedor || ""; document.getElementById('formularioTitulo').textContent = 'Modificar Registro'; document.getElementById('btnGuardar').textContent = 'Actualizar Registro'; openMainTab({currentTarget: document.getElementById('btnTabRegistrar')}, 'tabRegistrar'); document.getElementById('formularioContainer').scrollIntoView({ behavior: 'smooth' }); }
-        async function borrarConsumoHistorial(id) { if (confirm('¿Seguro que quieres borrar este registro?')) { try { await deleteDoc(doc(db, "consumos", id)); await cargarDatosIniciales(); } catch (e) { console.error("Error borrando consumo:", e); } } }
 
         // --- ARRANQUE DE LA APLICACIÓN ---
         window.addEventListener('DOMContentLoaded', () => {
