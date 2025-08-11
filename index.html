@@ -12,14 +12,23 @@
         form { display: flex; flex-direction: column; gap: 15px; }
         input, select, textarea, button { padding: 10px; border-radius: 4px; border: 1px solid #ddd; font-size: 16px; }
         button { cursor: pointer; }
-        .loader { text-align: center; font-size: 1.2em; padding: 20px; }
         #resumenTabla th { background-color: #28a745; }
         #resumenTabla tfoot tr, #resumenEmpresaTabla tfoot tr { font-weight: bold; background-color: #e9ecef; border-top: 2px solid #343a40; }
-        .fila-grupo td { background-color: #6c757d; color: white; font-weight: bold; text-align: center; font-size: 1.1em; }
-        .btn-accion { padding: 5px 10px; margin-right: 5px; border-radius: 4px; border: none; color: white; font-size: 14px; }
-        .btn-modificar { background-color: #ffc107; }
-        .btn-borrar { background-color: #dc3545; }
-        @media print { .no-print { display: none !important; } }
+        
+        /* --- ESTILOS PARA LAS PESTAÑAS (TABS) --- */
+        .tab-container { border: 1px solid #ccc; background-color: #f1f1f1; }
+        .tab-container button { background-color: inherit; float: left; border: none; outline: none; cursor: pointer; padding: 14px 16px; transition: 0.3s; font-size: 17px; }
+        .tab-container button:hover { background-color: #ddd; }
+        .tab-container button.active { background-color: #ccc; }
+        .tab-content { display: none; padding: 6px 12px; border: 1px solid #ccc; border-top: none; }
+        .clearfix::after { content: ""; clear: both; display: table; }
+
+        @media print {
+            .no-print { display: none !important; }
+            .container { box-shadow: none; border: 1px solid #ccc; margin: 20px 0; }
+            .tab-container, .tab-content { border: none; }
+            .tab-content { display: block; } /* Mostrar todo el contenido al imprimir */
+        }
     </style>
 </head>
 <body>
@@ -45,18 +54,57 @@
         </form>
     </div>
     <div class="container" id="loaderContainer"><h2 id="loadingMessage" class="loader">Cargando datos desde la nube...</h2></div>
-    <div class="container"><h2>Totales por Volqueta</h2><table id="resumenTabla"><thead><tr><th>Volqueta (Placa)</th><th>Total Galones (Volumen)</th><th>Costo Total ($)</th></tr></thead><tbody id="resumenBody"></tbody><tfoot id="resumenFooter"></tfoot></table></div>
-    <div class="container"><h2>Gastos por Empresa</h2><table id="resumenEmpresaTabla"><thead><tr><th>Empresa</th><th>Total Galones (Volumen)</th><th>Costo Total ($)</th></tr></thead><tbody id="resumenEmpresaBody"></tbody><tfoot id="resumenEmpresaFooter"></tfoot></table></div>
-    <div class="container"><h2>Gráfico de Consumo por Volqueta</h2><canvas id="graficoConsumo" style="max-height: 400px;"></canvas></div>
-    <div class="container"><h2>Historial de Consumos</h2><table id="historialTabla"><thead><tr><th>Fecha</th><th>Mes</th><th>Chofer</th><th>Volqueta</th><th>Galones</th><th>Costo ($)</th><th>Empresa</th><th>Descripción</th><th class="no-print">Acciones</th></tr></thead><tbody id="historialBody"></tbody></table></div>
-    <div class="container no-print" id="adminContainer"><h2>Administración</h2><div class="admin-section" style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 20px;"><div class="admin-box" style="flex: 1; min-width: 300px;"><h3 style="text-align:center;">Gestionar Choferes</h3><form id="formAdminChofer" class="admin-form" style="display: flex; gap: 10px; margin-bottom: 15px;"><input type="text" id="nuevoChofer" placeholder="Nombre completo" required style="flex-grow: 1;"><button type="submit">Agregar</button></form><ul id="listaChoferes" class="lista-gestion" style="list-style-type: none; padding: 0;"></ul></div><div class="admin-box" style="flex: 1; min-width: 300px;"><h3 style="text-align:center;">Gestionar Placas</h3><form id="formAdminPlaca" class="admin-form" style="display: flex; gap: 10px; margin-bottom: 15px;"><input type="text" id="nuevaPlaca" placeholder="Placa de la volqueta" required style="flex-grow: 1;"><button type="submit">Agregar</button></form><ul id="listaPlacas" class="lista-gestion" style="list-style-type: none; padding: 0;"></ul></div><div class="admin-box" style="flex: 1; min-width: 300px;"><h3 style="text-align:center;">Gestionar Empresas</h3><form id="formAdminEmpresa" class="admin-form" style="display: flex; gap: 10px; margin-bottom: 15px;"><input type="text" id="nuevaEmpresa" placeholder="Nombre de la empresa" required style="flex-grow: 1;"><button type="submit">Agregar</button></form><ul id="listaEmpresas" class="lista-gestion" style="list-style-type: none; padding: 0;"></ul></div></div></div>
+    <div class="container">
+        <h2>Totales por Volqueta</h2>
+        <table id="resumenTabla"><thead><tr><th>Volqueta (Placa)</th><th>Total Galones (Volumen)</th><th>Costo Total ($)</th></tr></thead><tbody id="resumenBody"></tbody><tfoot id="resumenFooter"></tfoot></table>
+    </div>
+    <div class="container">
+        <h2>Gastos por Empresa</h2>
+        <table id="resumenEmpresaTabla"><thead><tr><th>Empresa</th><th>Total Galones (Volumen)</th><th>Costo Total ($)</th></tr></thead><tbody id="resumenEmpresaBody"></tbody><tfoot id="resumenEmpresaFooter"></tfoot></table>
+    </div>
+
+    <div class="container">
+        <div class="tab-container clearfix">
+            <button class="tab-link active" onclick="openTab(event, 'historial')">Historial de Consumos</button>
+            <button class="tab-link" onclick="openTab(event, 'grafico')">Consumo por Placa</button>
+        </div>
+
+        <div id="historial" class="tab-content" style="display: block;">
+            <table id="historialTabla">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Chofer</th>
+                        <th>Placa</th> <th>Galones</th>
+                        <th>Costo ($)</th>
+                        <th>Empresa</th>
+                        <th>Descripción</th>
+                        <th class="no-print">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="historialBody"></tbody>
+            </table>
+        </div>
+
+        <div id="grafico" class="tab-content">
+            <canvas id="graficoConsumo" style="max-height: 400px;"></canvas>
+        </div>
+    </div>
+    
+    <div class="container no-print" id="adminContainer">
+        <h2>Administración</h2>
+        <div class="admin-section" style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 20px;">
+            <div class="admin-box" style="flex: 1; min-width: 300px;"><h3 style="text-align:center;">Gestionar Choferes</h3><form id="formAdminChofer" class="admin-form" style="display: flex; gap: 10px; margin-bottom: 15px;"><input type="text" id="nuevoChofer" placeholder="Nombre completo" required style="flex-grow: 1;"><button type="submit">Agregar</button></form><ul id="listaChoferes" class="lista-gestion" style="list-style-type: none; padding: 0;"></ul></div>
+            <div class="admin-box" style="flex: 1; min-width: 300px;"><h3 style="text-align:center;">Gestionar Placas</h3><form id="formAdminPlaca" class="admin-form" style="display: flex; gap: 10px; margin-bottom: 15px;"><input type="text" id="nuevaPlaca" placeholder="Placa de la volqueta" required style="flex-grow: 1;"><button type="submit">Agregar</button></form><ul id="listaPlacas" class="lista-gestion" style="list-style-type: none; padding: 0;"></ul></div>
+            <div class="admin-box" style="flex: 1; min-width: 300px;"><h3 style="text-align:center;">Gestionar Empresas</h3><form id="formAdminEmpresa" class="admin-form" style="display: flex; gap: 10px; margin-bottom: 15px;"><input type="text" id="nuevaEmpresa" placeholder="Nombre de la empresa" required style="flex-grow: 1;"><button type="submit">Agregar</button></form><ul id="listaEmpresas" class="lista-gestion" style="list-style-type: none; padding: 0;"></ul></div>
+        </div>
+    </div>
 
     <script type="module">
-        // --- SECCIÓN 1: CONFIGURACIÓN Y CONEXIÓN A FIREBASE ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
         import { getFirestore, collection, getDocs, doc, addDoc, updateDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-        // Tu configuración personal de Firebase que proporcionaste
+        
+        // --- CONFIGURACIÓN DE FIREBASE ---
         const firebaseConfig = {
             apiKey: "AIzaSyCElg_et8_Z8ERTWo5tAwZJk2tb2ztUwlc",
             authDomain: "jlmp-diesel.firebaseapp.com",
@@ -65,11 +113,9 @@
             messagingSenderId: "763318949751",
             appId: "1:763318949751:web:e712d1008d34fbc98ab372"
         };
-
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         
-        // --- SECCIÓN 2: LÓGICA DE LA APLICACIÓN ---
         let miGrafico = null;
         let filtroMesActual = 'todos';
         let todosLosConsumos = [];
@@ -78,6 +124,21 @@
         window.addEventListener('DOMContentLoaded', () => {
             iniciarAplicacion();
         });
+
+        // --- LÓGICA DE LAS PESTAÑAS (NUEVO) ---
+        window.openTab = function(evt, tabName) {
+            let i, tabcontent, tablinks;
+            tabcontent = document.getElementsByClassName("tab-content");
+            for (i = 0; i < tabcontent.length; i++) {
+                tabcontent[i].style.display = "none";
+            }
+            tablinks = document.getElementsByClassName("tab-link");
+            for (i = 0; i < tablinks.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" active", "");
+            }
+            document.getElementById(tabName).style.display = "block";
+            evt.currentTarget.className += " active";
+        }
 
         function iniciarAplicacion() {
             asignarEventos();
@@ -98,48 +159,9 @@
             document.getElementById('formAdminEmpresa').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('empresas', document.getElementById('nuevaEmpresa')); });
         }
         
-        async function cargarDatosIniciales() {
-            document.getElementById('loadingMessage').style.display = 'block';
-            try {
-                const [consumosRes, choferesRes, placasRes, empresasRes] = await Promise.all([
-                    getDocs(query(collection(db, "consumos"), orderBy("fecha", "desc"))),
-                    getDocs(query(collection(db, "choferes"), orderBy("nombre"))),
-                    getDocs(query(collection(db, "placas"), orderBy("nombre"))),
-                    getDocs(query(collection(db, "empresas"), orderBy("nombre")))
-                ]);
-                todosLosConsumos = consumosRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                listasAdmin.choferes = choferesRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                listasAdmin.placas = placasRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                listasAdmin.empresas = empresasRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                actualizarTodaLaUI();
-            } catch (error) {
-                console.error("Error cargando datos:", error);
-                document.getElementById('loadingMessage').textContent = "Error al cargar datos. Revisa la consola (F12) y las Reglas de Firestore.";
-            } finally {
-                document.getElementById('loaderContainer').style.display = 'none';
-            }
-        }
-        
-        function actualizarTodaLaUI() {
-            poblarFiltroDeMes();
-            const consumosFiltrados = obtenerConsumosFiltrados();
-            calcularYMostrarTotales(consumosFiltrados);
-            calcularYMostrarTotalesPorEmpresa(consumosFiltrados);
-            poblarSelectores();
-            mostrarListasAdmin();
-            mostrarHistorialAgrupado(consumosFiltrados);
-            crearOActualizarGrafico({ labels: Object.keys(calcularYMostrarTotales(consumosFiltrados).totales || {}).sort(), data: Object.values(calcularYMostrarTotales(consumosFiltrados).totales || {}).map(t => t.totalCosto) });
-        }
-        
-        function reiniciarFormulario() {
-            document.getElementById('consumoForm').reset();
-            document.getElementById('registroId').value = '';
-            document.getElementById('fecha').valueAsDate = new Date(); 
-            document.getElementById('formularioTitulo').textContent = 'Nuevo Registro';
-            document.getElementById('btnGuardar').textContent = 'Guardar Registro';
-            poblarSelectores();
-        }
-
+        async function cargarDatosIniciales() { /* ...código sin cambios... */ }
+        function actualizarTodaLaUI() { /* ...código sin cambios... */ }
+        function reiniciarFormulario() { /* ...código sin cambios... */ }
         async function guardarOActualizar(e) { /* ...código sin cambios... */ }
         async function agregarItemAdmin(tipo, inputElement) { /* ...código sin cambios... */ }
         function manejarAccionesHistorial(e) { /* ...código sin cambios... */ }
@@ -157,21 +179,24 @@
         async function borrarConsumoHistorial(id) { /* ...código sin cambios... */ }
 
         // --- Pegado de funciones completas para evitar errores ---
-        guardarOActualizar = async function(e) { e.preventDefault(); const id = document.getElementById('registroId').value; const datosConsumo = { volqueta: document.getElementById('selectVolqueta').value, fecha: document.getElementById('fecha').value, galones: document.getElementById('galones').value, costo: document.getElementById('costo').value, descripcion: document.getElementById('descripcion').value, chofer: document.getElementById('selectChofer').value, empresa: document.getElementById('selectEmpresa').value }; if (!datosConsumo.chofer || !datosConsumo.volqueta || !datosConsumo.empresa) { alert("Por favor, seleccione un valor en todos los menús desplegables."); return; } try { if (id) { await updateDoc(doc(db, "consumos", id), datosConsumo); } else { await addDoc(collection(db, "consumos"), datosConsumo); } reiniciarFormulario(); await cargarDatosIniciales(); } catch (error) { console.error("Error guardando:", error); alert("No se pudo guardar el registro."); } }
-        agregarItemAdmin = async function(tipo, inputElement) { const valor = (tipo === 'placas') ? inputElement.value.trim().toUpperCase() : inputElement.value.trim(); if (valor) { const listaNombres = listasAdmin[tipo].map(item => item.nombre.toUpperCase()); if (listaNombres.includes(valor.toUpperCase())) { alert(`Este valor ya existe.`); return; } try { await addDoc(collection(db, tipo), { nombre: valor }); inputElement.value = ''; await cargarDatosIniciales(); } catch (error) { console.error("Error agregando:", error); alert("No se pudo agregar."); } } }
-        manejarAccionesHistorial = function(e) { const target = e.target.closest('button'); if (!target) return; const id = target.dataset.id; if (!id) return; if (target.classList.contains('btn-modificar')) cargarDatosParaModificar(id); if (target.classList.contains('btn-borrar')) borrarConsumoHistorial(id); }
-        obtenerConsumosFiltrados = function() { if (filtroMesActual === 'todos') return todosLosConsumos; return todosLosConsumos.filter(c => c.fecha.startsWith(filtroMesActual)); }
-        mostrarListasAdmin = function() { const contenedores = { choferes: 'listaChoferes', placas: 'listaPlacas', empresas: 'listaEmpresas' }; for (const tipo in contenedores) { const ul = document.getElementById(contenedores[tipo]); ul.innerHTML = ''; listasAdmin[tipo].forEach(item => { const li = document.createElement('li'); li.innerHTML = `<span>${item.nombre}</span><div><button class="btn-accion btn-modificar">Modificar</button><button class="btn-accion btn-borrar">Borrar</button></div>`; li.querySelector('.btn-modificar').addEventListener('click', () => modificarItemAdmin(item, tipo)); li.querySelector('.btn-borrar').addEventListener('click', () => borrarItemAdmin(item, tipo)); ul.appendChild(li); }); } }
-        cargarDatosParaModificar = function(id) { const consumo = todosLosConsumos.find(c => c.id === id); if (!consumo) return; document.getElementById('registroId').value = consumo.id; document.getElementById('fecha').value = consumo.fecha; document.getElementById('selectChofer').value = consumo.chofer; document.getElementById('selectVolqueta').value = consumo.volqueta; document.getElementById('galones').value = consumo.galones; document.getElementById('costo').value = consumo.costo; document.getElementById('descripcion').value = consumo.descripcion; document.getElementById('selectEmpresa').value = consumo.empresa || ""; document.getElementById('formularioTitulo').textContent = 'Modificar Registro'; document.getElementById('btnGuardar').textContent = 'Actualizar Registro'; document.getElementById('formularioContainer').scrollIntoView({ behavior: 'smooth' }); }
-        poblarSelectores = function() { const selectores = { choferes: document.getElementById('selectChofer'), placas: document.getElementById('selectVolqueta'), empresas: document.getElementById('selectEmpresa') }; const titulos = { choferes: '--- Seleccione un Chofer ---', placas: '--- Seleccione una Placa ---', empresas: '--- Seleccione una Empresa ---' }; for (const tipo in selectores) { const select = selectores[tipo]; if (!select) continue; const valorActual = select.value; select.innerHTML = `<option value="" disabled selected>${titulos[tipo]}</option>`; listasAdmin[tipo].forEach(item => select.innerHTML += `<option value="${item.nombre}">${item.nombre}</option>`); select.value = valorActual; } }
-        poblarFiltroDeMes = function() { const filtroSelect = document.getElementById('filtroMes'); const mesesUnicos = [...new Set(todosLosConsumos.map(c => c.fecha.substring(0, 7)))]; mesesUnicos.sort().reverse(); filtroSelect.innerHTML = '<option value="todos">Todos los Meses</option>'; mesesUnicos.forEach(mes => { const [year, month] = mes.split('-'); const fechaMes = new Date(year, month - 1); const nombreMes = fechaMes.toLocaleDateString('es-EC', { month: 'long', year: 'numeric' }); const opcion = document.createElement('option'); opcion.value = mes; opcion.textContent = nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1); filtroSelect.appendChild(opcion); }); filtroSelect.value = filtroMesActual; }
-        calcularYMostrarTotales = function(consumos) { const resumenBody = document.getElementById('resumenBody'); const resumenFooter = document.getElementById('resumenFooter'); const totales = {}; consumos.forEach(c => { if (!totales[c.volqueta]) totales[c.volqueta] = { totalGalones: 0, totalCosto: 0 }; totales[c.volqueta].totalGalones += parseFloat(c.galones); totales[c.volqueta].totalCosto += parseFloat(c.costo); }); const placasOrdenadas = Object.keys(totales).sort(); let htmlBody = ''; let granTotalGalones = 0; let granTotalCosto = 0; placasOrdenadas.forEach(placa => { const total = totales[placa]; htmlBody += `<tr><td><strong>${placa}</strong></td><td>${total.totalGalones.toFixed(2)}</td><td>$${total.totalCosto.toFixed(2)}</td></tr>`; granTotalGalones += total.totalGalones; granTotalCosto += total.totalCosto; }); resumenBody.innerHTML = htmlBody; resumenFooter.innerHTML = `<tr><td>TOTAL GENERAL</td><td>${granTotalGalones.toFixed(2)}</td><td>$${granTotalCosto.toFixed(2)}</td></tr>`; return { labels: placasOrdenadas, data: placasOrdenadas.map(placa => totales[placa].totalCosto), totales: totales }; }
-        calcularYMostrarTotalesPorEmpresa = function(consumos) { const resumenBody = document.getElementById('resumenEmpresaBody'); const resumenFooter = document.getElementById('resumenEmpresaFooter'); const totales = {}; consumos.forEach(c => { if (!c.empresa) return; if (!totales[c.empresa]) totales[c.empresa] = { totalGalones: 0, totalCosto: 0 }; totales[c.empresa].totalGalones += parseFloat(c.galones); totales[c.empresa].totalCosto += parseFloat(c.costo); }); const empresasOrdenadas = Object.keys(totales).sort(); let htmlBody = ''; let granTotalGalones = 0; let granTotalCosto = 0; empresasOrdenadas.forEach(empresa => { const total = totales[empresa]; htmlBody += `<tr><td><strong>${empresa}</strong></td><td>${total.totalGalones.toFixed(2)}</td><td>$${total.totalCosto.toFixed(2)}</td></tr>`; granTotalGalones += total.totalGalones; granTotalCosto += total.totalCosto; }); resumenBody.innerHTML = htmlBody; resumenFooter.innerHTML = `<tr><td>TOTAL GENERAL</td><td>${granTotalGalones.toFixed(2)}</td><td>$${granTotalCosto.toFixed(2)}</td></tr>`; }
-        crearOActualizarGrafico = function(datos) { const ctx = document.getElementById('graficoConsumo').getContext('2d'); if (miGrafico) { miGrafico.destroy(); } miGrafico = new Chart(ctx, { type: 'bar', data: { labels: datos.labels, datasets: [{ label: 'Costo Total de Consumo ($)', data: datos.data, backgroundColor: 'rgba(40, 167, 69, 0.7)', borderColor: 'rgba(40, 167, 69, 1)', borderWidth: 1 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { callback: function(value) { return '$' + value.toFixed(2); } } } }, plugins: { legend: { display: true, position: 'top', } } } }); }
-        mostrarHistorialAgrupado = function(consumos) { const historialBody = document.getElementById('historialBody'); historialBody.innerHTML = ''; consumos.sort((a,b) => a.volqueta.localeCompare(b.volqueta) || new Date(b.fecha) - new Date(a.fecha)); let placaActual = ""; consumos.forEach(consumo => { if (consumo.volqueta !== placaActual) { placaActual = consumo.volqueta; historialBody.innerHTML += `<tr class="fila-grupo"><td colspan="9">Volqueta: ${placaActual}</td></tr>`; } const nombreMes = new Date(consumo.fecha + 'T00:00:00').toLocaleDateString('es-EC', { month: 'long' }); historialBody.innerHTML += `<tr><td>${consumo.fecha}</td><td>${nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1)}</td><td>${consumo.chofer}</td><td>${consumo.volqueta}</td><td>${parseFloat(consumo.galones).toFixed(2)}</td><td>$${parseFloat(consumo.costo).toFixed(2)}</td><td>${consumo.empresa || ''}</td><td>${consumo.descripcion}</td><td class="no-print"><button class="btn-accion btn-modificar" data-id="${consumo.id}">Modificar</button><button class="btn-accion btn-borrar" data-id="${consumo.id}">Borrar</button></td></tr>`; }); }
-        modificarItemAdmin = async function(item, tipo) { const valorActual = item.nombre; const nuevoValor = prompt(`Modificar "${valorActual}":`, valorActual); if (!nuevoValor || nuevoValor.trim() === '' || nuevoValor.trim() === valorActual) return; const valorFormateado = (tipo === 'placas') ? nuevoValor.trim().toUpperCase() : nuevoValor.trim(); if (confirm(`¿Seguro que quieres cambiar "${valorActual}" por "${valorFormateado}"?`)) { try { await updateDoc(doc(db, tipo, item.id), { nombre: valorFormateado }); await cargarDatosIniciales(); } catch(e) { console.error("Error modificando:", e); } } }
-        borrarItemAdmin = async function(item, tipo) { if (confirm(`¿Seguro que quieres borrar "${item.nombre}" de la lista de opciones?`)) { try { await deleteDoc(doc(db, tipo, item.id)); await cargarDatosIniciales(); } catch(e) { console.error("Error borrando:", e); } } }
-        borrarConsumoHistorial = async function(id) { if (confirm('¿Seguro que quieres borrar este registro?')) { try { await deleteDoc(doc(db, "consumos", id)); await cargarDatosIniciales(); } catch (e) { console.error("Error borrando consumo:", e); } } }
+        cargarDatosIniciales = async function() { document.getElementById('loadingMessage').style.display = 'block'; try { const [consumosRes, choferesRes, placasRes, empresasRes] = await Promise.all([ getDocs(query(collection(db, "consumos"), orderBy("fecha", "desc"))), getDocs(query(collection(db, "choferes"), orderBy("nombre"))), getDocs(query(collection(db, "placas"), orderBy("nombre"))), getDocs(query(collection(db, "empresas"), orderBy("nombre"))) ]); todosLosConsumos = consumosRes.docs.map(doc => ({ id: doc.id, ...doc.data() })); listasAdmin.choferes = choferesRes.docs.map(doc => ({ id: doc.id, ...doc.data() })); listasAdmin.placas = placasRes.docs.map(doc => ({ id: doc.id, ...doc.data() })); listasAdmin.empresas = empresasRes.docs.map(doc => ({ id: doc.id, ...doc.data() })); actualizarTodaLaUI(); } catch (error) { console.error("Error cargando datos:", error); document.getElementById('loadingMessage').textContent = "Error al cargar datos. Revisa la consola (F12) y las Reglas de Firestore."; } finally { document.getElementById('loaderContainer').style.display = 'none'; } };
+        actualizarTodaLaUI = function() { poblarFiltroDeMes(); const consumosFiltrados = obtenerConsumosFiltrados(); const datosResumenVolqueta = calcularYMostrarTotales(consumosFiltrados); calcularYMostrarTotalesPorEmpresa(consumosFiltrados); poblarSelectores(); mostrarListasAdmin(); mostrarHistorialAgrupado(consumosFiltrados); crearOActualizarGrafico(datosResumenVolqueta); };
+        reiniciarFormulario = function() { document.getElementById('consumoForm').reset(); document.getElementById('registroId').value = ''; document.getElementById('fecha').valueAsDate = new Date(); document.getElementById('formularioTitulo').textContent = 'Nuevo Registro'; document.getElementById('btnGuardar').textContent = 'Guardar Registro'; poblarSelectores(); };
+        guardarOActualizar = async function(e) { e.preventDefault(); const id = document.getElementById('registroId').value; const datosConsumo = { volqueta: document.getElementById('selectVolqueta').value, fecha: document.getElementById('fecha').value, galones: document.getElementById('galones').value, costo: document.getElementById('costo').value, descripcion: document.getElementById('descripcion').value, chofer: document.getElementById('selectChofer').value, empresa: document.getElementById('selectEmpresa').value }; if (!datosConsumo.chofer || !datosConsumo.volqueta || !datosConsumo.empresa) { alert("Por favor, seleccione un valor en todos los menús desplegables."); return; } try { if (id) { await updateDoc(doc(db, "consumos", id), datosConsumo); } else { await addDoc(collection(db, "consumos"), datosConsumo); } reiniciarFormulario(); await cargarDatosIniciales(); } catch (error) { console.error("Error guardando:", error); alert("No se pudo guardar el registro."); } };
+        agregarItemAdmin = async function(tipo, inputElement) { const valor = (tipo === 'placas') ? inputElement.value.trim().toUpperCase() : inputElement.value.trim(); if (valor) { const listaNombres = listasAdmin[tipo].map(item => item.nombre.toUpperCase()); if (listaNombres.includes(valor.toUpperCase())) { alert(`Este valor ya existe.`); return; } try { await addDoc(collection(db, tipo), { nombre: valor }); inputElement.value = ''; await cargarDatosIniciales(); } catch (error) { console.error("Error agregando:", error); alert("No se pudo agregar."); } } };
+        manejarAccionesHistorial = function(e) { const target = e.target.closest('button'); if (!target) return; const id = target.dataset.id; if (!id) return; if (target.classList.contains('btn-modificar')) cargarDatosParaModificar(id); if (target.classList.contains('btn-borrar')) borrarConsumoHistorial(id); };
+        obtenerConsumosFiltrados = function() { if (filtroMesActual === 'todos') return todosLosConsumos; return todosLosConsumos.filter(c => c.fecha.startsWith(filtroMesActual)); };
+        mostrarListasAdmin = function() { const contenedores = { choferes: 'listaChoferes', placas: 'listaPlacas', empresas: 'listaEmpresas' }; for (const tipo in contenedores) { const ul = document.getElementById(contenedores[tipo]); ul.innerHTML = ''; listasAdmin[tipo].forEach(item => { const li = document.createElement('li'); li.innerHTML = `<span>${item.nombre}</span><div><button class="btn-accion btn-modificar">Modificar</button><button class="btn-accion btn-borrar">Borrar</button></div>`; li.querySelector('.btn-modificar').addEventListener('click', () => modificarItemAdmin(item, tipo)); li.querySelector('.btn-borrar').addEventListener('click', () => borrarItemAdmin(item, tipo)); ul.appendChild(li); }); } };
+        cargarDatosParaModificar = function(id) { const consumo = todosLosConsumos.find(c => c.id === id); if (!consumo) return; document.getElementById('registroId').value = consumo.id; document.getElementById('fecha').value = consumo.fecha; document.getElementById('selectChofer').value = consumo.chofer; document.getElementById('selectVolqueta').value = consumo.volqueta; document.getElementById('galones').value = consumo.galones; document.getElementById('costo').value = consumo.costo; document.getElementById('descripcion').value = consumo.descripcion; document.getElementById('selectEmpresa').value = consumo.empresa || ""; document.getElementById('formularioTitulo').textContent = 'Modificar Registro'; document.getElementById('btnGuardar').textContent = 'Actualizar Registro'; document.getElementById('formularioContainer').scrollIntoView({ behavior: 'smooth' }); };
+        poblarSelectores = function() { const selectores = { choferes: document.getElementById('selectChofer'), placas: document.getElementById('selectVolqueta'), empresas: document.getElementById('selectEmpresa') }; const titulos = { choferes: '--- Seleccione un Chofer ---', placas: '--- Seleccione una Placa ---', empresas: '--- Seleccione una Empresa ---' }; for (const tipo in selectores) { const select = selectores[tipo]; if (!select) continue; const valorActual = select.value; select.innerHTML = `<option value="" disabled selected>${titulos[tipo]}</option>`; listasAdmin[tipo].forEach(item => select.innerHTML += `<option value="${item.nombre}">${item.nombre}</option>`); select.value = valorActual; } };
+        poblarFiltroDeMes = function() { const filtroSelect = document.getElementById('filtroMes'); const mesesUnicos = [...new Set(todosLosConsumos.map(c => c.fecha.substring(0, 7)))]; mesesUnicos.sort().reverse(); filtroSelect.innerHTML = '<option value="todos">Todos los Meses</option>'; mesesUnicos.forEach(mes => { const [year, month] = mes.split('-'); const fechaMes = new Date(year, month - 1); const nombreMes = fechaMes.toLocaleDateString('es-EC', { month: 'long', year: 'numeric' }); const opcion = document.createElement('option'); opcion.value = mes; opcion.textContent = nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1); filtroSelect.appendChild(opcion); }); filtroSelect.value = filtroMesActual; };
+        calcularYMostrarTotales = function(consumos) { const resumenBody = document.getElementById('resumenBody'); const resumenFooter = document.getElementById('resumenFooter'); const totales = {}; consumos.forEach(c => { if (!totales[c.volqueta]) totales[c.volqueta] = { totalGalones: 0, totalCosto: 0 }; totales[c.volqueta].totalGalones += parseFloat(c.galones); totales[c.volqueta].totalCosto += parseFloat(c.costo); }); const placasOrdenadas = Object.keys(totales).sort(); let htmlBody = ''; let granTotalGalones = 0; let granTotalCosto = 0; placasOrdenadas.forEach(placa => { const total = totales[placa]; htmlBody += `<tr><td><strong>${placa}</strong></td><td>${total.totalGalones.toFixed(2)}</td><td>$${total.totalCosto.toFixed(2)}</td></tr>`; granTotalGalones += total.totalGalones; granTotalCosto += total.totalCosto; }); resumenBody.innerHTML = htmlBody; resumenFooter.innerHTML = `<tr><td>TOTAL GENERAL</td><td>${granTotalGalones.toFixed(2)}</td><td>$${granTotalCosto.toFixed(2)}</td></tr>`; return { labels: placasOrdenadas, data: placasOrdenadas.map(placa => totales[placa].totalCosto) }; };
+        calcularYMostrarTotalesPorEmpresa = function(consumos) { const resumenBody = document.getElementById('resumenEmpresaBody'); const resumenFooter = document.getElementById('resumenEmpresaFooter'); const totales = {}; consumos.forEach(c => { if (!c.empresa) return; if (!totales[c.empresa]) totales[c.empresa] = { totalGalones: 0, totalCosto: 0 }; totales[c.empresa].totalGalones += parseFloat(c.galones); totales[c.empresa].totalCosto += parseFloat(c.costo); }); const empresasOrdenadas = Object.keys(totales).sort(); let htmlBody = ''; let granTotalGalones = 0; let granTotalCosto = 0; empresasOrdenadas.forEach(empresa => { const total = totales[empresa]; htmlBody += `<tr><td><strong>${empresa}</strong></td><td>${total.totalGalones.toFixed(2)}</td><td>$${total.totalCosto.toFixed(2)}</td></tr>`; granTotalGalones += total.totalGalones; granTotalCosto += total.totalCosto; }); resumenBody.innerHTML = htmlBody; resumenFooter.innerHTML = `<tr><td>TOTAL GENERAL</td><td>${granTotalGalones.toFixed(2)}</td><td>$${granTotalCosto.toFixed(2)}</td></tr>`; };
+        crearOActualizarGrafico = function(datos) { const ctx = document.getElementById('graficoConsumo').getContext('2d'); if (miGrafico) { miGrafico.destroy(); } miGrafico = new Chart(ctx, { type: 'bar', data: { labels: datos.labels, datasets: [{ label: 'Costo Total de Consumo ($)', data: datos.data, backgroundColor: 'rgba(40, 167, 69, 0.7)', borderColor: 'rgba(40, 167, 69, 1)', borderWidth: 1 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { callback: function(value) { return '$' + value.toFixed(2); } } } }, plugins: { legend: { display: true, position: 'top', } } } }); };
+        mostrarHistorialAgrupado = function(consumos) { const historialBody = document.getElementById('historialBody'); historialBody.innerHTML = ''; consumos.sort((a,b) => a.volqueta.localeCompare(b.volqueta) || new Date(b.fecha) - new Date(a.fecha)); let placaActual = ""; consumos.forEach(consumo => { if (consumo.volqueta !== placaActual) { placaActual = consumo.volqueta; historialBody.innerHTML += `<tr class="fila-grupo"><td colspan="8">Volqueta: ${placaActual}</td></tr>`; } const nombreMes = new Date(consumo.fecha + 'T00:00:00').toLocaleDateString('es-EC', { month: 'long' }); historialBody.innerHTML += `<tr><td>${consumo.fecha}</td><td>${consumo.chofer}</td><td>${consumo.volqueta}</td><td>${parseFloat(consumo.galones).toFixed(2)}</td><td>$${parseFloat(consumo.costo).toFixed(2)}</td><td>${consumo.empresa || ''}</td><td>${consumo.descripcion}</td><td class="no-print"><button class="btn-accion btn-modificar" data-id="${consumo.id}">Modificar</button><button class="btn-accion btn-borrar" data-id="${consumo.id}">Borrar</button></td></tr>`; }); };
+        modificarItemAdmin = async function(item, tipo) { const valorActual = item.nombre; const nuevoValor = prompt(`Modificar "${valorActual}":`, valorActual); if (!nuevoValor || nuevoValor.trim() === '' || nuevoValor.trim() === valorActual) return; const valorFormateado = (tipo === 'placas') ? nuevoValor.trim().toUpperCase() : nuevoValor.trim(); if (confirm(`¿Seguro que quieres cambiar "${valorActual}" por "${valorFormateado}"?`)) { try { await updateDoc(doc(db, tipo, item.id), { nombre: valorFormateado }); await cargarDatosIniciales(); } catch(e) { console.error("Error modificando:", e); } } };
+        borrarItemAdmin = async function(item, tipo) { if (confirm(`¿Seguro que quieres borrar "${item.nombre}" de la lista de opciones?`)) { try { await deleteDoc(doc(db, tipo, item.id)); await cargarDatosIniciales(); } catch(e) { console.error("Error borrando:", e); } } };
+        borrarConsumoHistorial = async function(id) { if (confirm('¿Seguro que quieres borrar este registro?')) { try { await deleteDoc(doc(db, "consumos", id)); await cargarDatosIniciales(); } catch (e) { console.error("Error borrando consumo:", e); } } };
     </script>
 </body>
 </html>
