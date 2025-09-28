@@ -307,16 +307,7 @@ function handleLogin(e) {
     const password = document.getElementById('login-password').value;
     signInWithEmailAndPassword(auth, email, password)
         .then(userCredential => { mostrarNotificacion("Bienvenido de nuevo", "exito"); })
-        .catch(error => { mostrarNotificacion("Error: " + error.message, "error"); });
-}
-
-function handleRegister() {
-    const email = document.getElementById('login-email').value;
-    const password = document.getElementById('login-password').value;
-    if (!email || !password) { mostrarNotificacion("Por favor, ingresa un correo y contraseña para registrar.", "error"); return; }
-    createUserWithEmailAndPassword(auth, email, password)
-        .then(userCredential => { mostrarNotificacion("Usuario registrado con éxito. Ahora puedes iniciar sesión.", "exito"); })
-        .catch(error => { mostrarNotificacion("Error de registro: " + error.message, "error"); });
+        .catch(error => { mostrarNotificacion("Credenciales incorrectas.", "error"); });
 }
 
 function handleLogout() {
@@ -362,7 +353,9 @@ function iniciarAplicacion() {
     cargarDatosIniciales();
 }
 
-// ASIGNACIÓN INICIAL DE EVENTOS DE LOGIN (CORRECCIÓN)
+// ASIGNACIÓN INICIAL DE EVENTOS DE LOGIN
 document.getElementById('login-form').addEventListener('submit', handleLogin);
-document.getElementById('btn-registrar-nuevo').addEventListener('click', handleRegister);
 document.getElementById('btn-logout').addEventListener('click', handleLogout);
+
+// El botón de registro y su lógica han sido eliminados para restringir el acceso.
+// Si necesitas registrar un nuevo usuario, hazlo desde la consola de Firebase.
