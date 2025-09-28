@@ -4,85 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Consumo de Diésel</title>
+    
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" />
-    <style>
-        body { font-family: sans-serif; margin: 0; padding: 20px; background-color: #f4f4f9; }
-        h1, h2, h3 { color: #007bff; text-align: center; }
-        .container { max-width: 900px; margin: 20px auto; background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 10px; text-align: left; border: 1px solid #ddd;}
-        form { display: flex; flex-direction: column; gap: 15px; }
-        input, select, textarea, button { padding: 10px; border-radius: 4px; border: 1px solid #ddd; font-size: 16px; }
-        button { cursor: pointer; border-radius: 4px; }
-        button:hover { opacity: 0.9; }
-        .main-tabs { border-bottom: 2px solid #007bff; overflow: hidden; }
-        .main-tabs button { background-color: #f8f9fa; float: left; border: 1px solid #ccc; border-bottom: none; outline: none; cursor: pointer; padding: 14px 16px; transition: 0.3s; font-size: 17px; border-radius: 8px 8px 0 0; margin-right: 5px; color: #333; }
-        .main-tabs button.active { background-color: #007bff; color: white; border-color: #007bff; }
-        .main-tab-content { display: none; }
-        #resumenTabla th, #resumenEmpresaTabla th, #resumenProveedorTabla th, #resumenChoferTabla th, #resumenProyectoTabla th { background-color: #28a745; color: white; }
-        #resumenTabla tfoot tr, #resumenEmpresaTabla tfoot tr, #resumenProveedorTabla tfoot tr, #resumenChoferTabla tfoot tr, #resumenProyectoTabla tfoot tr, #historialTabla tfoot tr { font-weight: bold; background-color: #e9ecef; border-top: 2px solid #343a40; }
-        .fila-grupo td { background-color: #6c757d; color: white; font-weight: bold; text-align: center; font-size: 1.1em; }
-        .filter-section { display: flex; flex-direction: column; gap: 15px; border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 20px; }
-        .filter-group { display: flex; flex-wrap: wrap; gap: 15px; align-items: center; }
-        
-        /* --- ESTILOS PARA LA IMPRESIÓN --- */
-        @media print {
-            body { margin: 0; padding: 10px; background-color: white; color: black; font-size: 10pt;}
-            body > *:not(.printable-section) { display: none; }
-            .printable-section { display: block !important; }
-            .no-print { display: none !important; }
-            .container { box-shadow: none; border: none; margin: 0 0 20px 0; padding: 0; }
-            h1 { display: none; }
-            h2 { color: #000; text-align: left; font-size: 14pt; border-bottom: 2px solid #000; padding-bottom: 5px; margin-top: 25px; }
-            table { border-collapse: collapse; width: 100%; }
-            th, td { border: 1px solid #333 !important; padding: 5px; }
-            th { background-color: #e0e0e0 !important; color: #000 !important; }
-            tfoot tr { background-color: #f0f0f0 !important; }
-            .signature-block { display: block; text-align: center; margin-top: 80px; page-break-inside: avoid; }
-            .signature-block .line { width: 250px; border-top: 1px solid black; margin: 0 auto 10px auto; }
-            .accordion-button, .accordion-panel { display: none; }
-        }
 
-        /* --- ESTILOS PARA EL MODAL --- */
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); }
-        .modal-content { background-color: #fefefe; margin: 5% auto; padding: 25px; border: 1px solid #888; width: 90%; max-width: 600px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); position: relative; animation: fadeIn 0.3s; }
-        .close-button { color: #aaa; position: absolute; top: 10px; right: 20px; font-size: 28px; font-weight: bold; }
-        .close-button:hover, .close-button:focus { color: black; text-decoration: none; cursor: pointer; }
-        @keyframes fadeIn { from {opacity: 0; transform: translateY(-20px);} to {opacity: 1; transform: translateY(0);} }
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet">
 
-        /* --- ESTILOS PARA TARJETAS DE ADMINISTRACIÓN --- */
-        .admin-section { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; }
-        .admin-box { flex: 1; min-width: 350px; background: #fff; border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: all 0.3s ease; }
-        .admin-box:hover { transform: translateY(-5px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-        .admin-box h3 { margin-top: 0; padding-bottom: 10px; border-bottom: 1px solid #eee; color: #007bff; }
-        .admin-form { display: flex; gap: 10px; margin-bottom: 15px; }
-        .admin-form input { flex-grow: 1; }
-        .admin-form button { background-color: #28a745; color: white; border: none; }
-        .lista-gestion { list-style-type: none; padding: 0; max-height: 200px; overflow-y: auto; }
-        .lista-gestion li { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #f0f0f0; }
-        .lista-gestion li:last-child { border-bottom: none; }
-        .lista-gestion button { margin-left: 5px; padding: 5px 10px; border: none; border-radius: 4px; color: white; font-size: 12px; }
-        .lista-gestion .btn-modificar { background-color: #ffc107; color: black; }
-        .lista-gestion .btn-borrar { background-color: #dc3545; }
-        
-        /* --- ESTILOS PARA EL ACORDEÓN DE REPORTES --- */
-        .accordion-container { padding: 0; }
-        .accordion-button { background-color: #f8f9fa; color: #444; cursor: pointer; padding: 18px; width: 100%; border: none; text-align: left; outline: none; font-size: 16px; font-weight: bold; transition: background-color 0.4s ease; border-bottom: 1px solid #ddd; }
-        .accordion-button:first-of-type { border-top-left-radius: 8px; border-top-right-radius: 8px; }
-        .accordion-button:last-of-type { border-bottom-left-radius: 8px; border-bottom-right-radius: 8px; border-bottom: none; }
-        .accordion-button:hover, .accordion-button.active { background-color: #e9ecef; }
-        .accordion-button::after { content: '\\002B'; color: #007bff; font-weight: bold; float: right; margin-left: 5px; }
-        .accordion-button.active::after { content: "\\2212"; }
-        .accordion-panel { padding: 0 18px; background-color: white; max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; border-bottom: 1px solid #ddd; }
-        .accordion-panel table { margin: 15px 0; }
-
-        /* Espaciado para iconos de Font Awesome */
-        .fa-solid {
-            margin-right: 8px;
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container no-print">
@@ -101,14 +32,14 @@
         <div class="container">
             <h2><i class="fa-solid fa-file-circle-plus"></i>Registros de Consumo</h2>
             <p>Haz clic en el botón para añadir un nuevo registro de consumo de diésel.</p>
-            <button id="btnAbrirModal" style="background-color: #007bff; color: white; padding: 12px 20px; font-size: 16px; border: none;"><i class="fa-solid fa-plus"></i>Nuevo Registro</button>
+            <button id="btnAbrirModal" class="button-primary"><i class="fa-solid fa-plus"></i>Nuevo Registro</button>
         </div>
         <div id="modalRegistro" class="modal">
             <div class="modal-content">
                 <span class="close-button">&times;</span>
                 <div id="formularioContainer">
                     <h2 id="formularioTitulo">Nuevo Registro</h2>
-                    <form id="consumoForm"><input type="hidden" id="registroId"><label for="fecha">Fecha:</label><input type="date" id="fecha" required><label for="selectChofer">Nombre del Chofer:</label><select id="selectChofer" required></select><label for="selectVolqueta">Placa de la Volqueta:</label><select id="selectVolqueta" required></select><label for="selectProveedor">Proveedor de Diesel:</label><select id="selectProveedor" required></select><label for="selectProyecto">Proyecto:</label><select id="selectProyecto" required></select><label for="galones">Galones de Diésel (Volumen):</label><input type="number" id="galones" step="0.01" required><label for="costo">Costo Total ($):</label><input type="number" id="costo" step="0.01" required><label for="selectEmpresa">Empresa:</label><select id="selectEmpresa" required></select><label for="descripcion">Descripción del Uso:</label><textarea id="descripcion" required></textarea><button type="submit" id="btnGuardar" style="background-color: #007bff; color: white; border: none;"><i class="fa-solid fa-floppy-disk"></i>Guardar Registro</button></form>
+                    <form id="consumoForm"><input type="hidden" id="registroId"><label for="fecha">Fecha:</label><input type="date" id="fecha" required><label for="selectChofer">Nombre del Chofer:</label><select id="selectChofer" required></select><label for="selectVolqueta">Placa de la Volqueta:</label><select id="selectVolqueta" required></select><label for="selectProveedor">Proveedor de Diesel:</label><select id="selectProveedor" required></select><label for="selectProyecto">Proyecto:</label><select id="selectProyecto" required></select><label for="galones">Galones de Diésel (Volumen):</label><input type="number" id="galones" step="0.01" required><label for="costo">Costo Total ($):</label><input type="number" id="costo" step="0.01" required><label for="selectEmpresa">Empresa:</label><select id="selectEmpresa" required></select><label for="descripcion">Descripción del Uso:</label><textarea id="descripcion" required></textarea><button type="submit" id="btnGuardar" class="button-primary"><i class="fa-solid fa-floppy-disk"></i>Guardar Registro</button></form>
                 </div>
             </div>
         </div>
@@ -118,26 +49,24 @@
         <div class="container no-print">
             <div class="filter-section">
                 <div class="filter-group">
-                    <div><label for="filtroMes" style="font-weight: bold;">Por Mes:</label><select id="filtroMes"></select></div>
-                    <div><label for="filtroFechaInicio" style="font-weight: bold;">Por Rango:</label><input type="date" id="filtroFechaInicio" title="Desde la Fecha"></div>
-                    <div><label for="filtroFechaFin" style="font-weight: bold;">-</label><input type="date" id="filtroFechaFin" title="Hasta la Fecha"></div>
+                    <div><label for="filtroMes">Por Mes:</label><select id="filtroMes"></select></div>
+                    <div><label for="filtroFechaInicio">Por Rango:</label><input type="date" id="filtroFechaInicio" title="Desde la Fecha"></div>
+                    <div><label for="filtroFechaFin">-</label><input type="date" id="filtroFechaFin" title="Hasta la Fecha"></div>
                 </div>
                 <div class="filter-group">
-                    <div><label for="filtroChofer" style="font-weight: bold;">Por Chofer:</label><select id="filtroChofer"></select></div>
-                    <div><label for="filtroProveedor" style="font-weight: bold;">Por Proveedor:</label><select id="filtroProveedor"></select></div>
-                    <div><label for="filtroEmpresa" style="font-weight: bold;">Por Empresa:</label><select id="filtroEmpresa"></select></div>
-                    <div><label for="filtroProyecto" style="font-weight: bold;">Por Proyecto:</label><select id="filtroProyecto"></select></div>
+                    <div><label for="filtroChofer">Por Chofer:</label><select id="filtroChofer"></select></div>
+                    <div><label for="filtroProveedor">Por Proveedor:</label><select id="filtroProveedor"></select></div>
+                    <div><label for="filtroEmpresa">Por Empresa:</label><select id="filtroEmpresa"></select></div>
+                    <div><label for="filtroProyecto">Por Proyecto:</label><select id="filtroProyecto"></select></div>
                 </div>
                  <div class="filter-group">
-                     <button id="btnAplicarFiltros" style="background-color: #28a745; color: white; border: none;"><i class="fa-solid fa-filter"></i>Aplicar Filtros</button>
-                     <button id="btnLimpiarFiltros" style="background-color: #6c757d; color: white; border: none;"><i class="fa-solid fa-eraser"></i>Limpiar Filtros</button>
-                     <button id="btnPrint" style="background-color: #17a2b8; color: white; padding: 10px 20px; border: none; margin-left: auto;"><i class="fa-solid fa-print"></i>Imprimir Reporte</button>
+                     <button id="btnAplicarFiltros" class="button-success"><i class="fa-solid fa-filter"></i>Aplicar Filtros</button>
+                     <button id="btnLimpiarFiltros" class="button-secondary"><i class="fa-solid fa-eraser"></i>Limpiar Filtros</button>
+                     <button id="btnPrint" class="button-info" style="margin-left: auto;"><i class="fa-solid fa-print"></i>Imprimir Reporte</button>
                 </div>
             </div>
         </div>
-        
         <div class="container" id="loaderContainer"><h2 id="loadingMessage" class="loader">Cargando datos desde la nube...</h2></div>
-        
         <div class="container accordion-container">
             <button class="accordion-button">CONSUMO DE DIESEL POR EMPRESA</button><div class="accordion-panel"><table id="resumenEmpresaTabla"><thead><tr><th>Empresa</th><th>Total Galones (Volumen)</th><th>Costo Total ($)</th></tr></thead><tbody id="resumenEmpresaBody"></tbody><tfoot id="resumenEmpresaFooter"></tfoot></table></div>
             <button class="accordion-button">CONSUMO DE DIESEL POR PROVEEDOR</button><div class="accordion-panel"><table id="resumenProveedorTabla"><thead><tr><th>Proveedor</th><th>Total Galones (Volumen)</th><th>Costo Total ($)</th></tr></thead><tbody id="resumenProveedorBody"></tbody><tfoot id="resumenProveedorFooter"></tfoot></table></div>
@@ -153,11 +82,11 @@
         <div class="container" id="adminContainer">
             <h2><i class="fa-solid fa-screwdriver-wrench"></i>Administración</h2>
             <div class="admin-section">
-                <div class="admin-box"><h3><i class="fa-solid fa-user-tie"></i>Gestionar Choferes</h3><form id="formAdminChofer" class="admin-form"><input type="text" id="nuevoChofer" placeholder="Nombre completo" required><button type="submit"><i class="fa-solid fa-plus"></i>Agregar</button></form><ul id="listaChoferes" class="lista-gestion"></ul></div>
-                <div class="admin-box"><h3><i class="fa-solid fa-truck"></i>Gestionar Placas</h3><form id="formAdminPlaca" class="admin-form"><input type="text" id="nuevaPlaca" placeholder="Placa de la volqueta" required><button type="submit"><i class="fa-solid fa-plus"></i>Agregar</button></form><ul id="listaPlacas" class="lista-gestion"></ul></div>
-                <div class="admin-box"><h3><i class="fa-solid fa-building"></i>Gestionar Empresas</h3><form id="formAdminEmpresa" class="admin-form"><input type="text" id="nuevaEmpresa" placeholder="Nombre de la empresa" required><button type="submit"><i class="fa-solid fa-plus"></i>Agregar</button></form><ul id="listaEmpresas" class="lista-gestion"></ul></div>
-                <div class="admin-box"><h3><i class="fa-solid fa-dolly"></i>Gestionar Proveedores</h3><form id="formAdminProveedor" class="admin-form"><input type="text" id="nuevoProveedor" placeholder="Nombre del proveedor" required><button type="submit"><i class="fa-solid fa-plus"></i>Agregar</button></form><ul id="listaProveedores" class="lista-gestion"></ul></div>
-                <div class="admin-box"><h3><i class="fa-solid fa-list-check"></i>Gestionar Proyectos</h3><form id="formAdminProyecto" class="admin-form"><input type="text" id="nuevoProyecto" placeholder="Nombre del proyecto" required><button type="submit"><i class="fa-solid fa-plus"></i>Agregar</button></form><ul id="listaProyectos" class="lista-gestion"></ul></div>
+                <div class="admin-box"><h3><i class="fa-solid fa-user-tie"></i>Gestionar Choferes</h3><form id="formAdminChofer" class="admin-form"><input type="text" id="nuevoChofer" placeholder="Nombre completo" required><button type="submit" class="button-success"><i class="fa-solid fa-plus"></i>Agregar</button></form><ul id="listaChoferes" class="lista-gestion"></ul></div>
+                <div class="admin-box"><h3><i class="fa-solid fa-truck"></i>Gestionar Placas</h3><form id="formAdminPlaca" class="admin-form"><input type="text" id="nuevaPlaca" placeholder="Placa de la volqueta" required><button type="submit" class="button-success"><i class="fa-solid fa-plus"></i>Agregar</button></form><ul id="listaPlacas" class="lista-gestion"></ul></div>
+                <div class="admin-box"><h3><i class="fa-solid fa-building"></i>Gestionar Empresas</h3><form id="formAdminEmpresa" class="admin-form"><input type="text" id="nuevaEmpresa" placeholder="Nombre de la empresa" required><button type="submit" class="button-success"><i class="fa-solid fa-plus"></i>Agregar</button></form><ul id="listaEmpresas" class="lista-gestion"></ul></div>
+                <div class="admin-box"><h3><i class="fa-solid fa-dolly"></i>Gestionar Proveedores</h3><form id="formAdminProveedor" class="admin-form"><input type="text" id="nuevoProveedor" placeholder="Nombre del proveedor" required><button type="submit" class="button-success"><i class="fa-solid fa-plus"></i>Agregar</button></form><ul id="listaProveedores" class="lista-gestion"></ul></div>
+                <div class="admin-box"><h3><i class="fa-solid fa-list-check"></i>Gestionar Proyectos</h3><form id="formAdminProyecto" class="admin-form"><input type="text" id="nuevoProyecto" placeholder="Nombre del proyecto" required><button type="submit" class="button-success"><i class="fa-solid fa-plus"></i>Agregar</button></form><ul id="listaProyectos" class="lista-gestion"></ul></div>
             </div>
         </div>
     </div>
@@ -170,268 +99,6 @@
 
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getFirestore, collection, getDocs, doc, addDoc, updateDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-        
-        const firebaseConfig = {
-            apiKey: "AIzaSyCElg_et8_Z8ERTWo5tAwZJk2tb2ztUwlc",
-            authDomain: "jlmp-diesel.firebaseapp.com",
-            projectId: "jlmp-diesel",
-            storageBucket: "jlmp-diesel.firebasestorage.app",
-            messagingSenderId: "763318949751",
-            appId: "1:763318949751:web:e712d1008d34fbc98ab372"
-        };
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        
-        let miGrafico = null;
-        let todosLosConsumos = [];
-        let listasAdmin = { choferes: [], placas: [], empresas: [], proveedores: [], proyectos: [] };
-        
-        function mostrarNotificacion(texto, tipo = 'info') {
-            let backgroundColor;
-            switch (tipo) {
-                case 'exito': backgroundColor = "linear-gradient(to right, #00b09b, #96c93d)"; break;
-                case 'error': backgroundColor = "linear-gradient(to right, #ff5f6d, #ffc371)"; break;
-                default: backgroundColor = "#007bff"; break;
-            }
-            Toastify({ text: texto, duration: 3500, close: true, gravity: "top", position: "right", stopOnFocus: true, style: { background: backgroundColor, } }).showToast();
-        }
-
-        const modal = document.getElementById('modalRegistro');
-        const btnAbrirModal = document.getElementById('btnAbrirModal');
-        const btnCerrarModal = document.querySelector('.close-button');
-        function abrirModal() { modal.style.display = 'block'; }
-        function cerrarModal() { modal.style.display = 'none'; reiniciarFormulario(); }
-        btnAbrirModal.addEventListener('click', abrirModal);
-        btnCerrarModal.addEventListener('click', cerrarModal);
-        window.addEventListener('click', function(event) { if (event.target == modal) { cerrarModal(); } });
-
-        function openMainTab(evt, tabName) {
-            let i, tabcontent, tablinks;
-            tabcontent = document.getElementsByClassName("main-tab-content");
-            for (i = 0; i < tabcontent.length; i++) { tabcontent[i].style.display = "none"; }
-            tablinks = document.getElementsByClassName("main-tab-link");
-            for (i = 0; i < tablinks.length; i++) { tablinks[i].className = tablinks[i].className.replace(" active", ""); }
-            document.getElementById(tabName).style.display = "block";
-            evt.currentTarget.className += " active";
-        }
-
-        async function cargarDatosIniciales() {
-            document.getElementById('loadingMessage').style.display = 'block';
-            try {
-                const [consumosRes, choferesRes, placasRes, empresasRes, proveedoresRes, proyectosRes] = await Promise.all([
-                    getDocs(query(collection(db, "consumos"), orderBy("fecha", "desc"))), getDocs(query(collection(db, "choferes"), orderBy("nombre"))), getDocs(query(collection(db, "placas"), orderBy("nombre"))), getDocs(query(collection(db, "empresas"), orderBy("nombre"))), getDocs(query(collection(db, "proveedores"), orderBy("nombre"))), getDocs(query(collection(db, "proyectos"), orderBy("nombre")))
-                ]);
-                todosLosConsumos = consumosRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                listasAdmin.choferes = choferesRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                listasAdmin.placas = placasRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                listasAdmin.empresas = empresasRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                listasAdmin.proveedores = proveedoresRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                listasAdmin.proyectos = proyectosRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                actualizarTodaLaUI();
-            } catch (error) {
-                console.error("Error cargando datos:", error);
-                document.getElementById('loadingMessage').textContent = "Error al cargar datos. Revisa la consola (F12) y las Reglas de Firestore.";
-            } finally {
-                if (document.getElementById('loaderContainer')) { document.getElementById('loaderContainer').style.display = 'none'; }
-            }
-        }
-
-        function actualizarTodaLaUI() {
-            poblarFiltroDeMes();
-            poblarFiltrosReportes();
-            const consumosFiltrados = obtenerConsumosFiltrados();
-            calcularYMostrarTotalesPorEmpresa(consumosFiltrados);
-            calcularYMostrarTotalesPorProveedor(consumosFiltrados);
-            calcularYMostrarTotalesPorChofer(consumosFiltrados);
-            calcularYMostrarTotalesPorProyecto(consumosFiltrados);
-            poblarSelectores();
-            mostrarListasAdmin();
-            mostrarHistorialAgrupado(consumosFiltrados);
-            crearOActualizarGrafico(calcularYMostrarTotales(consumosFiltrados));
-        }
-
-        function poblarSelectores() {
-            const selectores = { choferes: document.getElementById('selectChofer'), placas: document.getElementById('selectVolqueta'), empresas: document.getElementById('selectEmpresa'), proveedores: document.getElementById('selectProveedor'), proyectos: document.getElementById('selectProyecto') };
-            const titulos = { choferes: '--- Chofer ---', placas: '--- Placa ---', empresas: '--- Empresa ---', proveedores: '--- Proveedor ---', proyectos: '--- Proyecto ---' };
-            for (const tipo in selectores) {
-                const select = selectores[tipo];
-                if (!select) continue;
-                const valorActual = select.value;
-                select.innerHTML = `<option value="" disabled selected>${titulos[tipo]}</option>`;
-                listasAdmin[tipo].forEach(item => { select.innerHTML += `<option value="${item.nombre}">${item.nombre}</option>`; });
-                select.value = valorActual;
-            }
-        }
-
-        function reiniciarFormulario() {
-            document.getElementById('consumoForm').reset();
-            document.getElementById('registroId').value = '';
-            document.getElementById('fecha').valueAsDate = new Date();
-            document.getElementById('formularioTitulo').textContent = 'Nuevo Registro';
-            poblarSelectores();
-        }
-
-        async function guardarOActualizar(e) {
-            e.preventDefault();
-            const id = document.getElementById('registroId').value;
-            const datosConsumo = { volqueta: document.getElementById('selectVolqueta').value, fecha: document.getElementById('fecha').value, galones: document.getElementById('galones').value, costo: document.getElementById('costo').value, descripcion: document.getElementById('descripcion').value, chofer: document.getElementById('selectChofer').value, empresa: document.getElementById('selectEmpresa').value, proveedor: document.getElementById('selectProveedor').value, proyecto: document.getElementById('selectProyecto').value };
-            if (!datosConsumo.chofer || !datosConsumo.volqueta || !datosConsumo.empresa || !datosConsumo.proveedor || !datosConsumo.proyecto) {
-                mostrarNotificacion("Por favor, complete todos los campos.", "error"); return;
-            }
-            try {
-                if (id) {
-                    await updateDoc(doc(db, "consumos", id), datosConsumo);
-                    mostrarNotificacion("Registro actualizado con éxito", "exito");
-                } else {
-                    await addDoc(collection(db, "consumos"), datosConsumo);
-                    mostrarNotificacion("Registro guardado con éxito", "exito");
-                }
-                reiniciarFormulario();
-                cerrarModal();
-                await cargarDatosIniciales();
-            } catch (error) {
-                console.error("Error guardando:", error);
-                mostrarNotificacion("No se pudo guardar el registro.", "error");
-            }
-        }
-
-        async function agregarItemAdmin(tipo, inputElement) {
-            const valor = (tipo === 'placas') ? inputElement.value.trim().toUpperCase() : inputElement.value.trim();
-            if (valor) {
-                const listaNombres = listasAdmin[tipo].map(item => item.nombre.toUpperCase());
-                if (listaNombres.includes(valor.toUpperCase())) {
-                    mostrarNotificacion(`"${valor}" ya existe.`, "error"); return;
-                }
-                try {
-                    await addDoc(collection(db, tipo), { nombre: valor });
-                    mostrarNotificacion(`Elemento agregado correctamente.`, "exito");
-                    inputElement.value = '';
-                    await cargarDatosIniciales();
-                } catch (error) {
-                    console.error("Error agregando:", error);
-                    mostrarNotificacion("No se pudo agregar el elemento.", "error");
-                }
-            }
-        }
-        
-        function manejarAccionesHistorial(e) { const target = e.target.closest('button'); if (!target) return; const id = target.dataset.id; if (!id) return; if (target.classList.contains('btn-modificar')) cargarDatosParaModificar(id); if (target.classList.contains('btn-borrar')) borrarConsumoHistorial(id); }
-        
-        function obtenerConsumosFiltrados() {
-            const mes = document.getElementById('filtroMes').value;
-            const fechaInicio = document.getElementById('filtroFechaInicio').value;
-            const fechaFin = document.getElementById('filtroFechaFin').value;
-            const chofer = document.getElementById('filtroChofer').value, proveedor = document.getElementById('filtroProveedor').value, empresa = document.getElementById('filtroEmpresa').value, proyecto = document.getElementById('filtroProyecto').value;
-            let consumosFiltrados = todosLosConsumos;
-            if (fechaInicio && fechaFin) {
-                if (fechaFin < fechaInicio) { mostrarNotificacion("La fecha de fin no puede ser anterior a la de inicio.", "error"); return []; }
-                consumosFiltrados = consumosFiltrados.filter(c => c.fecha >= fechaInicio && c.fecha <= fechaFin);
-            } else if (fechaInicio) { consumosFiltrados = consumosFiltrados.filter(c => c.fecha === fechaInicio); } else if (mes !== 'todos') { consumosFiltrados = consumosFiltrados.filter(c => c.fecha.startsWith(mes)); }
-            if (chofer !== 'todos') { consumosFiltrados = consumosFiltrados.filter(c => c.chofer === chofer); }
-            if (proveedor !== 'todos') { consumosFiltrados = consumosFiltrados.filter(c => c.proveedor === proveedor); }
-            if (empresa !== 'todos') { consumosFiltrados = consumosFiltrados.filter(c => c.empresa === empresa); }
-            if (proyecto !== 'todos') { consumosFiltrados = consumosFiltrados.filter(c => c.proyecto === proyecto); }
-            return consumosFiltrados;
-        }
-        
-        function mostrarListasAdmin() {
-            const contenedores = { choferes: 'listaChoferes', placas: 'listaPlacas', empresas: 'listaEmpresas', proveedores: 'listaProveedores', proyectos: 'listaProyectos' };
-            for (const tipo in contenedores) {
-                const ul = document.getElementById(contenedores[tipo]);
-                ul.innerHTML = '';
-                listasAdmin[tipo].forEach(item => {
-                    const li = document.createElement('li');
-                    li.innerHTML = `<span>${item.nombre}</span>
-                                  <div>
-                                      <button class="btn-accion btn-modificar" title="Modificar"><i class="fa-solid fa-pencil" style="margin:0;"></i></button>
-                                      <button class="btn-accion btn-borrar" title="Borrar"><i class="fa-solid fa-trash-can" style="margin:0;"></i></button>
-                                  </div>`;
-                    li.querySelector('.btn-modificar').addEventListener('click', () => modificarItemAdmin(item, tipo));
-                    li.querySelector('.btn-borrar').addEventListener('click', () => borrarItemAdmin(item, tipo));
-                    ul.appendChild(li);
-                });
-            }
-        }
-        
-        async function modificarItemAdmin(item, tipo) { const valorActual = item.nombre; const nuevoValor = prompt(`Modificar "${valorActual}":`, valorActual); if (!nuevoValor || nuevoValor.trim() === '' || nuevoValor.trim() === valorActual) return; const valorFormateado = (tipo === 'placas') ? nuevoValor.trim().toUpperCase() : nuevoValor.trim(); const propiedad = { placas: 'volqueta', choferes: 'chofer', empresas: 'empresa', proveedores: 'proveedor', proyectos: 'proyecto' }[tipo]; if (confirm(`¿Estás seguro de cambiar "${valorActual}" por "${valorFormateado}"? Esto actualizará TODOS los registros del historial.`)) { try { await updateDoc(doc(db, tipo, item.id), { nombre: valorFormateado }); const updates = todosLosConsumos.filter(consumo => consumo[propiedad] === valorActual).map(consumo => updateDoc(doc(db, "consumos", consumo.id), { [propiedad]: valorFormateado })); await Promise.all(updates); await cargarDatosIniciales(); mostrarNotificacion("Actualización masiva completada.", "exito"); } catch(e) { console.error("Error modificando:", e); mostrarNotificacion("Error al modificar.", "error"); } } }
-        
-        function cargarDatosParaModificar(id) {
-            const consumo = todosLosConsumos.find(c => c.id === id); if (!consumo) return;
-            document.getElementById('registroId').value = consumo.id; document.getElementById('fecha').value = consumo.fecha; document.getElementById('selectChofer').value = consumo.chofer; document.getElementById('selectVolqueta').value = consumo.volqueta; document.getElementById('galones').value = consumo.galones; document.getElementById('costo').value = consumo.costo; document.getElementById('descripcion').value = consumo.descripcion; document.getElementById('selectEmpresa').value = consumo.empresa || ""; document.getElementById('selectProveedor').value = consumo.proveedor || ""; document.getElementById('selectProyecto').value = consumo.proyecto || "";
-            abrirModal();
-        }
-
-        function calcularYMostrarTotalesPorProyecto(consumos) { const resumenBody = document.getElementById('resumenProyectoBody'); const resumenFooter = document.getElementById('resumenProyectoFooter'); const totales = {}; consumos.forEach(c => { if (!c.proyecto) return; if (!totales[c.proyecto]) totales[c.proyecto] = { totalGalones: 0, totalCosto: 0 }; totales[c.proyecto].totalGalones += parseFloat(c.galones); totales[c.proyecto].totalCosto += parseFloat(c.costo); }); const proyectosOrdenados = Object.keys(totales).sort(); let htmlBody = ''; let granTotalGalones = 0; let granTotalCosto = 0; proyectosOrdenados.forEach(proyecto => { const total = totales[proyecto]; htmlBody += `<tr><td><strong>${proyecto}</strong></td><td>${total.totalGalones.toFixed(2)}</td><td>$${total.totalCosto.toFixed(2)}</td></tr>`; granTotalGalones += total.totalGalones; granTotalCosto += total.totalCosto; }); resumenBody.innerHTML = htmlBody; resumenFooter.innerHTML = `<tr><td>TOTAL GENERAL</td><td>${granTotalGalones.toFixed(2)}</td><td>$${granTotalCosto.toFixed(2)}</td></tr>`; }
-        function calcularYMostrarTotalesPorChofer(consumos) { const resumenBody = document.getElementById('resumenChoferBody'); const resumenFooter = document.getElementById('resumenChoferFooter'); const totales = {}; consumos.forEach(c => { if (!c.chofer) return; if (!totales[c.chofer]) totales[c.chofer] = { totalGalones: 0, totalCosto: 0 }; totales[c.chofer].totalGalones += parseFloat(c.galones); totales[c.chofer].totalCosto += parseFloat(c.costo); }); const choferesOrdenados = Object.keys(totales).sort(); let htmlBody = ''; let granTotalGalones = 0; let granTotalCosto = 0; choferesOrdenados.forEach(chofer => { const total = totales[chofer]; htmlBody += `<tr><td><strong>${chofer}</strong></td><td>${total.totalGalones.toFixed(2)}</td><td>$${total.totalCosto.toFixed(2)}</td></tr>`; granTotalGalones += total.totalGalones; granTotalCosto += total.totalCosto; }); resumenBody.innerHTML = htmlBody; resumenFooter.innerHTML = `<tr><td>TOTAL GENERAL</td><td>${granTotalGalones.toFixed(2)}</td><td>$${granTotalCosto.toFixed(2)}</td></tr>`; }
-        function calcularYMostrarTotalesPorProveedor(consumos) { const resumenBody = document.getElementById('resumenProveedorBody'); const resumenFooter = document.getElementById('resumenProveedorFooter'); const totales = {}; consumos.forEach(c => { if (!c.proveedor) return; if (!totales[c.proveedor]) totales[c.proveedor] = { totalGalones: 0, totalCosto: 0 }; totales[c.proveedor].totalGalones += parseFloat(c.galones); totales[c.proveedor].totalCosto += parseFloat(c.costo); }); const proveedoresOrdenados = Object.keys(totales).sort(); let htmlBody = ''; let granTotalGalones = 0; let granTotalCosto = 0; proveedoresOrdenados.forEach(proveedor => { const total = totales[proveedor]; htmlBody += `<tr><td><strong>${proveedor}</strong></td><td>${total.totalGalones.toFixed(2)}</td><td>$${total.totalCosto.toFixed(2)}</td></tr>`; granTotalGalones += total.totalGalones; granTotalCosto += total.totalCosto; }); resumenBody.innerHTML = htmlBody; resumenFooter.innerHTML = `<tr><td>TOTAL GENERAL</td><td>${granTotalGalones.toFixed(2)}</td><td>$${granTotalCosto.toFixed(2)}</td></tr>`; }
-        
-        async function borrarItemAdmin(item, tipo) { if (confirm(`¿Seguro que quieres borrar "${item.nombre}" de la lista de opciones?`)) { try { await deleteDoc(doc(db, tipo, item.id)); mostrarNotificacion("Elemento borrado.", "exito"); await cargarDatosIniciales(); } catch(e) { console.error("Error borrando:", e); mostrarNotificacion("No se pudo borrar el elemento.", "error"); } } }
-        async function borrarConsumoHistorial(id) { if (confirm('¿Seguro que quieres borrar este registro?')) { try { await deleteDoc(doc(db, "consumos", id)); mostrarNotificacion("Registro borrado.", "exito"); await cargarDatosIniciales(); } catch (e) { console.error("Error borrando consumo:", e); mostrarNotificacion("No se pudo borrar el registro.", "error"); } } }
-        
-        function poblarFiltroDeMes() { const filtroSelect = document.getElementById('filtroMes'); const mesesUnicos = [...new Set(todosLosConsumos.map(c => c.fecha.substring(0, 7)))]; mesesUnicos.sort().reverse(); const valorSeleccionado = filtroSelect.value; filtroSelect.innerHTML = '<option value="todos">Todos los Meses</option>'; mesesUnicos.forEach(mes => { const [year, month] = mes.split('-'); const fechaMes = new Date(year, month - 1); const nombreMes = fechaMes.toLocaleDateString('es-EC', { month: 'long', year: 'numeric' }); const opcion = document.createElement('option'); opcion.value = mes; opcion.textContent = nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1); filtroSelect.appendChild(opcion); }); if (filtroSelect.value) filtroSelect.value = valorSeleccionado || 'todos'; }
-        function poblarFiltrosReportes() { const selectores = { choferes: document.getElementById('filtroChofer'), proveedores: document.getElementById('filtroProveedor'), empresas: document.getElementById('filtroEmpresa'), proyectos: document.getElementById('filtroProyecto') }; const titulos = { choferes: 'Todos los Choferes', proveedores: 'Todos los Proveedores', empresas: 'Todas las Empresas', proyectos: 'Todos los Proyectos' }; for (const tipo in selectores) { const select = selectores[tipo]; if (!select) continue; const valorActual = select.value; select.innerHTML = `<option value="todos">${titulos[tipo]}</option>`; listasAdmin[tipo].forEach(item => select.innerHTML += `<option value="${item.nombre}">${item.nombre}</option>`); select.value = valorActual || 'todos'; } }
-        
-        function calcularYMostrarTotales(consumos) { const resumenBody = document.getElementById('resumenBody'); const resumenFooter = document.getElementById('resumenFooter'); const totales = {}; consumos.forEach(c => { if (!totales[c.volqueta]) totales[c.volqueta] = { totalGalones: 0, totalCosto: 0 }; totales[c.volqueta].totalGalones += parseFloat(c.galones); totales[c.volqueta].totalCosto += parseFloat(c.costo); }); const placasOrdenadas = Object.keys(totales).sort(); let htmlBody = ''; let granTotalGalones = 0; let granTotalCosto = 0; placasOrdenadas.forEach(placa => { const total = totales[placa]; htmlBody += `<tr><td><strong>${placa}</strong></td><td>${total.totalGalones.toFixed(2)}</td><td>$${total.totalCosto.toFixed(2)}</td></tr>`; granTotalGalones += total.totalGalones; granTotalCosto += total.totalCosto; }); resumenBody.innerHTML = htmlBody; resumenFooter.innerHTML = `<tr><td>TOTAL GENERAL</td><td>${granTotalGalones.toFixed(2)}</td><td>$${granTotalCosto.toFixed(2)}</td></tr>`; return { labels: placasOrdenadas, data: placasOrdenadas.map(placa => totales[placa].totalCosto) }; }
-        function calcularYMostrarTotalesPorEmpresa(consumos) { const resumenBody = document.getElementById('resumenEmpresaBody'); const resumenFooter = document.getElementById('resumenEmpresaFooter'); const totales = {}; consumos.forEach(c => { if (!c.empresa) return; if (!totales[c.empresa]) totales[c.empresa] = { totalGalones: 0, totalCosto: 0 }; totales[c.empresa].totalGalones += parseFloat(c.galones); totales[c.empresa].totalCosto += parseFloat(c.costo); }); const empresasOrdenadas = Object.keys(totales).sort(); let htmlBody = ''; let granTotalGalones = 0; let granTotalCosto = 0; empresasOrdenadas.forEach(empresa => { const total = totales[empresa]; htmlBody += `<tr><td><strong>${empresa}</strong></td><td>${total.totalGalones.toFixed(2)}</td><td>$${total.totalCosto.toFixed(2)}</td></tr>`; granTotalGalones += total.totalGalones; granTotalCosto += total.totalCosto; }); resumenBody.innerHTML = htmlBody; resumenFooter.innerHTML = `<tr><td>TOTAL GENERAL</td><td>${granTotalGalones.toFixed(2)}</td><td>$${granTotalCosto.toFixed(2)}</td></tr>`; }
-        function crearOActualizarGrafico(datos) { const ctx = document.getElementById('graficoConsumo').getContext('2d'); if (miGrafico) { miGrafico.destroy(); } miGrafico = new Chart(ctx, { type: 'bar', data: { labels: datos.labels, datasets: [{ label: 'Costo Total de Consumo ($)', data: datos.data, backgroundColor: 'rgba(40, 167, 69, 0.7)', borderColor: 'rgba(40, 167, 69, 1)', borderWidth: 1 }] }, options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { callback: function(value) { return '$' + value.toFixed(2); } } } }, plugins: { legend: { display: true, position: 'top', } } } }); }
-        function mostrarHistorialAgrupado(consumos) {
-            const historialBody = document.getElementById('historialBody'); const historialFooter = document.getElementById('historialFooter'); historialBody.innerHTML = '';
-            let totalGalones = 0, totalCosto = 0;
-            consumos.sort((a,b) => new Date(b.fecha) - new Date(a.fecha) || a.volqueta.localeCompare(b.volqueta));
-            let mesAnioActual = "";
-            consumos.forEach(consumo => {
-                totalGalones += parseFloat(consumo.galones) || 0; totalCosto += parseFloat(consumo.costo) || 0;
-                const fechaConsumo = new Date(consumo.fecha + 'T00:00:00'); const mesAnio = fechaConsumo.toLocaleDateString('es-EC', { month: 'long', year: 'numeric' });
-                if (mesAnio !== mesAnioActual && !(document.getElementById('filtroFechaInicio').value && document.getElementById('filtroFechaFin').value)) {
-                    mesAnioActual = mesAnio;
-                    const filaGrupo = document.createElement('tr'); filaGrupo.className = 'fila-grupo'; filaGrupo.innerHTML = `<td colspan="10">${mesAnioActual.charAt(0).toUpperCase() + mesAnioActual.slice(1)}</td>`;
-                    historialBody.appendChild(filaGrupo);
-                }
-                const filaDato = document.createElement('tr');
-                filaDato.innerHTML = `<td>${consumo.fecha}</td> <td>${consumo.chofer}</td> <td>${consumo.volqueta}</td> <td>${consumo.proveedor || ''}</td> <td>${consumo.proyecto || ''}</td> <td>${(parseFloat(consumo.galones) || 0).toFixed(2)}</td> <td>$${(parseFloat(consumo.costo) || 0).toFixed(2)}</td> <td>${consumo.empresa || ''}</td> <td>${consumo.descripcion}</td> <td class="no-print"><button class="btn-accion btn-modificar" data-id="${consumo.id}" title="Modificar"><i class="fa-solid fa-pencil" style="margin: 0;"></i></button><button class="btn-accion btn-borrar" data-id="${consumo.id}" title="Borrar"><i class="fa-solid fa-trash-can" style="margin: 0;"></i></button></td>`;
-                historialBody.appendChild(filaDato);
-            });
-            historialFooter.innerHTML = `<tr><td colspan="5" style="text-align: right;"><strong>TOTAL DE GALONES:</strong></td><td><strong>${totalGalones.toFixed(2)}</strong></td><td style="text-align: right;"><strong>VALOR TOTAL:</strong></td><td><strong>$${totalCosto.toFixed(2)}</strong></td><td colspan="2"></td></tr>`;
-        }
-
-        function asignarEventos() {
-            document.getElementById('btnTabRegistrar').addEventListener('click', (e) => openMainTab(e, 'tabRegistrar'));
-            document.getElementById('btnTabReportes').addEventListener('click', (e) => openMainTab(e, 'tabReportes'));
-            document.getElementById('btnTabAdmin').addEventListener('click', (e) => openMainTab(e, 'tabAdmin'));
-            document.getElementById('consumoForm').addEventListener('submit', guardarOActualizar);
-            document.getElementById('btnPrint').addEventListener('click', () => window.print());
-            document.getElementById('btnAplicarFiltros').addEventListener('click', actualizarTodaLaUI);
-            document.getElementById('btnLimpiarFiltros').addEventListener('click', () => {
-                const filtros = ['filtroMes', 'filtroFechaInicio', 'filtroFechaFin', 'filtroChofer', 'filtroProveedor', 'filtroEmpresa', 'filtroProyecto'];
-                filtros.forEach(id => { const el = document.getElementById(id); if(el) { if(el.tagName === 'SELECT') el.value = 'todos'; else el.value = ''; } });
-                actualizarTodaLaUI();
-            });
-            document.getElementById('historialBody').addEventListener('click', manejarAccionesHistorial);
-            document.getElementById('formAdminChofer').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('choferes', document.getElementById('nuevoChofer')); });
-            document.getElementById('formAdminPlaca').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('placas', document.getElementById('nuevaPlaca')); });
-            document.getElementById('formAdminEmpresa').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('empresas', document.getElementById('nuevaEmpresa')); });
-            document.getElementById('formAdminProveedor').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('proveedores', document.getElementById('nuevoProveedor')); });
-            document.getElementById('formAdminProyecto').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('proyectos', document.getElementById('nuevoProyecto')); });
-            
-            const botonesAcordeon = document.querySelectorAll('.accordion-button');
-            botonesAcordeon.forEach(boton => {
-                boton.addEventListener('click', function() {
-                    this.classList.toggle('active');
-                    const panel = this.nextElementSibling;
-                    if (panel.style.maxHeight) { panel.style.maxHeight = null; } else { panel.style.maxHeight = panel.scrollHeight + "px"; } 
-                });
-            });
-        }
-
-        function iniciarAplicacion() {
-            asignarEventos();
-            reiniciarFormulario();
-            cargarDatosIniciales();
-        }
-
-        window.addEventListener('DOMContentLoaded', iniciarAplicacion);
-    </script>
+    <script type="module" src="script.js"></script>
 </body>
 </html>
