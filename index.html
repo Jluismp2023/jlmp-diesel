@@ -80,7 +80,35 @@
                     </div>
                 </div>
             </div>
+
+            <div class="container no-print">
+                <div class="kpi-cards">
+                    <div class="kpi-card">
+                        <div class="kpi-label">Gasto Total (Filtro)</div>
+                        <div class="kpi-value" id="kpi-gasto-total">$0.00</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label">Galones Totales (Filtro)</div>
+                        <div class="kpi-value" id="kpi-galones-totales">0.00</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-label">Costo Promedio / Galón</div>
+                        <div class="kpi-value" id="kpi-costo-promedio">$0.00</div>
+                    </div>
+                </div>
+                <div class="chart-grid">
+                    <div class="chart-container">
+                        <h3>Gasto por Proyecto</h3>
+                        <canvas id="chartProyectos"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Consumo (Galones) por Chofer</h3>
+                        <canvas id="chartChoferes"></canvas>
+                    </div>
+                </div>
+            </div>
             <div class="container" id="loaderContainer"><h2 id="loadingMessage" class="loader">Cargando datos desde la nube...</h2></div>
+            
             <div class="container accordion-container">
                 <button class="accordion-button">CONSUMO DE DIESEL POR EMPRESA</button><div class="accordion-panel"><table id="resumenEmpresaTabla"><thead><tr><th>Empresa</th><th>Total Galones (Volumen)</th><th>Costo Total ($)</th></tr></thead><tbody id="resumenEmpresaBody"></tbody><tfoot id="resumenEmpresaFooter"></tfoot></table></div>
                 <button class="accordion-button">CONSUMO DE DIESEL POR PROVEEDOR</button><div class="accordion-panel"><table id="resumenProveedorTabla"><thead><tr><th>Proveedor</th><th>Total Galones (Volumen)</th><th>Costo Total ($)</th></tr></thead><tbody id="resumenProveedorBody"></tbody><tfoot id="resumenProveedorFooter"></tfoot></table></div>
