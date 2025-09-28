@@ -100,7 +100,7 @@ button:hover { opacity: 0.9; }
 .kpi-label { font-size: 14px; color: var(--secondary-color); margin-bottom: 10px; }
 .kpi-value { font-size: 28px; font-weight: bold; color: var(--primary-color); }
 .chart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 30px; }
-.chart-container { padding: 20px; border-radius: 8px; border: 1px solid var(--border-color); }
+.chart-container { padding: 20px; border-radius: 8px; border: 1px solid var(--border-color); position: relative; height: 400px; }
 
 /* --- HELPERS & RESPONSIVE --- */
 .fa-solid { margin-right: 8px; }
@@ -115,92 +115,18 @@ button:hover { opacity: 0.9; }
 
 /* --- ESTILOS PARA LA IMPRESIÓN (CORREGIDO) --- */
 @media print {
-    /* Ocultar elementos no deseados primero */
-    .no-print, #vista-login, .header-container, .main-tabs, #tabRegistrar, #tabAdmin, .accordion-button {
-        display: none !important;
-    }
-
-    /* Forzar la visibilidad de los contenedores principales y la pestaña de reportes */
-    body, #vista-app, #tabReportes {
-        display: block !important;
-    }
-
-    /* Expandir todos los paneles del acordeón para mostrar las tablas */
-    .accordion-panel {
-        max-height: unset !important; /* Anula la altura máxima */
-        overflow: visible !important; /* Muestra todo el contenido */
-        padding: 0 !important;
-        border: none !important;
-    }
-
-    /* Reseteo general de estilos para una hoja limpia */
-    body {
-        margin: 0;
-        padding: 10px;
-        background-color: var(--white-color);
-        color: black;
-        font-size: 10pt;
-    }
-
-    .container, .accordion-container {
-        box-shadow: none;
-        border: none;
-        margin: 0 0 20px 0;
-        padding: 0;
-        width: 100%;
-    }
-
-    /* Estilos para los títulos y tablas en la impresión */
-    h2 {
-        color: black !important;
-        text-align: left;
-        font-size: 14pt;
-        border-bottom: 2px solid black;
-        padding-bottom: 5px;
-        margin-top: 25px;
-    }
-
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        page-break-inside: auto;
-    }
-
-    tr {
-        page-break-inside: avoid;
-        page-break-after: auto;
-    }
-
-    th, td {
-        border: 1px solid #333 !important;
-        padding: 5px;
-    }
-
-    th {
-        background-color: #e0e0e0 !important;
-        color: black !important;
-    }
-
-    tfoot tr {
-        background-color: #f0f0f0 !important;
-        font-weight: bold;
-    }
-
-    .fila-grupo {
-        background-color: #ccc !important;
-        color: black !important;
-    }
-
-    .signature-block {
-        display: block;
-        text-align: center;
-        margin-top: 80px;
-        page-break-inside: avoid;
-    }
-
-    .signature-block .line {
-        width: 250px;
-        border-top: 1px solid black;
-        margin: 0 auto 10px auto;
-    }
+    .no-print, #vista-login, .header-container, .main-tabs, #tabRegistrar, #tabAdmin, .accordion-button { display: none !important; }
+    body, #vista-app, #tabReportes { display: block !important; }
+    .accordion-panel { max-height: unset !important; overflow: visible !important; padding: 0 !important; border: none !important; }
+    body { margin: 0; padding: 10px; background-color: var(--white-color); color: black; font-size: 10pt; }
+    .container, .accordion-container { box-shadow: none; border: none; margin: 0 0 20px 0; padding: 0; width: 100%; }
+    h2 { color: black !important; text-align: left; font-size: 14pt; border-bottom: 2px solid black; padding-bottom: 5px; margin-top: 25px; }
+    table { width: 100%; border-collapse: collapse; page-break-inside: auto; }
+    tr { page-break-inside: avoid; page-break-after: auto; }
+    th, td { border: 1px solid #333 !important; padding: 5px; }
+    th { background-color: #e0e0e0 !important; color: black !important; }
+    tfoot tr { background-color: #f0f0f0 !important; font-weight: bold; }
+    .fila-grupo { background-color: #ccc !important; color: black !important; }
+    .signature-block { display: block; text-align: center; margin-top: 80px; page-break-inside: avoid; }
+    .signature-block .line { width: 250px; border-top: 1px solid black; margin: 0 auto 10px auto; }
 }
