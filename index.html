@@ -87,24 +87,6 @@
 <body>
     <div class="container no-print">
         <h1><i class="fa-solid fa-gas-pump"></i>CONSUMO DE DIESEL</h1>
-        <div class="filter-section">
-            <div class="filter-group">
-                <div><label for="filtroMes" style="font-weight: bold;">Por Mes:</label><select id="filtroMes"></select></div>
-                <div><label for="filtroFechaInicio" style="font-weight: bold;">Por Rango:</label><input type="date" id="filtroFechaInicio" title="Desde la Fecha"></div>
-                <div><label for="filtroFechaFin" style="font-weight: bold;">-</label><input type="date" id="filtroFechaFin" title="Hasta la Fecha"></div>
-            </div>
-            <div class="filter-group">
-                <div><label for="filtroChofer" style="font-weight: bold;">Por Chofer:</label><select id="filtroChofer"></select></div>
-                <div><label for="filtroProveedor" style="font-weight: bold;">Por Proveedor:</label><select id="filtroProveedor"></select></div>
-                <div><label for="filtroEmpresa" style="font-weight: bold;">Por Empresa:</label><select id="filtroEmpresa"></select></div>
-                <div><label for="filtroProyecto" style="font-weight: bold;">Por Proyecto:</label><select id="filtroProyecto"></select></div>
-            </div>
-             <div class="filter-group">
-                 <button id="btnAplicarFiltros" style="background-color: #28a745; color: white; border: none;"><i class="fa-solid fa-filter"></i>Aplicar Filtros</button>
-                 <button id="btnLimpiarFiltros" style="background-color: #6c757d; color: white; border: none;"><i class="fa-solid fa-eraser"></i>Limpiar Filtros</button>
-                 <button id="btnPrint" style="background-color: #17a2b8; color: white; padding: 10px 20px; border: none; margin-left: auto;"><i class="fa-solid fa-print"></i>Imprimir Reporte</button>
-            </div>
-        </div>
     </div>
 
     <div class="container no-print">
@@ -133,7 +115,29 @@
     </div>
 
     <div id="tabReportes" class="main-tab-content printable-section">
+        <div class="container no-print">
+            <div class="filter-section">
+                <div class="filter-group">
+                    <div><label for="filtroMes" style="font-weight: bold;">Por Mes:</label><select id="filtroMes"></select></div>
+                    <div><label for="filtroFechaInicio" style="font-weight: bold;">Por Rango:</label><input type="date" id="filtroFechaInicio" title="Desde la Fecha"></div>
+                    <div><label for="filtroFechaFin" style="font-weight: bold;">-</label><input type="date" id="filtroFechaFin" title="Hasta la Fecha"></div>
+                </div>
+                <div class="filter-group">
+                    <div><label for="filtroChofer" style="font-weight: bold;">Por Chofer:</label><select id="filtroChofer"></select></div>
+                    <div><label for="filtroProveedor" style="font-weight: bold;">Por Proveedor:</label><select id="filtroProveedor"></select></div>
+                    <div><label for="filtroEmpresa" style="font-weight: bold;">Por Empresa:</label><select id="filtroEmpresa"></select></div>
+                    <div><label for="filtroProyecto" style="font-weight: bold;">Por Proyecto:</label><select id="filtroProyecto"></select></div>
+                </div>
+                 <div class="filter-group">
+                     <button id="btnAplicarFiltros" style="background-color: #28a745; color: white; border: none;"><i class="fa-solid fa-filter"></i>Aplicar Filtros</button>
+                     <button id="btnLimpiarFiltros" style="background-color: #6c757d; color: white; border: none;"><i class="fa-solid fa-eraser"></i>Limpiar Filtros</button>
+                     <button id="btnPrint" style="background-color: #17a2b8; color: white; padding: 10px 20px; border: none; margin-left: auto;"><i class="fa-solid fa-print"></i>Imprimir Reporte</button>
+                </div>
+            </div>
+        </div>
+        
         <div class="container" id="loaderContainer"><h2 id="loadingMessage" class="loader">Cargando datos desde la nube...</h2></div>
+        
         <div class="container accordion-container">
             <button class="accordion-button">CONSUMO DE DIESEL POR EMPRESA</button><div class="accordion-panel"><table id="resumenEmpresaTabla"><thead><tr><th>Empresa</th><th>Total Galones (Volumen)</th><th>Costo Total ($)</th></tr></thead><tbody id="resumenEmpresaBody"></tbody><tfoot id="resumenEmpresaFooter"></tfoot></table></div>
             <button class="accordion-button">CONSUMO DE DIESEL POR PROVEEDOR</button><div class="accordion-panel"><table id="resumenProveedorTabla"><thead><tr><th>Proveedor</th><th>Total Galones (Volumen)</th><th>Costo Total ($)</th></tr></thead><tbody id="resumenProveedorBody"></tbody><tfoot id="resumenProveedorFooter"></tfoot></table></div>
@@ -267,7 +271,6 @@
             document.getElementById('registroId').value = '';
             document.getElementById('fecha').valueAsDate = new Date();
             document.getElementById('formularioTitulo').textContent = 'Nuevo Registro';
-            document.getElementById('btnGuardar').textContent = 'Guardar Registro';
             poblarSelectores();
         }
 
@@ -387,7 +390,7 @@
                     historialBody.appendChild(filaGrupo);
                 }
                 const filaDato = document.createElement('tr');
-                filaDato.innerHTML = `<td>${consumo.fecha}</td> <td>${consumo.chofer}</td> <td>${consumo.volqueta}</td> <td>${consumo.proveedor || ''}</td> <td>${consumo.proyecto || ''}</td> <td>${(parseFloat(consumo.galones) || 0).toFixed(2)}</td> <td>$${(parseFloat(consumo.costo) || 0).toFixed(2)}</td> <td>${consumo.empresa || ''}</td> <td>${consumo.descripcion}</td> <td class="no-print"><button class="btn-accion btn-modificar" data-id="${consumo.id}" style="background-color: #ffc107; color: black;" title="Modificar"><i class="fa-solid fa-pencil" style="margin: 0;"></i></button><button class="btn-accion btn-borrar" data-id="${consumo.id}" style="background-color: #dc3545; color: white;" title="Borrar"><i class="fa-solid fa-trash-can" style="margin: 0;"></i></button></td>`;
+                filaDato.innerHTML = `<td>${consumo.fecha}</td> <td>${consumo.chofer}</td> <td>${consumo.volqueta}</td> <td>${consumo.proveedor || ''}</td> <td>${consumo.proyecto || ''}</td> <td>${(parseFloat(consumo.galones) || 0).toFixed(2)}</td> <td>$${(parseFloat(consumo.costo) || 0).toFixed(2)}</td> <td>${consumo.empresa || ''}</td> <td>${consumo.descripcion}</td> <td class="no-print"><button class="btn-accion btn-modificar" data-id="${consumo.id}" title="Modificar"><i class="fa-solid fa-pencil" style="margin: 0;"></i></button><button class="btn-accion btn-borrar" data-id="${consumo.id}" title="Borrar"><i class="fa-solid fa-trash-can" style="margin: 0;"></i></button></td>`;
                 historialBody.appendChild(filaDato);
             });
             historialFooter.innerHTML = `<tr><td colspan="5" style="text-align: right;"><strong>TOTAL DE GALONES:</strong></td><td><strong>${totalGalones.toFixed(2)}</strong></td><td style="text-align: right;"><strong>VALOR TOTAL:</strong></td><td><strong>$${totalCosto.toFixed(2)}</strong></td><td colspan="2"></td></tr>`;
