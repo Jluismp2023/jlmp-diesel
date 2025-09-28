@@ -91,11 +91,9 @@ function actualizarTodaLaUI() {
     poblarFiltroDeMes();
     poblarFiltrosReportes();
     const consumosFiltrados = obtenerConsumosFiltrados();
-
     renderizarKPIs(consumosFiltrados);
     renderizarChartProyectos(consumosFiltrados);
     renderizarChartChoferes(consumosFiltrados);
-
     calcularYMostrarTotalesPorEmpresa(consumosFiltrados);
     calcularYMostrarTotalesPorProveedor(consumosFiltrados);
     calcularYMostrarTotalesPorChofer(consumosFiltrados);
@@ -400,3 +398,6 @@ function iniciarAplicacion() {
 // ASIGNACIÓN INICIAL DE EVENTOS DE LOGIN
 document.getElementById('login-form').addEventListener('submit', handleLogin);
 document.getElementById('btn-logout').addEventListener('click', handleLogout);
+
+// El botón de registro y su lógica han sido eliminados para restringir el acceso.
+// Si necesitas registrar un nuevo usuario, hazlo desde la consola de Firebase.
