@@ -44,23 +44,23 @@
 
         /* --- ESTILOS PARA EL MODAL --- */
         .modal {
-            display: none; /* Oculto por defecto */
-            position: fixed; /* Se queda en su sitio aunque se haga scroll */
-            z-index: 1000; /* Se asegura de que esté por encima de todo */
+            display: none;
+            position: fixed;
+            z-index: 1000;
             left: 0;
             top: 0;
             width: 100%;
             height: 100%;
-            overflow: auto; /* Permite scroll si el contenido es muy grande */
-            background-color: rgba(0,0,0,0.5); /* Fondo negro semi-transparente */
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
         }
         .modal-content {
             background-color: #fefefe;
-            margin: 5% auto; /* 5% desde arriba y centrado horizontalmente */
+            margin: 5% auto;
             padding: 25px;
             border: 1px solid #888;
             width: 90%;
-            max-width: 600px; /* Ancho máximo para el formulario */
+            max-width: 600px;
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
             position: relative;
@@ -83,6 +83,78 @@
         @keyframes fadeIn {
             from {opacity: 0; transform: translateY(-20px);}
             to {opacity: 1; transform: translateY(0);}
+        }
+
+        /* --- ESTILOS PARA TARJETAS DE ADMINISTRACIÓN --- */
+        .admin-section {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+        }
+        .admin-box {
+            flex: 1;
+            min-width: 350px;
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+        .admin-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .admin-box h3 {
+            margin-top: 0;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+            color: #007bff;
+        }
+        .admin-form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .admin-form input {
+            flex-grow: 1;
+        }
+        .admin-form button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+        }
+        .lista-gestion {
+            list-style-type: none;
+            padding: 0;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .lista-gestion li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .lista-gestion li:last-child {
+            border-bottom: none;
+        }
+        .lista-gestion button {
+            margin-left: 5px;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 4px;
+            color: white;
+            font-size: 12px;
+        }
+        .lista-gestion .btn-modificar {
+            background-color: #ffc107;
+            color: black;
+        }
+        .lista-gestion .btn-borrar {
+            background-color: #dc3545;
         }
     </style>
 </head>
@@ -163,12 +235,47 @@
     <div id="tabAdmin" class="main-tab-content no-print">
         <div class="container" id="adminContainer">
             <h2>Administración</h2>
-            <div class="admin-section" style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 20px;">
-                <div class="admin-box" style="flex: 1; min-width: 300px;"><h3>Gestionar Choferes</h3><form id="formAdminChofer" class="admin-form" style="display: flex; gap: 10px; margin-bottom: 15px;"><input type="text" id="nuevoChofer" placeholder="Nombre completo" required style="flex-grow: 1;"><button type="submit" style="background-color: #28a745; color: white; border: none;">Agregar</button></form><ul id="listaChoferes" class="lista-gestion" style="list-style-type: none; padding: 0;"></ul></div>
-                <div class="admin-box" style="flex: 1; min-width: 300px;"><h3>Gestionar Placas</h3><form id="formAdminPlaca" class="admin-form" style="display: flex; gap: 10px; margin-bottom: 15px;"><input type="text" id="nuevaPlaca" placeholder="Placa de la volqueta" required style="flex-grow: 1;"><button type="submit" style="background-color: #28a745; color: white; border: none;">Agregar</button></form><ul id="listaPlacas" class="lista-gestion" style="list-style-type: none; padding: 0;"></ul></div>
-                <div class="admin-box" style="flex: 1; min-width: 300px;"><h3>Gestionar Empresas</h3><form id="formAdminEmpresa" class="admin-form" style="display: flex; gap: 10px; margin-bottom: 15px;"><input type="text" id="nuevaEmpresa" placeholder="Nombre de la empresa" required style="flex-grow: 1;"><button type="submit" style="background-color: #28a745; color: white; border: none;">Agregar</button></form><ul id="listaEmpresas" class="lista-gestion" style="list-style-type: none; padding: 0;"></ul></div>
-                <div class="admin-box" style="flex: 1; min-width: 300px;"><h3>Gestionar Proveedores</h3><form id="formAdminProveedor" class="admin-form" style="display: flex; gap: 10px; margin-bottom: 15px;"><input type="text" id="nuevoProveedor" placeholder="Nombre del proveedor" required style="flex-grow: 1;"><button type="submit" style="background-color: #28a745; color: white; border: none;">Agregar</button></form><ul id="listaProveedores" class="lista-gestion" style="list-style-type: none; padding: 0;"></ul></div>
-                <div class="admin-box" style="flex: 1; min-width: 300px;"><h3>Gestionar Proyectos</h3><form id="formAdminProyecto" class="admin-form" style="display: flex; gap: 10px; margin-bottom: 15px;"><input type="text" id="nuevoProyecto" placeholder="Nombre del proyecto" required style="flex-grow: 1;"><button type="submit" style="background-color: #28a745; color: white; border: none;">Agregar</button></form><ul id="listaProyectos" class="lista-gestion" style="list-style-type: none; padding: 0;"></ul></div>
+            <div class="admin-section">
+                <div class="admin-box">
+                    <h3>Gestionar Choferes</h3>
+                    <form id="formAdminChofer" class="admin-form">
+                        <input type="text" id="nuevoChofer" placeholder="Nombre completo" required>
+                        <button type="submit">Agregar</button>
+                    </form>
+                    <ul id="listaChoferes" class="lista-gestion"></ul>
+                </div>
+                <div class="admin-box">
+                    <h3>Gestionar Placas</h3>
+                    <form id="formAdminPlaca" class="admin-form">
+                        <input type="text" id="nuevaPlaca" placeholder="Placa de la volqueta" required>
+                        <button type="submit">Agregar</button>
+                    </form>
+                    <ul id="listaPlacas" class="lista-gestion"></ul>
+                </div>
+                <div class="admin-box">
+                    <h3>Gestionar Empresas</h3>
+                    <form id="formAdminEmpresa" class="admin-form">
+                        <input type="text" id="nuevaEmpresa" placeholder="Nombre de la empresa" required>
+                        <button type="submit">Agregar</button>
+                    </form>
+                    <ul id="listaEmpresas" class="lista-gestion"></ul>
+                </div>
+                <div class="admin-box">
+                    <h3>Gestionar Proveedores</h3>
+                    <form id="formAdminProveedor" class="admin-form">
+                        <input type="text" id="nuevoProveedor" placeholder="Nombre del proveedor" required>
+                        <button type="submit">Agregar</button>
+                    </form>
+                    <ul id="listaProveedores" class="lista-gestion"></ul>
+                </div>
+                <div class="admin-box">
+                    <h3>Gestionar Proyectos</h3>
+                    <form id="formAdminProyecto" class="admin-form">
+                        <input type="text" id="nuevoProyecto" placeholder="Nombre del proyecto" required>
+                        <button type="submit">Agregar</button>
+                    </form>
+                    <ul id="listaProyectos" class="lista-gestion"></ul>
+                </div>
             </div>
         </div>
     </div>
@@ -218,7 +325,7 @@
             }
         });
 
-        // --- SECCIÓN 3: DECLARACIÓN DE TODAS LAS FUNCIONES ---
+        // --- DECLARACIÓN DE TODAS LAS FUNCIONES ---
         
         function openMainTab(evt, tabName) {
             let i, tabcontent, tablinks;
@@ -322,7 +429,7 @@
                     await addDoc(collection(db, "consumos"), datosConsumo);
                 }
                 reiniciarFormulario();
-                cerrarModal(); // <-- MODIFICACIÓN
+                cerrarModal();
                 await cargarDatosIniciales();
             } catch (error) {
                 console.error("Error guardando:", error);
@@ -368,7 +475,7 @@
             document.getElementById('selectEmpresa').value = consumo.empresa || "";
             document.getElementById('selectProveedor').value = consumo.proveedor || "";
             document.getElementById('selectProyecto').value = consumo.proyecto || "";
-            abrirModal(); // <-- MODIFICACIÓN
+            abrirModal();
         }
 
         function calcularYMostrarTotalesPorProyecto(consumos) { const resumenBody = document.getElementById('resumenProyectoBody'); const resumenFooter = document.getElementById('resumenProyectoFooter'); const totales = {}; consumos.forEach(c => { if (!c.proyecto) return; if (!totales[c.proyecto]) totales[c.proyecto] = { totalGalones: 0, totalCosto: 0 }; totales[c.proyecto].totalGalones += parseFloat(c.galones); totales[c.proyecto].totalCosto += parseFloat(c.costo); }); const proyectosOrdenados = Object.keys(totales).sort(); let htmlBody = ''; let granTotalGalones = 0; let granTotalCosto = 0; proyectosOrdenados.forEach(proyecto => { const total = totales[proyecto]; htmlBody += `<tr><td><strong>${proyecto}</strong></td><td>${total.totalGalones.toFixed(2)}</td><td>$${total.totalCosto.toFixed(2)}</td></tr>`; granTotalGalones += total.totalGalones; granTotalCosto += total.totalCosto; }); resumenBody.innerHTML = htmlBody; resumenFooter.innerHTML = `<tr><td>TOTAL GENERAL</td><td>${granTotalGalones.toFixed(2)}</td><td>$${granTotalCosto.toFixed(2)}</td></tr>`; }
