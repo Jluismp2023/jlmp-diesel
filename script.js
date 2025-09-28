@@ -362,6 +362,6 @@ function asignarEventos() {
 
 function iniciarAplicacion() {
     asignarEventos();
-    reiniciarFormulario();
+    // No reiniciar el formulario aquí, se hace al cerrar el modal
     cargarDatosIniciales();
 }
