@@ -40,6 +40,7 @@
             tfoot tr { background-color: #f0f0f0 !important; }
             .signature-block { display: block; text-align: center; margin-top: 80px; page-break-inside: avoid; }
             .signature-block .line { width: 250px; border-top: 1px solid black; margin: 0 auto 10px auto; }
+            .accordion-button, .accordion-panel { display: none; } /* Ocultar acordeón en impresión */
         }
 
         /* --- ESTILOS PARA EL MODAL --- */
@@ -156,6 +157,58 @@
         .lista-gestion .btn-borrar {
             background-color: #dc3545;
         }
+        
+        /* --- ESTILOS PARA EL ACORDEÓN DE REPORTES --- */
+        .accordion-container {
+            padding: 0;
+        }
+        .accordion-button {
+            background-color: #f8f9fa;
+            color: #444;
+            cursor: pointer;
+            padding: 18px;
+            width: 100%;
+            border: none;
+            text-align: left;
+            outline: none;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background-color 0.4s ease;
+            border-bottom: 1px solid #ddd;
+        }
+        .accordion-button:first-of-type {
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+        }
+        .accordion-button:last-of-type {
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+            border-bottom: none;
+        }
+        .accordion-button:hover, .accordion-button.active {
+            background-color: #e9ecef;
+        }
+        .accordion-button::after {
+            content: '\\002B'; /* Símbolo '+' */
+            color: #007bff;
+            font-weight: bold;
+            float: right;
+            margin-left: 5px;
+        }
+        .accordion-button.active::after {
+            content: "\\2212"; /* Símbolo '−' */
+        }
+        .accordion-panel {
+            padding: 0 18px;
+            background-color: white;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+            border-bottom: 1px solid #ddd;
+        }
+        .accordion-panel table {
+            margin: 15px 0;
+        }
     </style>
 </head>
 <body>
@@ -197,7 +250,6 @@
                 ＋ Nuevo Registro
             </button>
         </div>
-
         <div id="modalRegistro" class="modal">
             <div class="modal-content">
                 <span class="close-button">&times;</span>
@@ -223,13 +275,36 @@
 
     <div id="tabReportes" class="main-tab-content printable-section">
         <div class="container" id="loaderContainer"><h2 id="loadingMessage" class="loader">Cargando datos desde la nube...</h2></div>
-        <div class="container"><h2>CONSUMO DE DIESEL POR EMPRESA</h2><table id="resumenEmpresaTabla"><thead><tr><th>Empresa</th><th>Total Galones (Volumen)</th><th>Costo Total ($)</th></tr></thead><tbody id="resumenEmpresaBody"></tbody><tfoot id="resumenEmpresaFooter"></tfoot></table></div>
-        <div class="container"><h2>CONSUMO DE DIESEL POR PROVEEDOR</h2><table id="resumenProveedorTabla"><thead><tr><th>Proveedor</th><th>Total Galones (Volumen)</th><th>Costo Total ($)</th></tr></thead><tbody id="resumenProveedorBody"></tbody><tfoot id="resumenProveedorFooter"></tfoot></table></div>
-        <div class="container"><h2>CONSUMO DE DIESEL POR PROYECTO</h2><table id="resumenProyectoTabla"><thead><tr><th>Proyecto</th><th>Total Galones (Volumen)</th><th>Costo Total ($)</th></tr></thead><tbody id="resumenProyectoBody"></tbody><tfoot id="resumenProyectoFooter"></tfoot></table></div>
-        <div class="container"><h2>CONSUMO DE DIESEL POR CHOFER</h2><table id="resumenChoferTabla"><thead><tr><th>Chofer</th><th>Total Galones (Volumen)</th><th>Costo Total ($)</th></tr></thead><tbody id="resumenChoferBody"></tbody><tfoot id="resumenChoferFooter"></tfoot></table></div>
-        <div class="container"><h2>CONSUMO DE DIESEL POR PLACA</h2><table id="resumenTabla"><thead><tr><th>Volqueta (Placa)</th><th>Total Galones (Volumen)</th><th>Costo Total ($)</th></tr></thead><tbody id="resumenBody"></tbody><tfoot id="resumenFooter"></tfoot></table></div>
-        <div class="container"><h2>TOTAL DE CONSUMO DE DIESEL</h2><table id="historialTabla"><thead><tr><th>Fecha</th><th>Chofer</th><th>Placa</th><th>Proveedor</th><th>Proyecto</th><th>Galones</th><th>Costo ($)</th><th>Empresa</th><th>Descripción</th><th class="no-print">Acciones</th></tr></thead><tbody id="historialBody"></tbody><tfoot id="historialFooter"></tfoot></table></div>
-        <div class="container"><h2>Consumo por Placa</h2><canvas id="graficoConsumo" style="max-height: 400px;"></canvas></div>
+        <div class="container accordion-container">
+            <button class="accordion-button">CONSUMO DE DIESEL POR EMPRESA</button>
+            <div class="accordion-panel">
+                <table id="resumenEmpresaTabla"><thead><tr><th>Empresa</th><th>Total Galones (Volumen)</th><th>Costo Total ($)</th></tr></thead><tbody id="resumenEmpresaBody"></tbody><tfoot id="resumenEmpresaFooter"></tfoot></table>
+            </div>
+            <button class="accordion-button">CONSUMO DE DIESEL POR PROVEEDOR</button>
+            <div class="accordion-panel">
+                <table id="resumenProveedorTabla"><thead><tr><th>Proveedor</th><th>Total Galones (Volumen)</th><th>Costo Total ($)</th></tr></thead><tbody id="resumenProveedorBody"></tbody><tfoot id="resumenProveedorFooter"></tfoot></table>
+            </div>
+            <button class="accordion-button">CONSUMO DE DIESEL POR PROYECTO</button>
+            <div class="accordion-panel">
+                <table id="resumenProyectoTabla"><thead><tr><th>Proyecto</th><th>Total Galones (Volumen)</th><th>Costo Total ($)</th></tr></thead><tbody id="resumenProyectoBody"></tbody><tfoot id="resumenProyectoFooter"></tfoot></table>
+            </div>
+            <button class="accordion-button">CONSUMO DE DIESEL POR CHOFER</button>
+            <div class="accordion-panel">
+                <table id="resumenChoferTabla"><thead><tr><th>Chofer</th><th>Total Galones (Volumen)</th><th>Costo Total ($)</th></tr></thead><tbody id="resumenChoferBody"></tbody><tfoot id="resumenChoferFooter"></tfoot></table>
+            </div>
+            <button class="accordion-button">CONSUMO DE DIESEL POR PLACA</button>
+            <div class="accordion-panel">
+                <table id="resumenTabla"><thead><tr><th>Volqueta (Placa)</th><th>Total Galones (Volumen)</th><th>Costo Total ($)</th></tr></thead><tbody id="resumenBody"></tbody><tfoot id="resumenFooter"></tfoot></table>
+            </div>
+            <button class="accordion-button">TOTAL DE CONSUMO DE DIESEL (HISTORIAL DETALLADO)</button>
+            <div class="accordion-panel">
+                <table id="historialTabla"><thead><tr><th>Fecha</th><th>Chofer</th><th>Placa</th><th>Proveedor</th><th>Proyecto</th><th>Galones</th><th>Costo ($)</th><th>Empresa</th><th>Descripción</th><th class="no-print">Acciones</th></tr></thead><tbody id="historialBody"></tbody><tfoot id="historialFooter"></tfoot></table>
+            </div>
+            <button class="accordion-button">GRÁFICO DE CONSUMO POR PLACA</button>
+            <div class="accordion-panel">
+                 <canvas id="graficoConsumo" style="max-height: 400px; width: 100%;"></canvas>
+            </div>
+        </div>
     </div>
 
     <div id="tabAdmin" class="main-tab-content no-print">
@@ -309,21 +384,11 @@
         const modal = document.getElementById('modalRegistro');
         const btnAbrirModal = document.getElementById('btnAbrirModal');
         const btnCerrarModal = document.querySelector('.close-button');
-
-        function abrirModal() {
-            modal.style.display = 'block';
-        }
-        function cerrarModal() {
-            modal.style.display = 'none';
-            reiniciarFormulario();
-        }
+        function abrirModal() { modal.style.display = 'block'; }
+        function cerrarModal() { modal.style.display = 'none'; reiniciarFormulario(); }
         btnAbrirModal.addEventListener('click', abrirModal);
         btnCerrarModal.addEventListener('click', cerrarModal);
-        window.addEventListener('click', function(event) {
-            if (event.target == modal) {
-                cerrarModal();
-            }
-        });
+        window.addEventListener('click', function(event) { if (event.target == modal) { cerrarModal(); } });
 
         // --- DECLARACIÓN DE TODAS LAS FUNCIONES ---
         
@@ -562,6 +627,20 @@
             document.getElementById('formAdminEmpresa').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('empresas', document.getElementById('nuevaEmpresa')); });
             document.getElementById('formAdminProveedor').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('proveedores', document.getElementById('nuevoProveedor')); });
             document.getElementById('formAdminProyecto').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('proyectos', document.getElementById('nuevoProyecto')); });
+            
+            // --- LÓGICA PARA EL ACORDEÓN DE REPORTES ---
+            const botonesAcordeon = document.querySelectorAll('.accordion-button');
+            botonesAcordeon.forEach(boton => {
+                boton.addEventListener('click', function() {
+                    this.classList.toggle('active');
+                    const panel = this.nextElementSibling;
+                    if (panel.style.maxHeight) {
+                        panel.style.maxHeight = null;
+                    } else {
+                        panel.style.maxHeight = panel.scrollHeight + "px";
+                    } 
+                });
+            });
         }
 
         function iniciarAplicacion() {
