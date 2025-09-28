@@ -35,6 +35,7 @@ onAuthStateChanged(auth, (user) => {
     } else {
         vistaLogin.style.display = 'flex';
         vistaApp.style.display = 'none';
+        appInicializada = false; // Resetear para la próxima sesión
     }
 });
 
@@ -322,11 +323,7 @@ function handleLogout() {
     signOut(auth).catch(error => { mostrarNotificacion("Error al cerrar sesión: " + error.message, "error"); });
 }
 
-function asignarEventos() {
-    document.getElementById('login-form').addEventListener('submit', handleLogin);
-    document.getElementById('btn-registrar-nuevo').addEventListener('click', handleRegister);
-    document.getElementById('btn-logout').addEventListener('click', handleLogout);
-
+function asignarEventosApp() {
     btnAbrirModal.addEventListener('click', abrirModal);
     btnCerrarModal.addEventListener('click', cerrarModal);
     
@@ -361,7 +358,11 @@ function asignarEventos() {
 }
 
 function iniciarAplicacion() {
-    asignarEventos();
-    // No reiniciar el formulario aquí, se hace al cerrar el modal
+    asignarEventosApp();
     cargarDatosIniciales();
 }
+
+// ASIGNACIÓN INICIAL DE EVENTOS DE LOGIN (CORRECCIÓN)
+document.getElementById('login-form').addEventListener('submit', handleLogin);
+document.getElementById('btn-registrar-nuevo').addEventListener('click', handleRegister);
+document.getElementById('btn-logout').addEventListener('click', handleLogout);
