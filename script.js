@@ -1,5 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, collection, getDocs, doc, addDoc, updateDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyCElg_et8_Z8ERTWo5tAwZJk2tb2ztUwlc",
@@ -9,12 +10,33 @@ const firebaseConfig = {
     messagingSenderId: "763318949751",
     appId: "1:763318949751:web:e712d1008d34fbc98ab372"
 };
+
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
+
+const vistaLogin = document.getElementById('vista-login');
+const vistaApp = document.getElementById('vista-app');
 
 let miGrafico = null;
 let todosLosConsumos = [];
 let listasAdmin = { choferes: [], placas: [], empresas: [], proveedores: [], proyectos: [] };
+let appInicializada = false;
+
+// GATEKEEPER: Esta función controla qué se muestra
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        vistaLogin.style.display = 'none';
+        vistaApp.style.display = 'block';
+        if (!appInicializada) {
+            iniciarAplicacion();
+            appInicializada = true;
+        }
+    } else {
+        vistaLogin.style.display = 'flex';
+        vistaApp.style.display = 'none';
+    }
+});
 
 function mostrarNotificacion(texto, tipo = 'info') {
     let backgroundColor;
@@ -191,7 +213,7 @@ function cargarDatosParaModificar(id) {
     abrirModal();
 }
 
-function calcularYMostrarTotalesPorCategoria(consumos, categoria, bodyId, footerId, nombreColumna) {
+function calcularYMostrarTotalesPorCategoria(consumos, categoria, bodyId, footerId) {
     const resumenBody = document.getElementById(bodyId);
     const resumenFooter = document.getElementById(footerId);
     resumenBody.innerHTML = '';
@@ -202,8 +224,8 @@ function calcularYMostrarTotalesPorCategoria(consumos, categoria, bodyId, footer
         const clave = c[categoria];
         if (!clave) return;
         if (!totales[clave]) totales[clave] = { totalGalones: 0, totalCosto: 0 };
-        totales[clave].totalGalones += parseFloat(c.galones);
-        totales[clave].totalCosto += parseFloat(c.costo);
+        totales[clave].totalGalones += parseFloat(c.galones) || 0;
+        totales[clave].totalCosto += parseFloat(c.costo) || 0;
     });
 
     if (Object.keys(totales).length === 0) {
@@ -212,8 +234,7 @@ function calcularYMostrarTotalesPorCategoria(consumos, categoria, bodyId, footer
     }
     
     const clavesOrdenadas = Object.keys(totales).sort();
-    let htmlBody = '';
-    let granTotalGalones = 0, granTotalCosto = 0;
+    let htmlBody = '', granTotalGalones = 0, granTotalCosto = 0;
     
     clavesOrdenadas.forEach(clave => {
         const total = totales[clave];
@@ -226,16 +247,16 @@ function calcularYMostrarTotalesPorCategoria(consumos, categoria, bodyId, footer
     resumenFooter.innerHTML = `<tr><td><strong>TOTAL GENERAL</strong></td><td><strong>${granTotalGalones.toFixed(2)}</strong></td><td><strong>$${granTotalCosto.toFixed(2)}</strong></td></tr>`;
 }
 
-const calcularYMostrarTotalesPorEmpresa = (consumos) => calcularYMostrarTotalesPorCategoria(consumos, 'empresa', 'resumenEmpresaBody', 'resumenEmpresaFooter', 'Empresa');
-const calcularYMostrarTotalesPorProveedor = (consumos) => calcularYMostrarTotalesPorCategoria(consumos, 'proveedor', 'resumenProveedorBody', 'resumenProveedorFooter', 'Proveedor');
-const calcularYMostrarTotalesPorProyecto = (consumos) => calcularYMostrarTotalesPorCategoria(consumos, 'proyecto', 'resumenProyectoBody', 'resumenProyectoFooter', 'Proyecto');
-const calcularYMostrarTotalesPorChofer = (consumos) => calcularYMostrarTotalesPorCategoria(consumos, 'chofer', 'resumenChoferBody', 'resumenChoferFooter', 'Chofer');
+const calcularYMostrarTotalesPorEmpresa = (consumos) => calcularYMostrarTotalesPorCategoria(consumos, 'empresa', 'resumenEmpresaBody', 'resumenEmpresaFooter');
+const calcularYMostrarTotalesPorProveedor = (consumos) => calcularYMostrarTotalesPorCategoria(consumos, 'proveedor', 'resumenProveedorBody', 'resumenProveedorFooter');
+const calcularYMostrarTotalesPorProyecto = (consumos) => calcularYMostrarTotalesPorCategoria(consumos, 'proyecto', 'resumenProyectoBody', 'resumenProyectoFooter');
+const calcularYMostrarTotalesPorChofer = (consumos) => calcularYMostrarTotalesPorCategoria(consumos, 'chofer', 'resumenChoferBody', 'resumenChoferFooter');
 const calcularYMostrarTotales = (consumos) => {
-    calcularYMostrarTotalesPorCategoria(consumos, 'volqueta', 'resumenBody', 'resumenFooter', 'Volqueta (Placa)');
+    calcularYMostrarTotalesPorCategoria(consumos, 'volqueta', 'resumenBody', 'resumenFooter');
     const totales = {};
     consumos.forEach(c => {
         if (!totales[c.volqueta]) totales[c.volqueta] = { totalCosto: 0 };
-        totales[c.volqueta].totalCosto += parseFloat(c.costo);
+        totales[c.volqueta].totalCosto += parseFloat(c.costo) || 0;
     });
     const placasOrdenadas = Object.keys(totales).sort();
     return { labels: placasOrdenadas, data: placasOrdenadas.map(placa => totales[placa].totalCosto) };
@@ -254,19 +275,13 @@ function crearOActualizarGrafico(datos) {
 }
 
 function mostrarHistorialAgrupado(consumos) {
-    const historialBody = document.getElementById('historialBody');
-    const historialFooter = document.getElementById('historialFooter');
+    const historialBody = document.getElementById('historialBody'); const historialFooter = document.getElementById('historialFooter');
     historialBody.innerHTML = '';
     historialFooter.innerHTML = '';
-
     if (consumos.length === 0) {
-        historialBody.innerHTML = `<tr><td colspan="10" class="empty-state">
-            <i class="fa-solid fa-folder-open"></i>
-            <p>No se encontraron registros para los filtros seleccionados.</p>
-        </td></tr>`;
+        historialBody.innerHTML = `<tr><td colspan="10" class="empty-state"><i class="fa-solid fa-folder-open"></i><p>No se encontraron registros para los filtros seleccionados.</p></td></tr>`;
         return;
     }
-    
     let totalGalones = 0, totalCosto = 0;
     consumos.sort((a,b) => new Date(b.fecha) - new Date(a.fecha) || a.volqueta.localeCompare(b.volqueta));
     let mesAnioActual = "";
@@ -285,10 +300,35 @@ function mostrarHistorialAgrupado(consumos) {
     historialFooter.innerHTML = `<tr><td colspan="5" style="text-align: right;"><strong>TOTAL DE GALONES:</strong></td><td><strong>${totalGalones.toFixed(2)}</strong></td><td style="text-align: right;"><strong>VALOR TOTAL:</strong></td><td><strong>$${totalCosto.toFixed(2)}</strong></td><td colspan="2"></td></tr>`;
 }
 
+function handleLogin(e) {
+    e.preventDefault();
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
+    signInWithEmailAndPassword(auth, email, password)
+        .then(userCredential => { mostrarNotificacion("Bienvenido de nuevo", "exito"); })
+        .catch(error => { mostrarNotificacion("Error: " + error.message, "error"); });
+}
+
+function handleRegister() {
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
+    if (!email || !password) { mostrarNotificacion("Por favor, ingresa un correo y contraseña para registrar.", "error"); return; }
+    createUserWithEmailAndPassword(auth, email, password)
+        .then(userCredential => { mostrarNotificacion("Usuario registrado con éxito. Ahora puedes iniciar sesión.", "exito"); })
+        .catch(error => { mostrarNotificacion("Error de registro: " + error.message, "error"); });
+}
+
+function handleLogout() {
+    signOut(auth).catch(error => { mostrarNotificacion("Error al cerrar sesión: " + error.message, "error"); });
+}
+
 function asignarEventos() {
+    document.getElementById('login-form').addEventListener('submit', handleLogin);
+    document.getElementById('btn-registrar-nuevo').addEventListener('click', handleRegister);
+    document.getElementById('btn-logout').addEventListener('click', handleLogout);
+
     btnAbrirModal.addEventListener('click', abrirModal);
     btnCerrarModal.addEventListener('click', cerrarModal);
-    window.addEventListener('click', function(event) { if (event.target == modal) { cerrarModal(); } });
     
     document.getElementById('btnTabRegistrar').addEventListener('click', (e) => openMainTab(e, 'tabRegistrar'));
     document.getElementById('btnTabReportes').addEventListener('click', (e) => openMainTab(e, 'tabReportes'));
@@ -325,5 +365,3 @@ function iniciarAplicacion() {
     reiniciarFormulario();
     cargarDatosIniciales();
 }
-
-window.addEventListener('DOMContentLoaded', iniciarAplicacion);
