@@ -24,7 +24,7 @@
                 <input type="email" id="login-email" placeholder="Correo electrónico" required>
                 <input type="password" id="login-password" placeholder="Contraseña" required>
                 <button type="submit" class="button-primary">Ingresar</button>
-                </form>
+            </form>
         </div>
     </div>
 
@@ -115,7 +115,27 @@
                 <button class="accordion-button">CONSUMO DE DIESEL POR PROYECTO</button><div class="accordion-panel"><table id="resumenProyectoTabla"><thead><tr><th>Proyecto</th><th>Total Galones (Volumen)</th><th>Costo Total ($)</th></tr></thead><tbody id="resumenProyectoBody"></tbody><tfoot id="resumenProyectoFooter"></tfoot></table></div>
                 <button class="accordion-button">CONSUMO DE DIESEL POR CHOFER</button><div class="accordion-panel"><table id="resumenChoferTabla"><thead><tr><th>Chofer</th><th>Total Galones (Volumen)</th><th>Costo Total ($)</th></tr></thead><tbody id="resumenChoferBody"></tbody><tfoot id="resumenChoferFooter"></tfoot></table></div>
                 <button class="accordion-button">CONSUMO DE DIESEL POR PLACA</button><div class="accordion-panel"><table id="resumenTabla"><thead><tr><th>Volqueta (Placa)</th><th>Total Galones (Volumen)</th><th>Costo Total ($)</th></tr></thead><tbody id="resumenBody"></tbody><tfoot id="resumenFooter"></tfoot></table></div>
-                <button class="accordion-button">TOTAL DE CONSUMO DE DIESEL (HISTORIAL DETALLADO)</button><div class="accordion-panel"><table id="historialTabla"><thead><tr><th>Fecha</th><th>Chofer</th><th>Placa</th><th>Proveedor</th><th>Proyecto</th><th>Galones</th><th>Costo ($)</th><th>Empresa</th><th>Descripción</th><th class="no-print">Acciones</th></tr></thead><tbody id="historialBody"></tbody><tfoot id="historialFooter"></tfoot></table></div>
+                <button class="accordion-button">TOTAL DE CONSUMO DE DIESEL (HISTORIAL DETALLADO)</button>
+                <div class="accordion-panel">
+                    <table id="historialTabla">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Chofer</th>
+                                <th>Placa</th>
+                                <th>Proveedor</th>
+                                <th>Proyecto</th>
+                                <th>Galones</th>
+                                <th>Costo ($)</th>
+                                <th>Empresa</th>
+                                <th>Descripción</th>
+                                <th class="no-print">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historialBody"></tbody>
+                        <tfoot id="historialFooter"></tfoot>
+                    </table>
+                </div>
                 <button class="accordion-button">GRÁFICO DE CONSUMO POR PLACA</button><div class="accordion-panel"><canvas id="graficoConsumo" style="max-height: 400px; width: 100%;"></canvas></div>
             </div>
         </div>
