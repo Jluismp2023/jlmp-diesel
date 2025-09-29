@@ -80,42 +80,34 @@
                     </div>
                 </div>
             </div>
-
-            <div class="container no-print">
-                <div class="kpi-cards">
-                    <div class="kpi-card">
-                        <div class="kpi-label">Gasto Total (Filtro)</div>
-                        <div class="kpi-value" id="kpi-gasto-total">$0.00</div>
-                    </div>
-                    <div class="kpi-card">
-                        <div class="kpi-label">Galones Totales (Filtro)</div>
-                        <div class="kpi-value" id="kpi-galones-totales">0.00</div>
-                    </div>
-                    <div class="kpi-card">
-                        <div class="kpi-label">Costo Promedio / Galón</div>
-                        <div class="kpi-value" id="kpi-costo-promedio">$0.00</div>
-                    </div>
-                </div>
-                <div class="chart-grid">
-                    <div class="chart-container">
-                        <h3>Gasto por Proyecto</h3>
-                        <canvas id="chartProyectos"></canvas>
-                    </div>
-                    <div class="chart-container">
-                        <h3>Consumo (Galones) por Chofer</h3>
-                        <canvas id="chartChoferes"></canvas>
-                    </div>
-                </div>
-            </div>
             <div class="container" id="loaderContainer"><h2 id="loadingMessage" class="loader">Cargando datos desde la nube...</h2></div>
-            
             <div class="container accordion-container">
                 <button class="accordion-button">CONSUMO DE DIESEL POR EMPRESA</button><div class="accordion-panel"><table id="resumenEmpresaTabla"><thead><tr><th>Empresa</th><th>Total Galones (Volumen)</th><th>Costo Total ($)</th></tr></thead><tbody id="resumenEmpresaBody"></tbody><tfoot id="resumenEmpresaFooter"></tfoot></table></div>
                 <button class="accordion-button">CONSUMO DE DIESEL POR PROVEEDOR</button><div class="accordion-panel"><table id="resumenProveedorTabla"><thead><tr><th>Proveedor</th><th>Total Galones (Volumen)</th><th>Costo Total ($)</th></tr></thead><tbody id="resumenProveedorBody"></tbody><tfoot id="resumenProveedorFooter"></tfoot></table></div>
                 <button class="accordion-button">CONSUMO DE DIESEL POR PROYECTO</button><div class="accordion-panel"><table id="resumenProyectoTabla"><thead><tr><th>Proyecto</th><th>Total Galones (Volumen)</th><th>Costo Total ($)</th></tr></thead><tbody id="resumenProyectoBody"></tbody><tfoot id="resumenProyectoFooter"></tfoot></table></div>
                 <button class="accordion-button">CONSUMO DE DIESEL POR CHOFER</button><div class="accordion-panel"><table id="resumenChoferTabla"><thead><tr><th>Chofer</th><th>Total Galones (Volumen)</th><th>Costo Total ($)</th></tr></thead><tbody id="resumenChoferBody"></tbody><tfoot id="resumenChoferFooter"></tfoot></table></div>
                 <button class="accordion-button">CONSUMO DE DIESEL POR PLACA</button><div class="accordion-panel"><table id="resumenTabla"><thead><tr><th>Volqueta (Placa)</th><th>Total Galones (Volumen)</th><th>Costo Total ($)</th></tr></thead><tbody id="resumenBody"></tbody><tfoot id="resumenFooter"></tfoot></table></div>
-                <button class="accordion-button">TOTAL DE CONSUMO DE DIESEL (HISTORIAL DETALLADO)</button><div class="accordion-panel"><table id="historialTabla"><thead><tr><th>Fecha</th><th>Chofer</th><th>Placa</th><th>Proveedor</th><th>Proyecto</th><th>Galones</th><th>Costo ($)</th><th>Empresa</th><th>Descripción</th><th class="no-print">Acciones</th></tr></thead><tbody id="historialBody"></tbody><tfoot id="historialFooter"></tfoot></table></div>
+                <button class="accordion-button">TOTAL DE CONSUMO DE DIESEL (HISTORIAL DETALLADO)</button>
+                <div class="accordion-panel">
+                    <table id="historialTabla">
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Chofer</th>
+                                <th>Placa</th>
+                                <th>Proveedor</th>
+                                <th>Proyecto</th>
+                                <th>Galones</th>
+                                <th>Costo ($)</th>
+                                <th>Empresa</th>
+                                <th>Descripción</th>
+                                <th class="no-print">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historialBody"></tbody>
+                        <tfoot id="historialFooter"></tfoot>
+                    </table>
+                </div>
                 <button class="accordion-button">GRÁFICO DE CONSUMO POR PLACA</button><div class="accordion-panel"><canvas id="graficoConsumo" style="max-height: 400px; width: 100%;"></canvas></div>
             </div>
         </div>
