@@ -337,10 +337,10 @@ function mostrarHistorialAgrupado(consumos) {
             historialBody.appendChild(filaGrupo);
         }
         const filaDato = document.createElement('tr');
-        filaDato.innerHTML = `<td>${consumo.fecha}</td> <td>${consumo.chofer}</td> <td>${consumo.volqueta}</td> <td>${consumo.proveedor || ''}</td> <td>${consumo.proyecto || ''}</td> <td>${(parseFloat(consumo.galones) || 0).toFixed(2)}</td> <td>$${(parseFloat(consumo.costo) || 0).toFixed(2)}</td> <td>${consumo.empresa || ''}</td> <td>${consumo.descripcion}</td> <td class="no-print"><button class="btn-accion btn-modificar" data-id="${consumo.id}" title="Modificar"><i class="fa-solid fa-pencil" style="margin: 0;"></i></button><button class="btn-accion btn-borrar" data-id="${consumo.id}" title="Borrar"><i class="fa-solid fa-trash-can" style="margin: 0;"></i></button></td>`;
+        filaDato.innerHTML = `<td class="no-print"><button class="btn-accion btn-modificar" data-id="${consumo.id}" title="Modificar"><i class="fa-solid fa-pencil" style="margin: 0;"></i></button><button class="btn-accion btn-borrar" data-id="${consumo.id}" title="Borrar"><i class="fa-solid fa-trash-can" style="margin: 0;"></i></button></td><td>${consumo.fecha}</td> <td>${consumo.chofer}</td> <td>${consumo.volqueta}</td> <td>${consumo.proveedor || ''}</td> <td>${consumo.proyecto || ''}</td> <td>${(parseFloat(consumo.galones) || 0).toFixed(2)}</td> <td>$${(parseFloat(consumo.costo) || 0).toFixed(2)}</td> <td>${consumo.empresa || ''}</td> <td>${consumo.descripcion}</td>`;
         historialBody.appendChild(filaDato);
     });
-    historialFooter.innerHTML = `<tr><td colspan="5" style="text-align: right;"><strong>TOTAL DE GALONES:</strong></td><td><strong>${totalGalones.toFixed(2)}</strong></td><td style="text-align: right;"><strong>VALOR TOTAL:</strong></td><td><strong>$${totalCosto.toFixed(2)}</strong></td><td colspan="2"></td></tr>`;
+    historialFooter.innerHTML = `<tr><td class="no-print"></td><td colspan="5" style="text-align: right;"><strong>TOTAL DE GALONES:</strong></td><td><strong>${totalGalones.toFixed(2)}</strong></td><td style="text-align: right;"><strong>VALOR TOTAL:</strong></td><td><strong>$${totalCosto.toFixed(2)}</strong></td><td></td></tr>`;
 }
 
 function handleLogin(e) {
@@ -398,5 +398,3 @@ function iniciarAplicacion() {
 // ASIGNACIÓN INICIAL DE EVENTOS DE LOGIN
 document.getElementById('login-form').addEventListener('submit', handleLogin);
 document.getElementById('btn-logout').addEventListener('click', handleLogout);
-
-// El botón de registro y su lógica han sido eliminados para restringir el acceso.
