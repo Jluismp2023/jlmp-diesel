@@ -116,12 +116,7 @@ button:hover { opacity: 0.9; }
 /* --- HELPERS & RESPONSIVE --- */
 .fa-solid { margin-right: 8px; }
 .no-print { /* Se usa en la sección de impresión */ }
-
-/* Oculta el bloque de firma en la vista de pantalla normal */
-.signature-block {
-    display: none;
-}
-
+.signature-block { display: none; }
 @media screen and (max-width: 600px) {
     body { padding: 10px; }
     .filter-group { flex-direction: column; align-items: stretch; }
@@ -134,11 +129,15 @@ button:hover { opacity: 0.9; }
 
 /* --- ESTILOS PARA LA IMPRESIÓN (CORREGIDO) --- */
 @media print {
-    .no-print, #vista-login, .header-container, .main-tabs, #tabRegistrar, #tabAdmin, .accordion-button { display: none !important; }
+    .no-print, #vista-login, .main-tabs, #tabRegistrar, #tabAdmin, .accordion-button { display: none !important; }
     body, #vista-app, #tabReportes { display: block !important; }
     .accordion-panel { max-height: unset !important; overflow: visible !important; padding: 0 !important; border: none !important; }
     body { margin: 0; padding: 10px; background-color: var(--white-color); color: black; font-size: 10pt; }
     .container, .accordion-container { box-shadow: none; border: none; margin: 0 0 20px 0; padding: 0; width: 100%; }
+    .header-container { justify-content: center; padding: 10px 0; border-bottom: 2px solid black; margin-bottom: 20px; box-shadow: none; border-radius: 0; }
+    .header-logo { height: 50px; }
+    .header-titles h1 { font-size: 16pt; color: black !important; }
+    .header-titles h2 { font-size: 12pt; color: #555 !important; }
     h2 { color: black !important; text-align: left; font-size: 14pt; border-bottom: 2px solid black; padding-bottom: 5px; margin-top: 25px; }
     table { width: 100%; border-collapse: collapse; page-break-inside: auto; }
     tr { page-break-inside: avoid; page-break-after: auto; }
