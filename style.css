@@ -22,14 +22,6 @@ body {
 }
 
 h1, h2, h3 { color: var(--primary-color); text-align: center; }
-.subtitulo-h1 {
-    display: block;
-    font-size: 0.5em;
-    font-weight: 400;
-    color: var(--secondary-color);
-    margin-top: 5px;
-    letter-spacing: 0.5px;
-}
 .container { max-width: 900px; margin: 20px auto; background: var(--white-color); padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
 table { width: 100%; border-collapse: collapse; }
 th, td { padding: 10px; text-align: left; border: 1px solid var(--border-color); }
@@ -65,15 +57,20 @@ button:hover { opacity: 0.9; }
 .filter-group { display: flex; flex-wrap: wrap; gap: 20px; align-items: center; }
 .filter-group label { font-weight: bold; }
 
-/* --- LOGIN VIEW --- */
+/* --- LOGIN VIEW & HEADER --- */
 #vista-login { display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f4f4f9; }
-.login-container { background: var(--white-color); padding: 40px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 400px; text-align: center; }
-#login-form h3 { margin-top: 0; margin-bottom: 20px; }
+.login-container { background: var(--white-color); padding: 40px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 450px; text-align: center; }
+#login-form h3 { margin-top: 25px; margin-bottom: 20px; }
 #login-form input { width: calc(100% - 22px); margin-bottom: 15px; }
 #login-form button { width: 100%; margin-top: 10px; }
 
-.header-container { display: flex; justify-content: space-between; align-items: center; max-width: 900px; margin: 20px auto; padding: 0 20px; background: var(--white-color); border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-.header-container h1 { margin: 20px 0; }
+.header-container { display: flex; justify-content: space-between; align-items: center; max-width: 900px; margin: 20px auto; padding: 10px 20px; background: var(--white-color); border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+.header-content { display: flex; align-items: center; gap: 15px; }
+.header-logo { height: 60px; width: auto; }
+.header-titles h1, .header-titles h2 { margin: 0; text-align: left; }
+.header-titles h1 { font-size: 1.5em; }
+.header-titles h2 { font-size: 1em; font-weight: 400; color: var(--secondary-color); }
+
 
 /* --- MODAL --- */
 .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); }
@@ -125,7 +122,9 @@ button:hover { opacity: 0.9; }
     .filter-group { flex-direction: column; align-items: stretch; }
     .main-tabs button { font-size: 14px; padding: 12px 10px; }
     .modal-content { margin: 20% auto; }
-    .header-container { flex-direction: column; gap: 10px; }
+    .header-container { flex-direction: column; gap: 15px; }
+    .header-container .button-danger { width: 100%; }
+    .header-content { justify-content: center; width: 100%;}
 }
 
 /* --- ESTILOS PARA LA IMPRESIÓN (CORREGIDO) --- */

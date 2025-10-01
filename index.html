@@ -18,10 +18,13 @@
 <body>
     <div id="vista-login">
         <div class="login-container">
-            <h1>
-                <i class="fa-solid fa-gas-pump"></i> GRUPO OBRECO CIA LTDA
-                <span class="subtitulo-h1">CONTROL DE DIESEL</span>
-            </h1>
+            <div class="header-content">
+                <img src="logo.jpg" alt="Logo Obreco" class="header-logo">
+                <div class="header-titles">
+                    <h1>GRUPO OBRECO CIA LTDA</h1>
+                    <h2>CONTROL DE DIESEL</h2>
+                </div>
+            </div>
             <form id="login-form">
                 <h3>Iniciar Sesión</h3>
                 <input type="email" id="login-email" placeholder="Correo electrónico" required>
@@ -33,10 +36,13 @@
 
     <div id="vista-app" style="display: none;">
         <div class="header-container no-print">
-            <h1>
-                <i class="fa-solid fa-gas-pump"></i> GRUPO OBRECO CIA LTDA
-                <span class="subtitulo-h1">CONTROL DE DIESEL</span>
-            </h1>
+            <div class="header-content">
+                <img src="logo.jpg" alt="Logo Obreco" class="header-logo">
+                <div class="header-titles">
+                    <h1>GRUPO OBRECO CIA LTDA</h1>
+                    <h2>CONTROL DE DIESEL</h2>
+                </div>
+            </div>
             <button id="btn-logout" class="button-danger"><i class="fa-solid fa-right-from-bracket"></i>Cerrar Sesión</button>
         </div>
 
@@ -87,7 +93,6 @@
                     </div>
                 </div>
             </div>
-
             <div class="container no-print">
                 <div class="kpi-cards">
                     <div class="kpi-card"><div class="kpi-label">Gasto Total (Filtro)</div><div class="kpi-value" id="kpi-gasto-total">$0.00</div></div>
@@ -100,7 +105,6 @@
                 </div>
             </div>
             <div class="container" id="loaderContainer"><h2 id="loadingMessage" class="loader">Cargando datos desde la nube...</h2></div>
-            
             <div class="container accordion-container">
                 <button class="accordion-button">CONSUMO DE DIESEL POR EMPRESA</button><div class="accordion-panel"><table id="resumenEmpresaTabla"><thead><tr><th>Empresa</th><th>Total Galones (Volumen)</th><th>Costo Total ($)</th></tr></thead><tbody id="resumenEmpresaBody"></tbody><tfoot id="resumenEmpresaFooter"></tfoot></table></div>
                 <button class="accordion-button">CONSUMO DE DIESEL POR PROVEEDOR</button><div class="accordion-panel"><table id="resumenProveedorTabla"><thead><tr><th>Proveedor</th><th>Total Galones (Volumen)</th><th>Costo Total ($)</th></tr></thead><tbody id="resumenProveedorBody"></tbody><tfoot id="resumenProveedorFooter"></tfoot></table></div>
