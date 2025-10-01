@@ -22,6 +22,14 @@ body {
 }
 
 h1, h2, h3 { color: var(--primary-color); text-align: center; }
+.subtitulo-h1 {
+    display: block;
+    font-size: 0.5em;
+    font-weight: 400;
+    color: var(--secondary-color);
+    margin-top: 5px;
+    letter-spacing: 0.5px;
+}
 .container { max-width: 900px; margin: 20px auto; background: var(--white-color); padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
 table { width: 100%; border-collapse: collapse; }
 th, td { padding: 10px; text-align: left; border: 1px solid var(--border-color); }
@@ -42,8 +50,15 @@ button:hover { opacity: 0.9; }
 .main-tabs button.active { background-color: var(--primary-color); color: var(--white-color); border-color: var(--primary-color); }
 .main-tab-content { display: none; }
 
-#resumenTabla th, #resumenEmpresaTabla th, #resumenProveedorTabla th, #resumenChoferTabla th, #resumenProyectoTabla th { background-color: var(--success-color); color: var(--white-color); }
-#resumenTabla tfoot tr, #resumenEmpresaTabla tfoot tr, #resumenProveedorTabla tfoot tr, #resumenChoferTabla tfoot tr, #resumenProyectoTabla tfoot tr, #historialTabla tfoot tr { font-weight: bold; background-color: #e9ecef; border-top: 2px solid var(--dark-text-color); }
+#resumenTabla th, #resumenEmpresaTabla th, #resumenProveedorTabla th, #resumenChoferTabla th, #resumenProyectoTabla th, #resumenCanteraTabla th { 
+    background-color: var(--success-color);
+    color: var(--white-color); 
+}
+#resumenTabla tfoot tr, #resumenEmpresaTabla tfoot tr, #resumenProveedorTabla tfoot tr, #resumenChoferTabla tfoot tr, #resumenProyectoTabla tfoot tr, #resumenCanteraTabla tfoot tr, #historialTabla tfoot tr { 
+    font-weight: bold; 
+    background-color: #e9ecef; 
+    border-top: 2px solid var(--dark-text-color); 
+}
 .fila-grupo td { background-color: var(--secondary-color); color: var(--white-color); font-weight: bold; text-align: center; font-size: 1.1em; }
 
 .filter-section { display: flex; flex-direction: column; gap: 15px; }
