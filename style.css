@@ -42,11 +42,11 @@ button:hover { opacity: 0.9; }
 .main-tabs button.active { background-color: var(--primary-color); color: var(--white-color); border-color: var(--primary-color); }
 .main-tab-content { display: none; }
 
-#resumenTabla th, #resumenEmpresaTabla th, #resumenProveedorTabla th, #resumenChoferTabla th, #resumenProyectoTabla th, #resumenCanteraTabla th { 
+#resumenTabla th, #resumenEmpresaTabla th, #resumenProveedorTabla th, #resumenChoferTabla th, #resumenProyectoTabla th { 
     background-color: var(--success-color);
     color: var(--white-color); 
 }
-#resumenTabla tfoot tr, #resumenEmpresaTabla tfoot tr, #resumenProveedorTabla tfoot tr, #resumenChoferTabla tfoot tr, #resumenProyectoTabla tfoot tr, #resumenCanteraTabla tfoot tr, #historialTabla tfoot tr { 
+#resumenTabla tfoot tr, #resumenEmpresaTabla tfoot tr, #resumenProveedorTabla tfoot tr, #resumenChoferTabla tfoot tr, #resumenProyectoTabla tfoot tr, #historialTabla tfoot tr { 
     font-weight: bold; 
     background-color: #e9ecef; 
     border-top: 2px solid var(--dark-text-color); 
