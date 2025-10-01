@@ -19,8 +19,6 @@ const vistaLogin = document.getElementById('vista-login');
 const vistaApp = document.getElementById('vista-app');
 
 let miGrafico = null;
-let chartProyectos = null;
-let chartChoferes = null;
 let todosLosConsumos = [];
 let listasAdmin = { choferes: [], placas: [], empresas: [], proveedores: [], proyectos: [], canteras: [] };
 let appInicializada = false;
@@ -98,9 +96,6 @@ function actualizarTodaLaUI() {
     poblarFiltroDeMes();
     poblarFiltrosReportes();
     const consumosFiltrados = obtenerConsumosFiltrados();
-    renderizarKPIs(consumosFiltrados);
-    renderizarChartProyectos(consumosFiltrados);
-    renderizarChartChoferes(consumosFiltrados);
     calcularYMostrarTotalesPorEmpresa(consumosFiltrados);
     calcularYMostrarTotalesPorProveedor(consumosFiltrados);
     calcularYMostrarTotalesPorProyecto(consumosFiltrados);
@@ -110,49 +105,6 @@ function actualizarTodaLaUI() {
     mostrarListasAdmin();
     mostrarHistorialAgrupado(consumosFiltrados);
     crearOActualizarGrafico(calcularYMostrarTotales(consumosFiltrados));
-}
-
-function renderizarKPIs(consumos) {
-    const totalCosto = consumos.reduce((sum, c) => sum + (parseFloat(c.costo) || 0), 0);
-    const totalGalones = consumos.reduce((sum, c) => sum + (parseFloat(c.galones) || 0), 0);
-    const costoPromedio = totalGalones > 0 ? totalCosto / totalGalones : 0;
-    document.getElementById('kpi-gasto-total').textContent = `$${totalCosto.toFixed(2)}`;
-    document.getElementById('kpi-galones-totales').textContent = totalGalones.toFixed(2);
-    document.getElementById('kpi-costo-promedio').textContent = `$${costoPromedio.toFixed(2)}`;
-}
-
-function renderizarChartProyectos(consumos) {
-    const ctx = document.getElementById('chartProyectos').getContext('2d');
-    const dataPorProyecto = consumos.reduce((acc, c) => {
-        if (!c.proyecto) return acc;
-        acc[c.proyecto] = (acc[c.proyecto] || 0) + (parseFloat(c.costo) || 0);
-        return acc;
-    }, {});
-    const labels = Object.keys(dataPorProyecto);
-    const data = Object.values(dataPorProyecto);
-    if (chartProyectos) { chartProyectos.destroy(); }
-    chartProyectos = new Chart(ctx, {
-        type: 'doughnut',
-        data: { labels: labels, datasets: [{ label: 'Gasto por Proyecto', data: data, backgroundColor: ['#007bff', '#28a745', '#ffc107', '#dc3545', '#17a2b8', '#6c757d'], }] },
-        options: { responsive: true, maintainAspectRatio: false }
-    });
-}
-
-function renderizarChartChoferes(consumos) {
-    const ctx = document.getElementById('chartChoferes').getContext('2d');
-    const dataPorChofer = consumos.reduce((acc, c) => {
-        if (!c.chofer) return acc;
-        acc[c.chofer] = (acc[c.chofer] || 0) + (parseFloat(c.galones) || 0);
-        return acc;
-    }, {});
-    const labels = Object.keys(dataPorChofer);
-    const data = Object.values(dataPorChofer);
-    if (chartChoferes) { chartChoferes.destroy(); }
-    chartChoferes = new Chart(ctx, {
-        type: 'bar',
-        data: { labels: labels, datasets: [{ label: 'Galones por Chofer', data: data, backgroundColor: 'rgba(40, 167, 69, 0.7)', }] },
-        options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false }
-    });
 }
 
 function poblarSelectores() {

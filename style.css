@@ -71,7 +71,6 @@ button:hover { opacity: 0.9; }
 .header-titles h1 { font-size: 1.5em; }
 .header-titles h2 { font-size: 1em; font-weight: 400; color: var(--secondary-color); }
 
-
 /* --- MODAL --- */
 .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); }
 .modal-content { background-color: #fefefe; margin: 5% auto; padding: 25px; border: 1px solid var(--border-color); width: 90%; max-width: 600px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); position: relative; animation: fadeIn 0.3s; }
@@ -105,14 +104,6 @@ button:hover { opacity: 0.9; }
 .accordion-button.active::after { content: "\\2212"; }
 .accordion-panel { padding: 0 18px; background-color: var(--white-color); max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; border-bottom: 1px solid var(--border-color); }
 .accordion-panel table { margin: 15px 0; }
-
-/* --- DASHBOARD --- */
-.kpi-cards { display: flex; gap: 20px; margin-bottom: 30px; flex-wrap: wrap; }
-.kpi-card { flex: 1; background-color: var(--light-gray); padding: 20px; border-radius: 8px; text-align: center; border: 1px solid #e0e0e0; min-width: 200px;}
-.kpi-label { font-size: 14px; color: var(--secondary-color); margin-bottom: 10px; }
-.kpi-value { font-size: 28px; font-weight: bold; color: var(--primary-color); }
-.chart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 30px; }
-.chart-container { padding: 20px; border-radius: 8px; border: 1px solid var(--border-color); position: relative; height: 400px; }
 
 /* --- HELPERS & RESPONSIVE --- */
 .fa-solid { margin-right: 8px; }
