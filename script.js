@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, getDocs, doc, addDoc, updateDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, getDocs, doc, addDoc, updateDoc, deleteDoc, query, orderBy, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const firebaseConfig = {
@@ -17,10 +17,12 @@ const auth = getAuth(app);
 
 const vistaLogin = document.getElementById('vista-login');
 const vistaApp = document.getElementById('vista-app');
+const modalGestionarVolquetas = document.getElementById('modalGestionarVolquetas');
 
 let todosLosConsumos = [];
 let listasAdmin = { choferes: [], placas: [], empresas: [], proveedores: [], proyectos: [] };
 let appInicializada = false;
+let choferSiendoEditado = null;
 
 onAuthStateChanged(auth, (user) => {
     if (user) {
@@ -104,29 +106,31 @@ function actualizarTodaLaUI() {
 }
 
 function poblarSelectores() {
-    const selectores = { 
-        choferes: document.getElementById('selectChofer'), 
-        placas: document.getElementById('selectVolqueta'), 
-        empresas: document.getElementById('selectEmpresa'), 
-        proveedores: document.getElementById('selectProveedor'), 
-        proyectos: document.getElementById('selectProyecto') 
-    };
-    const titulos = { 
-        choferes: '--- Chofer ---', 
-        placas: '--- Placa ---', 
-        empresas: '--- Empresa ---', 
-        proveedores: '--- Proveedor ---', 
-        proyectos: '--- Proyecto ---' 
-    };
-    for (const tipo in selectores) {
-        const select = selectores[tipo];
+    const selectChofer = document.getElementById('selectChofer');
+    const volquetaSelect = document.getElementById('selectVolqueta');
+
+    const choferActual = selectChofer.value;
+    selectChofer.innerHTML = '<option value="" disabled selected>--- Chofer ---</option>';
+    listasAdmin.choferes.forEach(item => {
+        selectChofer.innerHTML += `<option value="${item.nombre}">${item.nombre}</option>`;
+    });
+    selectChofer.value = choferActual;
+    
+    if (choferActual) {
+        actualizarVolquetasParaChofer(choferActual);
+    } else {
+        volquetaSelect.innerHTML = '<option value="" disabled selected>--- Primero elija un chofer ---</option>';
+    }
+
+    const otrosSelectores = { empresas: document.getElementById('selectEmpresa'), proveedores: document.getElementById('selectProveedor'), proyectos: document.getElementById('selectProyecto') };
+    const titulos = { empresas: '--- Empresa ---', proveedores: '--- Proveedor ---', proyectos: '--- Proyecto ---' };
+
+    for (const tipo in otrosSelectores) {
+        const select = otrosSelectores[tipo];
         if (!select) continue;
         const valorActual = select.value;
         select.innerHTML = `<option value="" disabled selected>${titulos[tipo]}</option>`;
-        listasAdmin[tipo].forEach(item => { 
-            const nombreMostrar = tipo === 'choferes' ? `${item.nombre} (${item.volquetaAsignada || 'N/A'})` : item.nombre;
-            select.innerHTML += `<option value="${item.nombre}">${nombreMostrar}</option>`; 
-        });
+        listasAdmin[tipo].forEach(item => { select.innerHTML += `<option value="${item.nombre}">${item.nombre}</option>`; });
         select.value = valorActual;
     }
 }
@@ -163,31 +167,43 @@ async function guardarOActualizar(e) {
     }
 }
 
-async function handleAgregarChofer(e) {
-    e.preventDefault();
-    const nombre = document.getElementById('nuevoChofer').value.trim();
-    const volquetaAsignada = document.getElementById('volquetaAsignada').value.trim();
-
-    if (nombre && volquetaAsignada) {
-        const listaNombres = listasAdmin.choferes.map(item => item.nombre.toUpperCase());
-        if (listaNombres.includes(nombre.toUpperCase())) {
-            mostrarNotificacion(`El chofer "${nombre}" ya existe.`, "error"); return;
-        }
-        try {
-            await addDoc(collection(db, "choferes"), { 
-                nombre: nombre,
-                volquetaAsignada: volquetaAsignada 
-            });
-            mostrarNotificacion(`Chofer agregado correctamente.`, "exito");
-            document.getElementById('nuevoChofer').value = '';
-            document.getElementById('volquetaAsignada').value = '';
-            await cargarDatosIniciales();
-        } catch (error) {
-            console.error("Error agregando chofer:", error);
-            mostrarNotificacion("No se pudo agregar el chofer.", "error");
+async function agregarItemAdmin(tipo, inputElement) {
+    if (tipo === 'choferes') {
+        const nombre = inputElement.value.trim();
+        if (nombre) {
+            const listaNombres = listasAdmin.choferes.map(item => item.nombre.toUpperCase());
+            if (listaNombres.includes(nombre.toUpperCase())) {
+                mostrarNotificacion(`El chofer "${nombre}" ya existe.`, "error"); return;
+            }
+            try {
+                await addDoc(collection(db, "choferes"), { nombre: nombre, volquetas: [] });
+                mostrarNotificacion(`Chofer agregado correctamente.`, "exito");
+                inputElement.value = '';
+                await cargarDatosIniciales();
+            } catch (error) {
+                console.error("Error agregando chofer:", error);
+                mostrarNotificacion("No se pudo agregar el chofer.", "error");
+            }
+        } else {
+            mostrarNotificacion("Por favor, ingresa el nombre del chofer.", "error");
         }
     } else {
-        mostrarNotificacion("Por favor, ingrese el nombre y la descripción de la volqueta.", "error");
+        const valor = (tipo === 'placas') ? inputElement.value.trim().toUpperCase() : inputElement.value.trim();
+        if (valor) {
+            const listaNombres = listasAdmin[tipo].map(item => item.nombre.toUpperCase());
+            if (listaNombres.includes(valor.toUpperCase())) {
+                mostrarNotificacion(`"${valor}" ya existe.`, "error"); return;
+            }
+            try {
+                await addDoc(collection(db, tipo), { nombre: valor });
+                mostrarNotificacion(`Elemento agregado correctamente.`, "exito");
+                inputElement.value = '';
+                await cargarDatosIniciales();
+            } catch (error) {
+                console.error("Error agregando:", error);
+                mostrarNotificacion("No se pudo agregar el elemento.", "error");
+            }
+        }
     }
 }
 
@@ -224,7 +240,7 @@ function mostrarListasAdmin() {
             const li = document.createElement('li');
             const nombreSpan = document.createElement('span');
             if (tipo === 'choferes') {
-                nombreSpan.innerHTML = `${item.nombre} <small>(${item.volquetaAsignada || 'Sin asignar'})</small>`;
+                nombreSpan.innerHTML = `${item.nombre} <small>(${(item.volquetas || []).length} volquetas)</small>`;
             } else {
                 nombreSpan.textContent = item.nombre;
             }
@@ -251,11 +267,33 @@ function mostrarListasAdmin() {
     }
 }
 
-async function modificarItemAdmin(item, tipo) { const valorActual = item.nombre; const nuevoValor = prompt(`Modificar "${valorActual}":`, valorActual); if (!nuevoValor || nuevoValor.trim() === '' || nuevoValor.trim() === valorActual) return; const valorFormateado = (tipo === 'placas') ? nuevoValor.trim().toUpperCase() : nuevoValor.trim(); if (confirm(`¿Estás seguro de cambiar "${valorActual}" por "${valorFormateado}"?`)) { try { await updateDoc(doc(db, tipo, item.id), { nombre: valorFormateado }); await cargarDatosIniciales(); mostrarNotificacion("Elemento actualizado.", "exito"); } catch(e) { console.error("Error modificando:", e); mostrarNotificacion("Error al modificar.", "error"); } } }
+async function modificarItemAdmin(item, tipo) {
+    if (tipo === 'choferes') {
+        abrirModalVolquetas(item);
+    } else {
+        const valorActual = item.nombre;
+        const nuevoValor = prompt(`Modificar "${valorActual}":`, valorActual);
+        if (!nuevoValor || nuevoValor.trim() === '' || nuevoValor.trim() === valorActual) return;
+        const valorFormateado = (tipo === 'placas') ? nuevoValor.trim().toUpperCase() : nuevoValor.trim();
+        if (confirm(`¿Estás seguro de cambiar "${valorActual}" por "${valorFormateado}"?`)) {
+            try {
+                await updateDoc(doc(db, tipo, item.id), { nombre: valorFormateado });
+                await cargarDatosIniciales();
+                mostrarNotificacion("Elemento actualizado.", "exito");
+            } catch(e) {
+                console.error("Error modificando:", e);
+                mostrarNotificacion("Error al modificar.", "error");
+            }
+        }
+    }
+}
 
 function cargarDatosParaModificar(id) {
     const consumo = todosLosConsumos.find(c => c.id === id); if (!consumo) return;
-    document.getElementById('registroId').value = consumo.id; document.getElementById('fecha').value = consumo.fecha; document.getElementById('selectChofer').value = consumo.chofer; document.getElementById('selectVolqueta').value = consumo.volqueta; document.getElementById('galones').value = consumo.galones; document.getElementById('costo').value = consumo.costo; document.getElementById('descripcion').value = consumo.descripcion; document.getElementById('selectEmpresa').value = consumo.empresa || ""; document.getElementById('selectProveedor').value = consumo.proveedor || ""; document.getElementById('selectProyecto').value = consumo.proyecto || "";
+    document.getElementById('registroId').value = consumo.id; document.getElementById('fecha').value = consumo.fecha; 
+    document.getElementById('selectChofer').value = consumo.chofer;
+    actualizarVolquetasParaChofer(consumo.chofer, consumo.volqueta); 
+    document.getElementById('galones').value = consumo.galones; document.getElementById('costo').value = consumo.costo; document.getElementById('descripcion').value = consumo.descripcion; document.getElementById('selectEmpresa').value = consumo.empresa || ""; document.getElementById('selectProveedor').value = consumo.proveedor || ""; document.getElementById('selectProyecto').value = consumo.proyecto || "";
     abrirModal();
 }
 
@@ -359,7 +397,7 @@ function asignarEventosApp() {
     });
     
     document.getElementById('historialBody').addEventListener('click', manejarAccionesHistorial);
-    document.getElementById('formAdminChofer').addEventListener('submit', handleAgregarChofer);
+    document.getElementById('formAdminChofer').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('choferes', document.getElementById('nuevoChofer')); });
     document.getElementById('formAdminPlaca').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('placas', document.getElementById('nuevaPlaca')); });
     document.getElementById('formAdminEmpresa').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('empresas', document.getElementById('nuevaEmpresa')); });
     document.getElementById('formAdminProveedor').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('proveedores', document.getElementById('nuevoProveedor')); });

@@ -123,8 +123,7 @@
                     <div class="admin-box">
                         <h3><i class="fa-solid fa-user-tie"></i>Gestionar Choferes</h3>
                         <form id="formAdminChofer" class="admin-form">
-                            <input type="text" id="nuevoChofer" placeholder="Nombre del chofer" required>
-                            <input type="text" id="volquetaAsignada" placeholder="Descripción de volqueta" required>
+                            <input type="text" id="nuevoChofer" placeholder="Nombre del nuevo chofer" required>
                             <button type="submit" class="button-success"><i class="fa-solid fa-plus"></i>Agregar</button>
                         </form>
                         <ul id="listaChoferes" class="lista-gestion"></ul>
@@ -141,6 +140,19 @@
             <div class="line"></div>
             Ing. José L. Macas P.<br>
             RESIDENTE DE OBRA
+        </div>
+    </div>
+
+    <div id="modalGestionarVolquetas" class="modal">
+        <div class="modal-content">
+            <span id="btnCerrarModalVolquetas" class="close-button">&times;</span>
+            <h2 id="choferModalTitulo">Gestionar Volquetas</h2>
+            <p>Volquetas asignadas a: <strong id="nombreChoferEnModal"></strong></p>
+            <ul id="listaVolquetasChofer" class="lista-gestion"></ul>
+            <form id="formAgregarVolquetaChofer" class="admin-form">
+                <input type="text" id="nuevaVolquetaParaChofer" placeholder="Añadir descripción de volqueta" required>
+                <button type="submit" class="button-success"><i class="fa-solid fa-plus"></i>Añadir</button>
+            </form>
         </div>
     </div>
 

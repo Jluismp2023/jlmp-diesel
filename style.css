@@ -93,6 +93,7 @@ button:hover { opacity: 0.9; }
 .btn-borrar { background-color: var(--danger-color); }
 .empty-state { text-align: center; padding: 20px; color: #999; }
 .empty-state .fa-solid { font-size: 2em; color: #ccc; margin-bottom: 10px; }
+.lista-gestion li small { color: var(--secondary-color); margin-left: 5px; }
 
 /* --- ACCORDION --- */
 .accordion-container { padding: 0; }
