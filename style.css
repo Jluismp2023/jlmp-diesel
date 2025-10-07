@@ -89,11 +89,24 @@ button:hover { opacity: 0.9; }
 .lista-gestion li { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #f0f0f0; }
 .lista-gestion li:last-child { border-bottom: none; }
 .lista-gestion button { margin-left: 5px; padding: 5px 10px; font-size: 12px; }
-.btn-modificar { background-color: var(--warning-color); color: black; }
-.btn-borrar { background-color: var(--danger-color); }
 .empty-state { text-align: center; padding: 20px; color: #999; }
 .empty-state .fa-solid { font-size: 2em; color: #ccc; margin-bottom: 10px; }
 .lista-gestion li small { color: var(--secondary-color); }
+
+/* --- BOTONES DE ACCIÓN (EDITAR/BORRAR) --- */
+.btn-accion {
+    padding: 5px 10px;
+    font-size: 12px;
+    margin-left: 5px;
+}
+.btn-modificar {
+    background-color: var(--warning-color);
+    color: black;
+}
+.btn-borrar {
+    background-color: var(--danger-color);
+    color: white;
+}
 
 /* --- ACCORDION --- */
 .accordion-container { padding: 0; }
@@ -109,7 +122,16 @@ button:hover { opacity: 0.9; }
 /* --- HELPERS & RESPONSIVE --- */
 .fa-solid { margin-right: 8px; }
 .no-print { /* Se usa en la sección de impresión */ }
-.signature-block { display: none; }
+.signature-block, #print-period-info { display: none; }
+
+#historialTabla {
+    table-layout: auto;
+    width: 100%;
+}
+#historialTabla th:nth-child(1), #historialTabla td:nth-child(1) { width: 120px; }
+#historialTabla th:nth-child(2), #historialTabla td:nth-child(2) { width: 105px; }
+#historialTabla th:nth-child(10), #historialTabla td:nth-child(10) { min-width: 250px; }
+
 @media screen and (max-width: 600px) {
     body { padding: 10px; }
     .filter-group { flex-direction: column; align-items: stretch; }
@@ -131,6 +153,7 @@ button:hover { opacity: 0.9; }
     .header-logo { height: 50px; }
     .header-titles h1 { font-size: 16pt; color: black !important; }
     .header-titles h2 { font-size: 12pt; color: #555 !important; }
+    #print-period-info { display: block; text-align: center; margin: -10px 0 20px 0; font-size: 12pt; font-weight: bold; }
     h2 { color: black !important; text-align: left; font-size: 14pt; border-bottom: 2px solid black; padding-bottom: 5px; margin-top: 25px; }
     table { width: 100%; border-collapse: collapse; page-break-inside: auto; }
     tr { page-break-inside: avoid; page-break-after: auto; }
@@ -140,27 +163,4 @@ button:hover { opacity: 0.9; }
     .fila-grupo { background-color: #ccc !important; color: black !important; }
     .signature-block { display: block; text-align: center; margin-top: 80px; page-break-inside: avoid; }
     .signature-block .line { width: 250px; border-top: 1px solid black; margin: 0 auto 10px auto; }
-}
-/* --- AJUSTES DE ANCHO PARA TABLA DE HISTORIAL --- */
-#historialTabla {
-    table-layout: auto;
-    width: 100%;
-}
-
-/* Columna de Acciones (1ra) */
-#historialTabla th:nth-child(1),
-#historialTabla td:nth-child(1) {
-    width: 120px; /* Ancho fijo para los botones */
-}
-
-/* Columna de Fecha (2da) */
-#historialTabla th:nth-child(2),
-#historialTabla td:nth-child(2) {
-    width: 105px;
-}
-
-/* Columna de Descripción (10ma) */
-#historialTabla th:nth-child(10),
-#historialTabla td:nth-child(10) {
-    min-width: 250px; /* Ancho mínimo para que el texto no se comprima */
 }
