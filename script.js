@@ -18,6 +18,7 @@ const auth = getAuth(app);
 const vistaLogin = document.getElementById('vista-login');
 const vistaApp = document.getElementById('vista-app');
 
+let miGrafico = null;
 let todosLosConsumos = [];
 let listasAdmin = { choferes: [], placas: [], empresas: [], proveedores: [], proyectos: [] };
 let appInicializada = false;
@@ -100,8 +101,7 @@ function actualizarTodaLaUI() {
     poblarSelectores();
     mostrarListasAdmin();
     mostrarHistorialAgrupado(consumosFiltrados);
-    // La siguiente línea se mantiene por si se reutiliza el gráfico, pero la función está vacía.
-    crearOActualizarGrafico(calcularYMostrarTotales(consumosFiltrados)); 
+    crearOActualizarGrafico(calcularYMostrarTotales(consumosFiltrados));
 }
 
 function poblarSelectores() {

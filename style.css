@@ -93,7 +93,18 @@ button:hover { opacity: 0.9; }
 .lista-gestion .btn-borrar { background-color: var(--danger-color); }
 .empty-state { text-align: center; padding: 20px; color: #999; }
 .empty-state .fa-solid { font-size: 2em; color: #ccc; margin-bottom: 10px; }
-.lista-gestion li small { color: var(--secondary-color); margin-left: 5px; }
+.lista-gestion li small { color: var(--secondary-color); }
+
+/* --- ACCORDION --- */
+.accordion-container { padding: 0; }
+.accordion-button { background-color: var(--light-gray); color: var(--text-color); cursor: pointer; padding: 18px; width: 100%; border: none; text-align: left; outline: none; font-size: 16px; font-weight: bold; transition: background-color 0.4s ease; border-bottom: 1px solid var(--border-color); }
+.accordion-button:first-of-type { border-top-left-radius: 8px; border-top-right-radius: 8px; }
+.accordion-button:last-of-type { border-bottom-left-radius: 8px; border-bottom-right-radius: 8px; border-bottom: none; }
+.accordion-button:hover, .accordion-button.active { background-color: #e9ecef; }
+.accordion-button::after { content: '\\002B'; color: var(--primary-color); font-weight: bold; float: right; margin-left: 5px; }
+.accordion-button.active::after { content: "\\2212"; }
+.accordion-panel { padding: 0 18px; background-color: var(--white-color); max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; border-bottom: 1px solid var(--border-color); }
+.accordion-panel table { margin: 15px 0; }
 
 /* --- HELPERS & RESPONSIVE --- */
 .fa-solid { margin-right: 8px; }
