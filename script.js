@@ -18,7 +18,6 @@ const auth = getAuth(app);
 const vistaLogin = document.getElementById('vista-login');
 const vistaApp = document.getElementById('vista-app');
 
-let miGrafico = null;
 let todosLosConsumos = [];
 let listasAdmin = { choferes: [], placas: [], empresas: [], proveedores: [], proyectos: [] };
 let appInicializada = false;
@@ -101,7 +100,6 @@ function actualizarTodaLaUI() {
     poblarSelectores();
     mostrarListasAdmin();
     mostrarHistorialAgrupado(consumosFiltrados);
-    crearOActualizarGrafico(calcularYMostrarTotales(consumosFiltrados));
 }
 
 function poblarSelectores() {
