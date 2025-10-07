@@ -109,7 +109,7 @@ button:hover { opacity: 0.9; }
 /* --- HELPERS & RESPONSIVE --- */
 .fa-solid { margin-right: 8px; }
 .no-print { /* Se usa en la sección de impresión */ }
-.signature-block, #print-period-info { display: none; }
+.signature-block { display: none; }
 @media screen and (max-width: 600px) {
     body { padding: 10px; }
     .filter-group { flex-direction: column; align-items: stretch; }
@@ -131,7 +131,6 @@ button:hover { opacity: 0.9; }
     .header-logo { height: 50px; }
     .header-titles h1 { font-size: 16pt; color: black !important; }
     .header-titles h2 { font-size: 12pt; color: #555 !important; }
-    #print-period-info { display: block; text-align: center; margin: -10px 0 20px 0; font-size: 12pt; font-weight: bold; }
     h2 { color: black !important; text-align: left; font-size: 14pt; border-bottom: 2px solid black; padding-bottom: 5px; margin-top: 25px; }
     table { width: 100%; border-collapse: collapse; page-break-inside: auto; }
     tr { page-break-inside: avoid; page-break-after: auto; }
