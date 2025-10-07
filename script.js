@@ -19,8 +19,6 @@ const vistaLogin = document.getElementById('vista-login');
 const vistaApp = document.getElementById('vista-app');
 
 let miGrafico = null;
-let chartProyectos = null;
-let chartChoferes = null;
 let todosLosConsumos = [];
 let listasAdmin = { choferes: [], placas: [], empresas: [], proveedores: [], proyectos: [] };
 let appInicializada = false;
@@ -114,10 +112,7 @@ function poblarSelectores() {
         if (!select) continue;
         const valorActual = select.value;
         select.innerHTML = `<option value="" disabled selected>${titulos[tipo]}</option>`;
-        listasAdmin[tipo].forEach(item => {
-            const nombreMostrar = tipo === 'choferes' ? `${item.nombre} (${item.volquetaAsignada || 'N/A'})` : item.nombre;
-            select.innerHTML += `<option value="${item.nombre}">${nombreMostrar}</option>`;
-        });
+        listasAdmin[tipo].forEach(item => { select.innerHTML += `<option value="${item.nombre}">${item.nombre}</option>`; });
         select.value = valorActual;
     }
 }
@@ -173,35 +168,6 @@ async function agregarItemAdmin(tipo, inputElement) {
     }
 }
 
-async function handleAgregarChofer(e) {
-    e.preventDefault();
-    const nombre = document.getElementById('nuevoChofer').value.trim();
-    const volquetaAsignada = document.getElementById('descripcionVolqueta').value.trim();
-
-    if (nombre && volquetaAsignada) {
-        const listaNombres = listasAdmin.choferes.map(item => item.nombre.toUpperCase());
-        if (listaNombres.includes(nombre.toUpperCase())) {
-            mostrarNotificacion(`El chofer "${nombre}" ya existe.`, "error");
-            return;
-        }
-        try {
-            await addDoc(collection(db, "choferes"), { 
-                nombre: nombre,
-                volquetaAsignada: volquetaAsignada
-            });
-            mostrarNotificacion(`Chofer agregado correctamente.`, "exito");
-            document.getElementById('nuevoChofer').value = '';
-            document.getElementById('descripcionVolqueta').value = '';
-            await cargarDatosIniciales();
-        } catch (error) {
-            console.error("Error agregando chofer:", error);
-            mostrarNotificacion("No se pudo agregar el chofer.", "error");
-        }
-    } else {
-        mostrarNotificacion("Por favor, ingresa el nombre y la descripción de la volqueta.", "error");
-    }
-}
-
 function manejarAccionesHistorial(e) { const target = e.target.closest('button'); if (!target) return; const id = target.dataset.id; if (!id) return; if (target.classList.contains('btn-modificar')) cargarDatosParaModificar(id); if (target.classList.contains('btn-borrar')) borrarConsumoHistorial(id); }
 
 function obtenerConsumosFiltrados() {
@@ -232,28 +198,13 @@ function mostrarListasAdmin() {
         }
         listasAdmin[tipo].forEach(item => {
             const li = document.createElement('li');
-            if (tipo === 'choferes') {
-                li.innerHTML = `<span>${item.nombre} <small>(${item.volquetaAsignada || 'Sin asignar'})</small></span>`;
-            } else {
-                li.innerHTML = `<span>${item.nombre}</span>`;
-            }
-
-            const divBotones = document.createElement('div');
-            const btnModificar = document.createElement('button');
-            btnModificar.className = "btn-accion btn-modificar";
-            btnModificar.title = "Modificar";
-            btnModificar.innerHTML = `<i class="fa-solid fa-pencil" style="margin:0;"></i>`;
-            btnModificar.addEventListener('click', () => modificarItemAdmin(item, tipo));
-            
-            const btnBorrar = document.createElement('button');
-            btnBorrar.className = "btn-accion btn-borrar";
-            btnBorrar.title = "Borrar";
-            btnBorrar.innerHTML = `<i class="fa-solid fa-trash-can" style="margin:0;"></i>`;
-            btnBorrar.addEventListener('click', () => borrarItemAdmin(item, tipo));
-
-            divBotones.appendChild(btnModificar);
-            divBotones.appendChild(btnBorrar);
-            li.appendChild(divBotones);
+            li.innerHTML = `<span>${item.nombre}</span>
+                          <div>
+                              <button class="btn-accion btn-modificar" title="Modificar"><i class="fa-solid fa-pencil" style="margin:0;"></i></button>
+                              <button class="btn-accion btn-borrar" title="Borrar"><i class="fa-solid fa-trash-can" style="margin:0;"></i></button>
+                          </div>`;
+            li.querySelector('.btn-modificar').addEventListener('click', () => modificarItemAdmin(item, tipo));
+            li.querySelector('.btn-borrar').addEventListener('click', () => borrarItemAdmin(item, tipo));
             ul.appendChild(li);
         });
     }
