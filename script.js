@@ -97,6 +97,7 @@ function actualizarTodaLaUI() {
     calcularYMostrarTotalesPorProveedor(consumosFiltrados);
     calcularYMostrarTotalesPorProyecto(consumosFiltrados);
     calcularYMostrarTotalesPorChofer(consumosFiltrados);
+    calcularYMostrarTotales(consumosFiltrados);
     poblarSelectores();
     mostrarListasAdmin();
     mostrarHistorialAgrupado(consumosFiltrados);
@@ -251,13 +252,6 @@ const calcularYMostrarTotalesPorProyecto = (consumos) => calcularYMostrarTotales
 const calcularYMostrarTotalesPorChofer = (consumos) => calcularYMostrarTotalesPorCategoria(consumos, 'chofer', 'resumenChoferBody', 'resumenChoferFooter');
 const calcularYMostrarTotales = (consumos) => {
     calcularYMostrarTotalesPorCategoria(consumos, 'volqueta', 'resumenBody', 'resumenFooter');
-    const totales = {};
-    consumos.forEach(c => {
-        if (!totales[c.volqueta]) totales[c.volqueta] = { totalCosto: 0 };
-        totales[c.volqueta].totalCosto += parseFloat(c.costo) || 0;
-    });
-    const placasOrdenadas = Object.keys(totales).sort();
-    return { labels: placasOrdenadas, data: placasOrdenadas.map(placa => totales[placa].totalCosto) };
 };
 
 async function borrarItemAdmin(item, tipo) { if (confirm(`¿Seguro que quieres borrar "${item.nombre}"?`)) { try { await deleteDoc(doc(db, tipo, item.id)); mostrarNotificacion("Elemento borrado.", "exito"); await cargarDatosIniciales(); } catch(e) { console.error("Error borrando:", e); mostrarNotificacion("No se pudo borrar el elemento.", "error"); } } }

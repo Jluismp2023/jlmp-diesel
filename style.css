@@ -88,24 +88,11 @@ button:hover { opacity: 0.9; }
 .lista-gestion { list-style-type: none; padding: 0; max-height: 200px; overflow-y: auto; }
 .lista-gestion li { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #f0f0f0; }
 .lista-gestion li:last-child { border-bottom: none; }
+.lista-gestion button { margin-left: 5px; padding: 5px 10px; font-size: 12px; }
+.btn-modificar { background-color: var(--warning-color); color: black; }
+.btn-borrar { background-color: var(--danger-color); }
 .empty-state { text-align: center; padding: 20px; color: #999; }
 .empty-state .fa-solid { font-size: 2em; color: #ccc; margin-bottom: 10px; }
-.lista-gestion li small { color: var(--secondary-color); }
-
-/* --- BOTONES DE ACCIÓN (EDITAR/BORRAR) --- */
-.btn-accion {
-    padding: 5px 10px;
-    font-size: 12px;
-    margin-left: 5px;
-}
-.btn-modificar {
-    background-color: var(--warning-color);
-    color: black;
-}
-.btn-borrar {
-    background-color: var(--danger-color);
-    color: white;
-}
 
 /* --- ACCORDION --- */
 .accordion-container { padding: 0; }
