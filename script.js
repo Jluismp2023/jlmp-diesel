@@ -19,7 +19,7 @@ const vistaLogin = document.getElementById('vista-login');
 const vistaApp = document.getElementById('vista-app');
 
 let todosLosConsumos = [];
-let listasAdmin = { choferes: [], placas: [], empresas: [], proveedores: [], proyectos: [] };
+let listasAdmin = { choferes: [], volquetas: [], empresas: [], proveedores: [], proyectos: [] };
 let appInicializada = false;
 
 onAuthStateChanged(auth, (user) => {
@@ -66,17 +66,17 @@ function openMainTab(evt, tabName) {
 async function cargarDatosIniciales() {
     document.getElementById('loadingMessage').style.display = 'block';
     try {
-        const [consumosRes, choferesRes, placasRes, empresasRes, proveedoresRes, proyectosRes] = await Promise.all([
+        const [consumosRes, choferesRes, volquetasRes, empresasRes, proveedoresRes, proyectosRes] = await Promise.all([
             getDocs(query(collection(db, "consumos"), orderBy("fecha", "desc"))), 
             getDocs(query(collection(db, "choferes"), orderBy("nombre"))), 
-            getDocs(query(collection(db, "placas"), orderBy("nombre"))), 
+            getDocs(query(collection(db, "volquetas"), orderBy("placa"))), 
             getDocs(query(collection(db, "empresas"), orderBy("nombre"))), 
             getDocs(query(collection(db, "proveedores"), orderBy("nombre"))), 
             getDocs(query(collection(db, "proyectos"), orderBy("nombre")))
         ]);
         todosLosConsumos = consumosRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         listasAdmin.choferes = choferesRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        listasAdmin.placas = placasRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        listasAdmin.volquetas = volquetasRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         listasAdmin.empresas = empresasRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         listasAdmin.proveedores = proveedoresRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         listasAdmin.proyectos = proyectosRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -106,14 +106,14 @@ function actualizarTodaLaUI() {
 function poblarSelectores() {
     const selectores = { 
         choferes: document.getElementById('selectChofer'), 
-        placas: document.getElementById('selectVolqueta'), 
+        volquetas: document.getElementById('selectVolqueta'), 
         empresas: document.getElementById('selectEmpresa'), 
         proveedores: document.getElementById('selectProveedor'), 
         proyectos: document.getElementById('selectProyecto') 
     };
     const titulos = { 
         choferes: '--- Chofer ---', 
-        placas: '--- Placa ---', 
+        volquetas: '--- Volqueta ---', 
         empresas: '--- Empresa ---', 
         proveedores: '--- Proveedor ---', 
         proyectos: '--- Proyecto ---' 
@@ -124,8 +124,8 @@ function poblarSelectores() {
         const valorActual = select.value;
         select.innerHTML = `<option value="" disabled selected>${titulos[tipo]}</option>`;
         listasAdmin[tipo].forEach(item => { 
-            const nombreMostrar = tipo === 'choferes' ? `${item.nombre} (${item.volquetaAsignada || 'N/A'})` : item.nombre;
-            select.innerHTML += `<option value="${item.nombre}">${nombreMostrar}</option>`; 
+            const textoOpcion = tipo === 'volquetas' ? `${item.placa} - ${item.descripcion}` : item.nombre;
+            select.innerHTML += `<option value="${textoOpcion}">${textoOpcion}</option>`;
         });
         select.value = valorActual;
     }
@@ -163,50 +163,23 @@ async function guardarOActualizar(e) {
     }
 }
 
-async function handleAgregarChofer(e) {
+async function handleAgregarVolqueta(e) {
     e.preventDefault();
-    const nombre = document.getElementById('nuevoChofer').value.trim();
-    const volquetaAsignada = document.getElementById('volquetaAsignada').value.trim();
-
-    if (nombre && volquetaAsignada) {
-        const listaNombres = listasAdmin.choferes.map(item => item.nombre.toUpperCase());
-        if (listaNombres.includes(nombre.toUpperCase())) {
-            mostrarNotificacion(`El chofer "${nombre}" ya existe.`, "error"); return;
-        }
+    const placa = document.getElementById('nuevaVolquetaPlaca').value.trim().toUpperCase();
+    const descripcion = document.getElementById('nuevaVolquetaDesc').value.trim();
+    if (placa && descripcion) {
         try {
-            await addDoc(collection(db, "choferes"), { 
-                nombre: nombre,
-                volquetaAsignada: volquetaAsignada 
-            });
-            mostrarNotificacion(`Chofer agregado correctamente.`, "exito");
-            document.getElementById('nuevoChofer').value = '';
-            document.getElementById('volquetaAsignada').value = '';
+            await addDoc(collection(db, "volquetas"), { placa: placa, descripcion: descripcion });
+            mostrarNotificacion(`Volqueta agregada correctamente.`, "exito");
+            document.getElementById('nuevaVolquetaPlaca').value = '';
+            document.getElementById('nuevaVolquetaDesc').value = '';
             await cargarDatosIniciales();
         } catch (error) {
-            console.error("Error agregando chofer:", error);
-            mostrarNotificacion("No se pudo agregar el chofer.", "error");
+            console.error("Error agregando volqueta:", error);
+            mostrarNotificacion("No se pudo agregar la volqueta.", "error");
         }
     } else {
-        mostrarNotificacion("Por favor, ingrese el nombre y la descripción de la volqueta.", "error");
-    }
-}
-
-async function agregarItemAdmin(tipo, inputElement) {
-    const valor = (tipo === 'placas') ? inputElement.value.trim().toUpperCase() : inputElement.value.trim();
-    if (valor) {
-        const listaNombres = listasAdmin[tipo].map(item => item.nombre.toUpperCase());
-        if (listaNombres.includes(valor.toUpperCase())) {
-            mostrarNotificacion(`"${valor}" ya existe.`, "error"); return;
-        }
-        try {
-            await addDoc(collection(db, tipo), { nombre: valor });
-            mostrarNotificacion(`Elemento agregado correctamente.`, "exito");
-            inputElement.value = '';
-            await cargarDatosIniciales();
-        } catch (error) {
-            console.error("Error agregando:", error);
-            mostrarNotificacion("No se pudo agregar el elemento.", "error");
-        }
+        mostrarNotificacion("Por favor, complete la placa y descripción.", "error");
     }
 }
 
@@ -230,7 +203,7 @@ function obtenerConsumosFiltrados() {
 }
 
 function mostrarListasAdmin() {
-    const contenedores = { choferes: 'listaChoferes', placas: 'listaPlacas', empresas: 'listaEmpresas', proveedores: 'listaProveedores', proyectos: 'listaProyectos' };
+    const contenedores = { choferes: 'listaChoferes', volquetas: 'listaVolquetas', empresas: 'listaEmpresas', proveedores: 'listaProveedores', proyectos: 'listaProyectos' };
     for (const tipo in contenedores) {
         const ul = document.getElementById(contenedores[tipo]);
         if (!ul) continue;
@@ -242,8 +215,8 @@ function mostrarListasAdmin() {
         listasAdmin[tipo].forEach(item => {
             const li = document.createElement('li');
             const nombreSpan = document.createElement('span');
-            if (tipo === 'choferes') {
-                nombreSpan.innerHTML = `${item.nombre} <small>(${item.volquetaAsignada || 'Sin asignar'})</small>`;
+            if (tipo === 'volquetas') {
+                nombreSpan.innerHTML = `${item.placa} <small>(${item.descripcion})</small>`;
             } else {
                 nombreSpan.textContent = item.nombre;
             }
@@ -271,25 +244,44 @@ function mostrarListasAdmin() {
 }
 
 async function modificarItemAdmin(item, tipo) {
-    const valorActual = item.nombre;
-    const nuevoValor = prompt(`Modificar "${valorActual}":`, valorActual);
-    if (!nuevoValor || nuevoValor.trim() === '' || nuevoValor.trim() === valorActual) return;
-    const valorFormateado = (tipo === 'placas') ? nuevoValor.trim().toUpperCase() : nuevoValor.trim();
-    if (confirm(`¿Estás seguro de cambiar "${valorActual}" por "${valorFormateado}"?`)) {
+    let valorActual, nuevoValor;
+    if (tipo === 'volquetas') {
+        const nuevaPlaca = prompt(`Modificar Placa "${item.placa}":`, item.placa);
+        const nuevaDesc = prompt(`Modificar Descripción "${item.descripcion}":`, item.descripcion);
+        if (!nuevaPlaca || !nuevaDesc) return;
         try {
-            await updateDoc(doc(db, tipo, item.id), { nombre: valorFormateado });
+            await updateDoc(doc(db, tipo, item.id), { placa: nuevaPlaca.toUpperCase(), descripcion: nuevaDesc });
             await cargarDatosIniciales();
-            mostrarNotificacion("Elemento actualizado.", "exito");
-        } catch(e) {
-            console.error("Error modificando:", e);
-            mostrarNotificacion("Error al modificar.", "error");
+            mostrarNotificacion("Volqueta actualizada.", "exito");
+        } catch(e) { console.error("Error modificando:", e); mostrarNotificacion("Error al modificar.", "error"); }
+    } else {
+        valorActual = item.nombre;
+        nuevoValor = prompt(`Modificar "${valorActual}":`, valorActual);
+        if (!nuevoValor || nuevoValor.trim() === '' || nuevoValor.trim() === valorActual) return;
+        if (confirm(`¿Estás seguro de cambiar "${valorActual}" por "${nuevoValor}"?`)) {
+            try {
+                await updateDoc(doc(db, tipo, item.id), { nombre: nuevoValor });
+                await cargarDatosIniciales();
+                mostrarNotificacion("Elemento actualizado.", "exito");
+            } catch(e) {
+                console.error("Error modificando:", e);
+                mostrarNotificacion("Error al modificar.", "error");
+            }
         }
     }
 }
 
 function cargarDatosParaModificar(id) {
     const consumo = todosLosConsumos.find(c => c.id === id); if (!consumo) return;
-    document.getElementById('registroId').value = consumo.id; document.getElementById('fecha').value = consumo.fecha; document.getElementById('selectChofer').value = consumo.chofer; document.getElementById('selectVolqueta').value = consumo.volqueta; document.getElementById('galones').value = consumo.galones; document.getElementById('costo').value = consumo.costo; document.getElementById('descripcion').value = consumo.descripcion; document.getElementById('selectEmpresa').value = consumo.empresa || ""; document.getElementById('selectProveedor').value = consumo.proveedor || ""; document.getElementById('selectProyecto').value = consumo.proyecto || "";
+    document.getElementById('registroId').value = consumo.id; document.getElementById('fecha').value = consumo.fecha; 
+    document.getElementById('selectChofer').value = consumo.chofer;
+    document.getElementById('selectVolqueta').value = consumo.volqueta;
+    document.getElementById('galones').value = consumo.galones; 
+    document.getElementById('costo').value = consumo.costo; 
+    document.getElementById('descripcion').value = consumo.descripcion; 
+    document.getElementById('selectEmpresa').value = consumo.empresa || ""; 
+    document.getElementById('selectProveedor').value = consumo.proveedor || ""; 
+    document.getElementById('selectProyecto').value = consumo.proyecto || "";
     abrirModal();
 }
 
@@ -330,7 +322,7 @@ const calcularYMostrarTotales = (consumos) => {
     calcularYMostrarTotalesPorCategoria(consumos, 'volqueta', 'resumenBody', 'resumenFooter');
 };
 
-async function borrarItemAdmin(item, tipo) { if (confirm(`¿Seguro que quieres borrar "${item.nombre}"?`)) { try { await deleteDoc(doc(db, tipo, item.id)); mostrarNotificacion("Elemento borrado.", "exito"); await cargarDatosIniciales(); } catch(e) { console.error("Error borrando:", e); mostrarNotificacion("No se pudo borrar el elemento.", "error"); } } }
+async function borrarItemAdmin(item, tipo) { if (confirm(`¿Seguro que quieres borrar "${item.nombre || item.placa}"?`)) { try { await deleteDoc(doc(db, tipo, item.id)); mostrarNotificacion("Elemento borrado.", "exito"); await cargarDatosIniciales(); } catch(e) { console.error("Error borrando:", e); mostrarNotificacion("No se pudo borrar el elemento.", "error"); } } }
 async function borrarConsumoHistorial(id) { if (confirm('¿Seguro que quieres borrar este registro?')) { try { await deleteDoc(doc(db, "consumos", id)); mostrarNotificacion("Registro borrado.", "exito"); await cargarDatosIniciales(); } catch (e) { console.error("Error borrando consumo:", e); mostrarNotificacion("No se pudo borrar el registro.", "error"); } } }
 
 function poblarFiltroDeMes() { const filtroSelect = document.getElementById('filtroMes'); const mesesUnicos = [...new Set(todosLosConsumos.map(c => c.fecha.substring(0, 7)))]; mesesUnicos.sort().reverse(); const valorSeleccionado = filtroSelect.value; filtroSelect.innerHTML = '<option value="todos">Todos los Meses</option>'; mesesUnicos.forEach(mes => { const [year, month] = mes.split('-'); const fechaMes = new Date(year, month - 1); const nombreMes = fechaMes.toLocaleDateString('es-EC', { month: 'long', year: 'numeric' }); const opcion = document.createElement('option'); opcion.value = mes; opcion.textContent = nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1); filtroSelect.appendChild(opcion); }); if (filtroSelect.value) filtroSelect.value = valorSeleccionado || 'todos'; }
@@ -393,8 +385,8 @@ function asignarEventosApp() {
     });
     
     document.getElementById('historialBody').addEventListener('click', manejarAccionesHistorial);
-    document.getElementById('formAdminChofer').addEventListener('submit', handleAgregarChofer);
-    document.getElementById('formAdminPlaca').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('placas', document.getElementById('nuevaPlaca')); });
+    document.getElementById('formAdminChofer').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('choferes', document.getElementById('nuevoChofer')); });
+    document.getElementById('formAdminVolqueta').addEventListener('submit', handleAgregarVolqueta);
     document.getElementById('formAdminEmpresa').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('empresas', document.getElementById('nuevaEmpresa')); });
     document.getElementById('formAdminProveedor').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('proveedores', document.getElementById('nuevoProveedor')); });
     document.getElementById('formAdminProyecto').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('proyectos', document.getElementById('nuevoProyecto')); });

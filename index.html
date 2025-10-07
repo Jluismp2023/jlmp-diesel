@@ -65,7 +65,7 @@
                     <span class="close-button">&times;</span>
                     <div id="formularioContainer">
                         <h2 id="formularioTitulo">Nuevo Registro</h2>
-                        <form id="consumoForm"><input type="hidden" id="registroId"><label for="fecha">Fecha:</label><input type="date" id="fecha" required><label for="selectChofer">Nombre del Chofer:</label><select id="selectChofer" required></select><label for="selectVolqueta">Placa de la Volqueta:</label><select id="selectVolqueta" required></select><label for="selectProveedor">Proveedor de Diesel:</label><select id="selectProveedor" required></select><label for="selectProyecto">Proyecto:</label><select id="selectProyecto" required></select><label for="galones">Galones de Diésel (Volumen):</label><input type="number" id="galones" step="0.01" required><label for="costo">Costo Total ($):</label><input type="number" id="costo" step="0.01" required><label for="selectEmpresa">Empresa:</label><select id="selectEmpresa" required></select><label for="descripcion">Descripción del Uso:</label><textarea id="descripcion" required></textarea><button type="submit" id="btnGuardar" class="button-primary"><i class="fa-solid fa-floppy-disk"></i>Guardar Registro</button></form>
+                        <form id="consumoForm"><input type="hidden" id="registroId"><label for="fecha">Fecha:</label><input type="date" id="fecha" required><label for="selectChofer">Nombre del Chofer:</label><select id="selectChofer" required></select><label for="selectVolqueta">Volqueta:</label><select id="selectVolqueta" required></select><label for="selectProveedor">Proveedor de Diesel:</label><select id="selectProveedor" required></select><label for="selectProyecto">Proyecto:</label><select id="selectProyecto" required></select><label for="galones">Galones de Diésel (Volumen):</label><input type="number" id="galones" step="0.01" required><label for="costo">Costo Total ($):</label><input type="number" id="costo" step="0.01" required><label for="selectEmpresa">Empresa:</label><select id="selectEmpresa" required></select><label for="descripcion">Descripción del Uso:</label><textarea id="descripcion" required></textarea><button type="submit" id="btnGuardar" class="button-primary"><i class="fa-solid fa-floppy-disk"></i>Guardar Registro</button></form>
                     </div>
                 </div>
             </div>
@@ -100,13 +100,13 @@
                 <button class="accordion-button">CONSUMO DE DIESEL POR PROVEEDOR</button><div class="accordion-panel"><table id="resumenProveedorTabla"><thead><tr><th>Proveedor</th><th>Total Galones (Volumen)</th><th>Costo Total ($)</th></tr></thead><tbody id="resumenProveedorBody"></tbody><tfoot id="resumenProveedorFooter"></tfoot></table></div>
                 <button class="accordion-button">CONSUMO DE DIESEL POR PROYECTO</button><div class="accordion-panel"><table id="resumenProyectoTabla"><thead><tr><th>Proyecto</th><th>Total Galones (Volumen)</th><th>Costo Total ($)</th></tr></thead><tbody id="resumenProyectoBody"></tbody><tfoot id="resumenProyectoFooter"></tfoot></table></div>
                 <button class="accordion-button">CONSUMO DE DIESEL POR CHOFER</button><div class="accordion-panel"><table id="resumenChoferTabla"><thead><tr><th>Chofer</th><th>Total Galones (Volumen)</th><th>Costo Total ($)</th></tr></thead><tbody id="resumenChoferBody"></tbody><tfoot id="resumenChoferFooter"></tfoot></table></div>
-                <button class="accordion-button">CONSUMO DE DIESEL POR PLACA</button><div class="accordion-panel"><table id="resumenTabla"><thead><tr><th>Volqueta (Placa)</th><th>Total Galones (Volumen)</th><th>Costo Total ($)</th></tr></thead><tbody id="resumenBody"></tbody><tfoot id="resumenFooter"></tfoot></table></div>
+                <button class="accordion-button">CONSUMO DE DIESEL POR VOLQUETA</button><div class="accordion-panel"><table id="resumenTabla"><thead><tr><th>Volqueta</th><th>Total Galones (Volumen)</th><th>Costo Total ($)</th></tr></thead><tbody id="resumenBody"></tbody><tfoot id="resumenFooter"></tfoot></table></div>
                 <button class="accordion-button">TOTAL DE CONSUMO DE DIESEL (HISTORIAL DETALLADO)</button>
                 <div class="accordion-panel">
                     <table id="historialTabla">
                         <thead>
                             <tr>
-                                <th class="no-print">Acciones</th><th>Fecha</th><th>Chofer</th><th>Placa</th><th>Proveedor</th><th>Proyecto</th><th>Galones</th><th>Costo ($)</th><th>Empresa</th><th>Descripción</th>
+                                <th class="no-print">Acciones</th><th>Fecha</th><th>Chofer</th><th>Volqueta</th><th>Proveedor</th><th>Proyecto</th><th>Galones</th><th>Costo ($)</th><th>Empresa</th><th>Descripción</th>
                             </tr>
                         </thead>
                         <tbody id="historialBody"></tbody>
@@ -120,16 +120,16 @@
             <div class="container" id="adminContainer">
                 <h2><i class="fa-solid fa-screwdriver-wrench"></i>Administración</h2>
                 <div class="admin-section">
+                    <div class="admin-box"><h3><i class="fa-solid fa-user-tie"></i>Gestionar Choferes</h3><form id="formAdminChofer" class="admin-form"><input type="text" id="nuevoChofer" placeholder="Nombre del chofer" required><button type="submit" class="button-success"><i class="fa-solid fa-plus"></i>Agregar</button></form><ul id="listaChoferes" class="lista-gestion"></ul></div>
                     <div class="admin-box">
-                        <h3><i class="fa-solid fa-user-tie"></i>Gestionar Choferes</h3>
-                        <form id="formAdminChofer" class="admin-form">
-                            <input type="text" id="nuevoChofer" placeholder="Nombre del chofer" required>
-                            <input type="text" id="volquetaAsignada" placeholder="Descripción de volqueta" required>
+                        <h3><i class="fa-solid fa-truck"></i>Gestionar Volquetas</h3>
+                        <form id="formAdminVolqueta" class="admin-form">
+                            <input type="text" id="nuevaVolquetaPlaca" placeholder="Placa" required>
+                            <input type="text" id="nuevaVolquetaDesc" placeholder="Descripción (ej. Hino GH-Roja)" required>
                             <button type="submit" class="button-success"><i class="fa-solid fa-plus"></i>Agregar</button>
                         </form>
-                        <ul id="listaChoferes" class="lista-gestion"></ul>
+                        <ul id="listaVolquetas" class="lista-gestion"></ul>
                     </div>
-                    <div class="admin-box"><h3><i class="fa-solid fa-truck"></i>Gestionar Placas</h3><form id="formAdminPlaca" class="admin-form"><input type="text" id="nuevaPlaca" placeholder="Placa de la volqueta" required><button type="submit" class="button-success"><i class="fa-solid fa-plus"></i>Agregar</button></form><ul id="listaPlacas" class="lista-gestion"></ul></div>
                     <div class="admin-box"><h3><i class="fa-solid fa-building"></i>Gestionar Empresas</h3><form id="formAdminEmpresa" class="admin-form"><input type="text" id="nuevaEmpresa" placeholder="Nombre de la empresa" required><button type="submit" class="button-success"><i class="fa-solid fa-plus"></i>Agregar</button></form><ul id="listaEmpresas" class="lista-gestion"></ul></div>
                     <div class="admin-box"><h3><i class="fa-solid fa-dolly"></i>Gestionar Proveedores</h3><form id="formAdminProveedor" class="admin-form"><input type="text" id="nuevoProveedor" placeholder="Nombre del proveedor" required><button type="submit" class="button-success"><i class="fa-solid fa-plus"></i>Agregar</button></form><ul id="listaProveedores" class="lista-gestion"></ul></div>
                     <div class="admin-box"><h3><i class="fa-solid fa-list-check"></i>Gestionar Proyectos</h3><form id="formAdminProyecto" class="admin-form"><input type="text" id="nuevoProyecto" placeholder="Nombre del proyecto" required><button type="submit" class="button-success"><i class="fa-solid fa-plus"></i>Agregar</button></form><ul id="listaProyectos" class="lista-gestion"></ul></div>
