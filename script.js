@@ -168,42 +168,44 @@ async function guardarOActualizar(e) {
 }
 
 async function agregarItemAdmin(tipo, inputElement) {
+    // Esta función ahora solo maneja los tipos simples
     if (tipo === 'choferes') {
-        const nombre = inputElement.value.trim();
-        if (nombre) {
-            const listaNombres = listasAdmin.choferes.map(item => item.nombre.toUpperCase());
-            if (listaNombres.includes(nombre.toUpperCase())) {
-                mostrarNotificacion(`El chofer "${nombre}" ya existe.`, "error"); return;
-            }
-            try {
-                await addDoc(collection(db, "choferes"), { nombre: nombre, volquetas: [] });
-                mostrarNotificacion(`Chofer agregado correctamente.`, "exito");
-                inputElement.value = '';
-                await cargarDatosIniciales();
-            } catch (error) {
-                console.error("Error agregando chofer:", error);
-                mostrarNotificacion("No se pudo agregar el chofer.", "error");
-            }
-        } else {
-            mostrarNotificacion("Por favor, ingresa el nombre del chofer.", "error");
+        // La lógica para agregar choferes ahora está en su propia función.
+        return;
+    }
+    const valor = (tipo === 'placas') ? inputElement.value.trim().toUpperCase() : inputElement.value.trim();
+    if (valor) {
+        try {
+            await addDoc(collection(db, tipo), { nombre: valor });
+            mostrarNotificacion(`Elemento agregado correctamente.`, "exito");
+            inputElement.value = '';
+            await cargarDatosIniciales();
+        } catch (error) {
+            console.error("Error agregando:", error);
+            mostrarNotificacion("No se pudo agregar el elemento.", "error");
+        }
+    }
+}
+
+async function handleAgregarChofer(e) {
+    e.preventDefault();
+    const nombre = document.getElementById('nuevoChofer').value.trim();
+    if (nombre) {
+        const listaNombres = listasAdmin.choferes.map(item => item.nombre.toUpperCase());
+        if (listaNombres.includes(nombre.toUpperCase())) {
+            mostrarNotificacion(`El chofer "${nombre}" ya existe.`, "error"); return;
+        }
+        try {
+            await addDoc(collection(db, "choferes"), { nombre: nombre, volquetas: [] });
+            mostrarNotificacion(`Chofer agregado correctamente.`, "exito");
+            document.getElementById('nuevoChofer').value = '';
+            await cargarDatosIniciales();
+        } catch (error) {
+            console.error("Error agregando chofer:", error);
+            mostrarNotificacion("No se pudo agregar el chofer.", "error");
         }
     } else {
-        const valor = (tipo === 'placas') ? inputElement.value.trim().toUpperCase() : inputElement.value.trim();
-        if (valor) {
-            const listaNombres = listasAdmin[tipo].map(item => item.nombre.toUpperCase());
-            if (listaNombres.includes(valor.toUpperCase())) {
-                mostrarNotificacion(`"${valor}" ya existe.`, "error"); return;
-            }
-            try {
-                await addDoc(collection(db, tipo), { nombre: valor });
-                mostrarNotificacion(`Elemento agregado correctamente.`, "exito");
-                inputElement.value = '';
-                await cargarDatosIniciales();
-            } catch (error) {
-                console.error("Error agregando:", error);
-                mostrarNotificacion("No se pudo agregar el elemento.", "error");
-            }
-        }
+        mostrarNotificacion("Por favor, ingresa el nombre del chofer.", "error");
     }
 }
 
@@ -288,6 +290,76 @@ async function modificarItemAdmin(item, tipo) {
     }
 }
 
+function abrirModalVolquetas(chofer) {
+    choferSiendoEditado = chofer;
+    document.getElementById('nombreChoferEnModal').textContent = chofer.nombre;
+    
+    const listaVolquetas = document.getElementById('listaVolquetasChofer');
+    listaVolquetas.innerHTML = '';
+    const volquetas = chofer.volquetas || [];
+
+    if (volquetas.length === 0) {
+        listaVolquetas.innerHTML = `<li class="empty-state">No hay volquetas asignadas.</li>`;
+    } else {
+        volquetas.forEach(volqueta => {
+            const li = document.createElement('li');
+            li.innerHTML = `<span>${volqueta}</span>
+                          <button class="btn-accion btn-borrar" title="Eliminar"><i class="fa-solid fa-trash-can" style="margin:0;"></i></button>`;
+            li.querySelector('.btn-borrar').addEventListener('click', () => handleEliminarVolquetaDeChofer(volqueta));
+            listaVolquetas.appendChild(li);
+        });
+    }
+    modalGestionarVolquetas.style.display = 'block';
+}
+
+async function handleAgregarVolquetaAChofer(e) {
+    e.preventDefault();
+    const input = document.getElementById('nuevaVolquetaParaChofer');
+    const nuevaVolqueta = input.value.trim();
+
+    if (!nuevaVolqueta || !choferSiendoEditado) return;
+
+    try {
+        const choferRef = doc(db, 'choferes', choferSiendoEditado.id);
+        await updateDoc(choferRef, {
+            volquetas: arrayUnion(nuevaVolqueta)
+        });
+        
+        // Actualizar el estado local para reflejar el cambio inmediatamente
+        choferSiendoEditado.volquetas = [...(choferSiendoEditado.volquetas || []), nuevaVolqueta];
+        
+        mostrarNotificacion("Volqueta añadida", "exito");
+        input.value = '';
+        abrirModalVolquetas(choferSiendoEditado); // Refrescar la lista en el modal
+        await cargarDatosIniciales(); // Recargar todos los datos
+    } catch(error) {
+        console.error("Error añadiendo volqueta:", error);
+        mostrarNotificacion("No se pudo añadir la volqueta", "error");
+    }
+}
+
+async function handleEliminarVolquetaDeChofer(volquetaDescripcion) {
+    if (!choferSiendoEditado) return;
+    if (!confirm(`¿Seguro que quieres eliminar la volqueta "${volquetaDescripcion}" de este chofer?`)) return;
+
+    try {
+        const choferRef = doc(db, 'choferes', choferSiendoEditado.id);
+        await updateDoc(choferRef, {
+            volquetas: arrayRemove(volquetaDescripcion)
+        });
+
+        // Actualizar estado local
+        choferSiendoEditado.volquetas = (choferSiendoEditado.volquetas || []).filter(v => v !== volquetaDescripcion);
+        
+        mostrarNotificacion("Volqueta eliminada", "exito");
+        abrirModalVolquetas(choferSiendoEditado); // Refrescar la lista en el modal
+        await cargarDatosIniciales(); // Recargar todos los datos
+    } catch (error) {
+        console.error("Error eliminando volqueta:", error);
+        mostrarNotificacion("No se pudo eliminar la volqueta", "error");
+    }
+}
+
 function cargarDatosParaModificar(id) {
     const consumo = todosLosConsumos.find(c => c.id === id); if (!consumo) return;
     document.getElementById('registroId').value = consumo.id; document.getElementById('fecha').value = consumo.fecha; 
@@ -366,6 +438,25 @@ function mostrarHistorialAgrupado(consumos) {
     historialFooter.innerHTML = `<tr><td class="no-print"></td><td colspan="5" style="text-align: right;"><strong>TOTAL DE GALONES:</strong></td><td><strong>${totalGalones.toFixed(2)}</strong></td><td style="text-align: right;"><strong>VALOR TOTAL:</strong></td><td><strong>$${totalCosto.toFixed(2)}</strong></td><td></td></tr>`;
 }
 
+function actualizarVolquetasParaChofer(nombreChofer, volquetaSeleccionada) {
+    const volquetaSelect = document.getElementById('selectVolqueta');
+    const chofer = listasAdmin.choferes.find(c => c.nombre === nombreChofer);
+    
+    volquetaSelect.innerHTML = ''; // Limpiar opciones
+    if (chofer && chofer.volquetas && chofer.volquetas.length > 0) {
+        volquetaSelect.innerHTML = '<option value="" disabled selected>--- Seleccione Volqueta ---</option>';
+        chofer.volquetas.forEach(volqueta => {
+            volquetaSelect.innerHTML += `<option value="${volqueta}">${volqueta}</option>`;
+        });
+    } else {
+        volquetaSelect.innerHTML = '<option value="" disabled selected>--- Chofer sin volquetas ---</option>';
+    }
+
+    if(volquetaSeleccionada) {
+        volquetaSelect.value = volquetaSeleccionada;
+    }
+}
+
 function handleLogin(e) {
     e.preventDefault();
     const email = document.getElementById('login-email').value;
@@ -382,7 +473,11 @@ function handleLogout() {
 function asignarEventosApp() {
     btnAbrirModal.addEventListener('click', abrirModal);
     btnCerrarModal.addEventListener('click', cerrarModal);
+    document.getElementById('btnCerrarModalVolquetas').addEventListener('click', () => modalGestionarVolquetas.style.display = 'none');
+    document.getElementById('formAgregarVolquetaChofer').addEventListener('submit', handleAgregarVolquetaAChofer);
     
+    document.getElementById('selectChofer').addEventListener('change', (e) => actualizarVolquetasParaChofer(e.target.value));
+
     document.getElementById('btnTabRegistrar').addEventListener('click', (e) => openMainTab(e, 'tabRegistrar'));
     document.getElementById('btnTabReportes').addEventListener('click', (e) => openMainTab(e, 'tabReportes'));
     document.getElementById('btnTabAdmin').addEventListener('click', (e) => openMainTab(e, 'tabAdmin'));
