@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, getDocs, doc, addDoc, updateDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, getDocs, doc, addDoc, updateDoc, deleteDoc, query, orderBy, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const firebaseConfig = {
@@ -17,10 +17,12 @@ const auth = getAuth(app);
 
 const vistaLogin = document.getElementById('vista-login');
 const vistaApp = document.getElementById('vista-app');
+const modalGestionarVolquetas = document.getElementById('modalGestionarVolquetas');
 
 let todosLosConsumos = [];
 let listasAdmin = { choferes: [], volquetas: [], empresas: [], proveedores: [], proyectos: [] };
 let appInicializada = false;
+let choferSiendoEditado = null;
 
 onAuthStateChanged(auth, (user) => {
     if (user) {
@@ -376,7 +378,23 @@ function asignarEventosApp() {
     document.getElementById('btnTabAdmin').addEventListener('click', (e) => openMainTab(e, 'tabAdmin'));
     
     document.getElementById('consumoForm').addEventListener('submit', guardarOActualizar);
-    document.getElementById('btnPrint').addEventListener('click', () => window.print());
+    document.getElementById('btnPrint').addEventListener('click', () => {
+        const filtroMesSelect = document.getElementById('filtroMes');
+        const fechaInicio = document.getElementById('filtroFechaInicio').value;
+        const fechaFin = document.getElementById('filtroFechaFin').value;
+        const printPeriodDiv = document.getElementById('print-period-info');
+        
+        let periodoTexto = "Período: Todos los registros";
+        if (fechaInicio && fechaFin) {
+            periodoTexto = `Período del ${fechaInicio} al ${fechaFin}`;
+        } else if (filtroMesSelect.value !== 'todos') {
+            const mesTexto = filtroMesSelect.options[filtroMesSelect.selectedIndex].text;
+            periodoTexto = `Período: ${mesTexto}`;
+        }
+        printPeriodDiv.textContent = periodoTexto;
+        window.print();
+    });
+
     document.getElementById('btnAplicarFiltros').addEventListener('click', actualizarTodaLaUI);
     document.getElementById('btnLimpiarFiltros').addEventListener('click', () => {
         const filtros = ['filtroMes', 'filtroFechaInicio', 'filtroFechaFin', 'filtroChofer', 'filtroProveedor', 'filtroEmpresa', 'filtroProyecto'];
