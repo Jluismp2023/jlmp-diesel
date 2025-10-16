@@ -123,18 +123,15 @@ button:hover { opacity: 0.9; }
 
 /* ===== INICIO DE BLOQUE MODIFICADO ===== */
 @media print {
-    .no-print, #vista-login, .main-tabs, .report-card { display: none !important; }
+    /* Oculta elementos no necesarios para la impresión */
+    .no-print, #vista-login, .main-tabs { display: none !important; }
     
     body, #vista-app { display: block !important; }
 
     /* Oculta todas las pestañas por defecto */
-    .main-tab-content {
-        display: none !important;
-    }
+    .main-tab-content { display: none !important; }
     /* Muestra solo la pestaña marcada como activa para impresión */
-    .main-tab-content.printable-active {
-        display: block !important;
-    }
+    .main-tab-content.printable-active { display: block !important; }
 
     .accordion-button { display: none !important; }
     .accordion-panel { max-height: unset !important; overflow: visible !important; padding: 0 !important; border: none !important; }
@@ -146,7 +143,19 @@ button:hover { opacity: 0.9; }
     .header-titles h1 { font-size: 16pt; color: black !important; }
     .header-titles h2 { font-size: 12pt; color: #555 !important; }
     
-    h2 { color: black !important; text-align: left; font-size: 14pt; border-bottom: 2px solid black; padding-bottom: 5px; margin-top: 25px; }
+    h2, .card-header h3 { color: black !important; text-align: left; font-size: 14pt; border-bottom: 2px solid black; padding-bottom: 5px; margin-top: 25px; }
+    .card-header .fa-solid { display: none; } /* Oculta el ícono del header de la tarjeta */
+
+    /* Estilos para que las tarjetas se vean como secciones de un documento */
+    .report-cards-container { display: block; }
+    .report-card {
+        display: block;
+        box-shadow: none;
+        border: none;
+        page-break-inside: avoid;
+        margin-bottom: 20px;
+    }
+
     table { width: 100%; border-collapse: collapse; page-break-inside: auto; }
     tr { page-break-inside: avoid; page-break-after: auto; }
     th, td { border: 1px solid #333 !important; padding: 5px; }
