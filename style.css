@@ -116,7 +116,7 @@ button:hover { opacity: 0.9; }
     .header-container { flex-direction: column; gap: 15px; }
     .header-container .button-danger { width: 100%; }
     .header-content { justify-content: center; width: 100%;}
-    .report-card { flex-basis: 100%; } /* Las tarjetas ocupan todo el ancho en móviles */
+    .report-card { flex-basis: 100%; }
 }
 
 @media print {
@@ -155,15 +155,22 @@ button:hover { opacity: 0.9; }
 .card-body table th { font-size: 0.9em; padding: 8px; }
 .card-body table td { font-size: 0.9em; padding: 8px; }
 
-/* ===== INICIO DE CÓDIGO NUEVO PARA LEGIBILIDAD DE TABLAS ===== */
-/* Estilo para filas alternas (Zebra Striping) en el cuerpo de la tabla del historial */
-#historialTabla tbody tr:nth-child(even) {
-    background-color: #f8f9fa; /* Un gris muy claro */
-}
+#historialTabla tbody tr:nth-child(even) { background-color: #f8f9fa; }
+#historialTabla tbody tr:not(.fila-grupo):hover { background-color: #e9ecef; cursor: pointer; }
 
-/* Estilo para resaltar la fila al pasar el ratón (hover) */
-#historialTabla tbody tr:not(.fila-grupo):hover {
-    background-color: #e9ecef; /* Un gris un poco más oscuro */
-    cursor: pointer; /* Cambia el cursor para indicar que la fila es interactiva */
+/* ===== INICIO DE CÓDIGO NUEVO PARA ÍCONOS Y COLORES CONSISTENTES ===== */
+.button-warning {
+    background-color: var(--warning-color);
+    color: var(--dark-text-color); /* Texto oscuro para mejor contraste con amarillo */
+}
+.btn-modificar i {
+    color: var(--dark-text-color) !important;
+}
+.admin-form .button-success i,
+.button-danger i,
+.button-primary i,
+.button-info i,
+.button-success i {
+    color: var(--white-color) !important;
 }
 /* ===== FIN DE CÓDIGO NUEVO ===== */
