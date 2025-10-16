@@ -1,12 +1,15 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, collection, getDocs, doc, addDoc, updateDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+// ===== INICIO DE CÓDIGO NUEVO (IMPORTS PARA STORAGE) =====
+import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+// ===== FIN DE CÓDIGO NUEVO =====
 
 const firebaseConfig = {
     apiKey: "AIzaSyCElg_et8_Z8ERTWo5tAwZJk2tb2ztUwlc",
     authDomain: "jlmp-diesel.firebaseapp.com",
     projectId: "jlmp-diesel",
-    storageBucket: "jlmp-diesel.firebasestorage.app",
+    storageBucket: "jlmp-diesel.appspot.com", // Asegúrate que el bucket sea el correcto
     messagingSenderId: "763318949751",
     appId: "1:763318949751:web:e712d1008d34fbc98ab372"
 };
@@ -14,6 +17,9 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
+// ===== INICIO DE CÓDIGO NUEVO (INICIALIZAR STORAGE) =====
+const storage = getStorage(app);
+// ===== FIN DE CÓDIGO NUEVO =====
 
 const vistaLogin = document.getElementById('vista-login');
 const vistaApp = document.getElementById('vista-app');
@@ -22,7 +28,7 @@ const btnLogout = document.getElementById('btn-logout');
 let todosLosConsumos = [];
 let listasAdmin = { choferes: [], placas: [], empresas: [], proveedores: [], proyectos: [] };
 let appInicializada = false;
-let tabActivaParaImprimir = null; // Variable para saber qué limpiar después de imprimir
+let tabActivaParaImprimir = null;
 
 onAuthStateChanged(auth, (user) => {
     if (user) {
@@ -41,14 +47,14 @@ onAuthStateChanged(auth, (user) => {
     }
 });
 
-function mostrarNotificacion(texto, tipo = 'info') {
+function mostrarNotificacion(texto, tipo = 'info', duracion = 3500) {
     let backgroundColor;
     switch (tipo) {
         case 'exito': backgroundColor = "linear-gradient(to right, #00b09b, #96c93d)"; break;
         case 'error': backgroundColor = "linear-gradient(to right, #ff5f6d, #ffc371)"; break;
         default: backgroundColor = "#007bff"; break;
     }
-    Toastify({ text: texto, duration: 3500, close: true, gravity: "top", position: "right", stopOnFocus: true, style: { background: backgroundColor, } }).showToast();
+    Toastify({ text: texto, duration: duracion, close: true, gravity: "top", position: "right", stopOnFocus: true, style: { background: backgroundColor, } }).showToast();
 }
 
 const modal = document.getElementById('modalRegistro');
@@ -128,12 +134,49 @@ function reiniciarFormulario() {
     poblarSelectores();
 }
 
+// ===== INICIO DE FUNCIÓN MODIFICADA (LÓGICA DE SUBIDA DE ARCHIVOS) =====
 async function guardarOActualizar(e) {
     e.preventDefault();
+    const btnGuardar = document.getElementById('btnGuardar');
+    btnGuardar.disabled = true; // Deshabilita el botón para evitar doble clic
+    btnGuardar.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Guardando...';
+
     const id = document.getElementById('registroId').value;
-    const datosConsumo = { volqueta: document.getElementById('selectVolqueta').value, fecha: document.getElementById('fecha').value, hora: document.getElementById('hora').value, numeroFactura: document.getElementById('numeroFactura').value, galones: document.getElementById('galones').value, costo: document.getElementById('costo').value, descripcion: document.getElementById('descripcion').value, chofer: document.getElementById('selectChofer').value, empresa: document.getElementById('selectEmpresa').value, proveedor: document.getElementById('selectProveedor').value, proyecto: document.getElementById('selectProyecto').value };
-    if (!datosConsumo.chofer || !datosConsumo.volqueta || !datosConsumo.empresa || !datosConsumo.proveedor || !datosConsumo.proyecto) { mostrarNotificacion("Por favor, complete todos los campos.", "error"); return; }
+    const archivo = document.getElementById('facturaArchivo').files[0];
+    
+    let datosConsumo = {
+        volqueta: document.getElementById('selectVolqueta').value,
+        fecha: document.getElementById('fecha').value,
+        hora: document.getElementById('hora').value,
+        numeroFactura: document.getElementById('numeroFactura').value,
+        galones: document.getElementById('galones').value,
+        costo: document.getElementById('costo').value,
+        descripcion: document.getElementById('descripcion').value,
+        chofer: document.getElementById('selectChofer').value,
+        empresa: document.getElementById('selectEmpresa').value,
+        proveedor: document.getElementById('selectProveedor').value,
+        proyecto: document.getElementById('selectProyecto').value
+    };
+
+    if (!datosConsumo.chofer || !datosConsumo.volqueta || !datosConsumo.empresa || !datosConsumo.proveedor || !datosConsumo.proyecto) {
+        mostrarNotificacion("Por favor, complete todos los campos obligatorios.", "error");
+        btnGuardar.disabled = false;
+        btnGuardar.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Guardar Registro';
+        return;
+    }
+
     try {
+        if (archivo) {
+            mostrarNotificacion("Subiendo factura...", "info", 5000);
+            const nombreArchivo = `${Date.now()}-${archivo.name}`;
+            const storageRef = ref(storage, `facturas/${nombreArchivo}`);
+            const snapshot = await uploadBytes(storageRef, archivo);
+            const downloadURL = await getDownloadURL(snapshot.ref);
+            
+            datosConsumo.facturaURL = downloadURL;
+            datosConsumo.facturaPath = snapshot.ref.fullPath; // Guardamos la ruta para poder borrarlo
+        }
+
         if (id) {
             await updateDoc(doc(db, "consumos", id), datosConsumo);
             mostrarNotificacion("Registro actualizado con éxito", "exito");
@@ -141,14 +184,20 @@ async function guardarOActualizar(e) {
             await addDoc(collection(db, "consumos"), datosConsumo);
             mostrarNotificacion("Registro guardado con éxito", "exito");
         }
+        
         reiniciarFormulario();
         cerrarModal();
         await cargarDatosIniciales();
+
     } catch (error) {
-        console.error("Error guardando:", error);
-        mostrarNotificacion("No se pudo guardar el registro.", "error");
+        console.error("Error guardando o subiendo archivo:", error);
+        mostrarNotificacion("Error: No se pudo guardar el registro o subir la factura.", "error");
+    } finally {
+        btnGuardar.disabled = false;
+        btnGuardar.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Guardar Registro';
     }
 }
+// ===== FIN DE FUNCIÓN MODIFICADA =====
 
 async function agregarItemAdmin(tipo, inputElement) {
     const valor = (tipo === 'placas') ? inputElement.value.trim().toUpperCase() : inputElement.value.trim();
@@ -179,10 +228,7 @@ function obtenerConsumosFiltrados() {
     const empresa = obtenerValorFiltro('filtroEmpresa');
     const proyecto = obtenerValorFiltro('filtroProyecto');
     let consumosFiltrados = todosLosConsumos;
-    if (fechaInicio && fechaFin) {
-        if (fechaFin < fechaInicio) { mostrarNotificacion("La fecha de fin no puede ser anterior a la de inicio.", "error"); return []; }
-        consumosFiltrados = consumosFiltrados.filter(c => c.fecha >= fechaInicio && c.fecha <= fechaFin);
-    } else if (fechaInicio) { consumosFiltrados = consumosFiltrados.filter(c => c.fecha === fechaInicio); } else if (mes !== 'todos') { consumosFiltrados = consumosFiltrados.filter(c => c.fecha.startsWith(mes)); }
+    if (fechaInicio && fechaFin) { if (fechaFin < fechaInicio) { mostrarNotificacion("La fecha de fin no puede ser anterior a la de inicio.", "error"); return []; } consumosFiltrados = consumosFiltrados.filter(c => c.fecha >= fechaInicio && c.fecha <= fechaFin); } else if (fechaInicio) { consumosFiltrados = consumosFiltrados.filter(c => c.fecha === fechaInicio); } else if (mes !== 'todos') { consumosFiltrados = consumosFiltrados.filter(c => c.fecha.startsWith(mes)); }
     if (chofer !== 'todos') { consumosFiltrados = consumosFiltrados.filter(c => c.chofer === chofer); }
     if (proveedor !== 'todos') { consumosFiltrados = consumosFiltrados.filter(c => c.proveedor === proveedor); }
     if (empresa !== 'todos') { consumosFiltrados = consumosFiltrados.filter(c => c.empresa === empresa); }
@@ -212,6 +258,7 @@ async function modificarItemAdmin(item, tipo) { const valorActual = item.nombre;
 function cargarDatosParaModificar(id) {
     const consumo = todosLosConsumos.find(c => c.id === id); if (!consumo) return;
     document.getElementById('registroId').value = consumo.id; document.getElementById('fecha').value = consumo.fecha; document.getElementById('hora').value = consumo.hora || ''; document.getElementById('numeroFactura').value = consumo.numeroFactura || ''; document.getElementById('selectChofer').value = consumo.chofer; document.getElementById('selectVolqueta').value = consumo.volqueta; document.getElementById('galones').value = consumo.galones; document.getElementById('costo').value = consumo.costo; document.getElementById('descripcion').value = consumo.descripcion; document.getElementById('selectEmpresa').value = consumo.empresa || ""; document.getElementById('selectProveedor').value = consumo.proveedor || ""; document.getElementById('selectProyecto').value = consumo.proyecto || "";
+    // Nota: No se puede pre-cargar el campo de archivo por seguridad del navegador.
     abrirModal();
 }
 
@@ -234,16 +281,37 @@ const calcularYMostrarTotalesPorProyecto = (consumos) => calcularYMostrarTotales
 const calcularYMostrarTotalesPorChofer = (consumos) => calcularYMostrarTotalesPorCategoria(consumos, 'chofer', 'resumenChoferBody', 'resumenChoferFooter');
 const calcularYMostrarTotales = (consumos) => { calcularYMostrarTotalesPorCategoria(consumos, 'volqueta', 'resumenBody', 'resumenFooter'); };
 
-async function borrarItemAdmin(item, tipo) { if (confirm(`¿Seguro que quieres borrar "${item.nombre}"?`)) { try { await deleteDoc(doc(db, tipo, item.id)); mostrarNotificacion("Elemento borrado.", "exito"); await cargarDatosIniciales(); } catch(e) { console.error("Error borrando:", e); mostrarNotificacion("No se pudo borrar.", "error"); } } }
-async function borrarConsumoHistorial(id) { if (confirm('¿Seguro que quieres borrar este registro?')) { try { await deleteDoc(doc(db, "consumos", id)); mostrarNotificacion("Registro borrado.", "exito"); await cargarDatosIniciales(); } catch (e) { console.error("Error borrando consumo:", e); mostrarNotificacion("No se pudo borrar.", "error"); } } }
+// ===== INICIO DE FUNCIÓN MODIFICADA (LÓGICA DE BORRADO DE ARCHIVOS) =====
+async function borrarConsumoHistorial(id) {
+    if (confirm('¿Seguro que quieres borrar este registro? Esta acción no se puede deshacer.')) {
+        try {
+            const consumo = todosLosConsumos.find(c => c.id === id);
+            // Si el registro tiene una factura asociada, borrarla de Storage primero
+            if (consumo && consumo.facturaPath) {
+                mostrarNotificacion("Borrando factura adjunta...", "info");
+                const facturaRef = ref(storage, consumo.facturaPath);
+                await deleteObject(facturaRef);
+            }
+            // Luego, borrar el registro de Firestore
+            await deleteDoc(doc(db, "consumos", id));
+            mostrarNotificacion("Registro borrado con éxito.", "exito");
+            await cargarDatosIniciales();
+        } catch (error) {
+            console.error("Error borrando registro o factura:", error);
+            mostrarNotificacion("No se pudo borrar el registro o su factura.", "error");
+        }
+    }
+}
+// ===== FIN DE FUNCIÓN MODIFICADA =====
 
 function poblarFiltroDeMes() { const filtros = document.querySelectorAll('.filtro-sincronizado[data-sync-id="filtroMes"]'); const mesesUnicos = [...new Set(todosLosConsumos.map(c => c.fecha.substring(0, 7)))]; mesesUnicos.sort().reverse(); filtros.forEach(filtroSelect => { const valorSeleccionado = filtroSelect.value; filtroSelect.innerHTML = '<option value="todos">Todos los Meses</option>'; mesesUnicos.forEach(mes => { const [year, month] = mes.split('-'); const fechaMes = new Date(year, month - 1); const nombreMes = fechaMes.toLocaleDateString('es-EC', { month: 'long', year: 'numeric' }); const opcion = document.createElement('option'); opcion.value = mes; opcion.textContent = nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1); filtroSelect.appendChild(opcion); }); if (filtroSelect.value) filtroSelect.value = valorSeleccionado || 'todos'; }); }
 function poblarFiltrosReportes() { const tipos = { choferes: 'filtroChofer', proveedores: 'filtroProveedor', empresas: 'filtroEmpresa', proyectos: 'filtroProyecto' }; const titulos = { choferes: 'Todos los Choferes', proveedores: 'Todos los Proveedores', empresas: 'Todas las Empresas', proyectos: 'Todos los Proyectos' }; for (const tipo in tipos) { const syncId = tipos[tipo]; const selects = document.querySelectorAll(`.filtro-sincronizado[data-sync-id="${syncId}"]`); selects.forEach(select => { const valorActual = select.value; select.innerHTML = `<option value="todos">${titulos[tipo]}</option>`; listasAdmin[tipo].forEach(item => { select.innerHTML += `<option value="${item.nombre}">${item.nombre}</option>`; }); select.value = valorActual || 'todos'; }); } }
 
+// ===== INICIO DE FUNCIÓN MODIFICADA (MUESTRA EL ENLACE A LA FACTURA) =====
 function mostrarHistorialAgrupado(consumos) {
     const historialBody = document.getElementById('historialBody'); const historialFooter = document.getElementById('historialFooter');
     historialBody.innerHTML = ''; historialFooter.innerHTML = '';
-    if (consumos.length === 0) { historialBody.innerHTML = `<tr><td colspan="12" class="empty-state"><i class="fa-solid fa-folder-open"></i><p>No se encontraron registros.</p></td></tr>`; return; }
+    if (consumos.length === 0) { historialBody.innerHTML = `<tr><td colspan="13" class="empty-state"><i class="fa-solid fa-folder-open"></i><p>No se encontraron registros.</p></td></tr>`; return; }
     let totalGalones = 0, totalCosto = 0;
     consumos.sort((a,b) => new Date(b.fecha) - new Date(a.fecha) || a.volqueta.localeCompare(b.volqueta));
     let mesAnioActual = "";
@@ -252,15 +320,53 @@ function mostrarHistorialAgrupado(consumos) {
         const fechaConsumo = new Date(consumo.fecha + 'T00:00:00'); const mesAnio = fechaConsumo.toLocaleDateString('es-EC', { month: 'long', year: 'numeric' });
         if (mesAnio !== mesAnioActual && !(obtenerConsumosFiltrados.fechaInicio && obtenerConsumosFiltrados.fechaFin)) {
             mesAnioActual = mesAnio;
-            const filaGrupo = document.createElement('tr'); filaGrupo.className = 'fila-grupo'; filaGrupo.innerHTML = `<td colspan="12">${mesAnioActual.charAt(0).toUpperCase() + mesAnioActual.slice(1)}</td>`;
+            const filaGrupo = document.createElement('tr'); filaGrupo.className = 'fila-grupo'; filaGrupo.innerHTML = `<td colspan="13">${mesAnioActual.charAt(0).toUpperCase() + mesAnioActual.slice(1)}</td>`;
             historialBody.appendChild(filaGrupo);
         }
         const filaDato = document.createElement('tr');
-        filaDato.innerHTML = `<td class="no-print"><button class="btn-accion btn-modificar button-warning" data-id="${consumo.id}" title="Modificar"><i class="fa-solid fa-pencil" style="margin: 0;"></i></button><button class="btn-accion btn-borrar" data-id="${consumo.id}" title="Borrar"><i class="fa-solid fa-trash-can" style="margin: 0;"></i></button></td><td>${consumo.fecha}</td><td>${consumo.hora || ''}</td><td>${consumo.numeroFactura || ''}</td><td>${consumo.chofer}</td><td>${consumo.volqueta}</td><td>${consumo.proveedor || ''}</td><td>${consumo.proyecto || ''}</td><td>${(parseFloat(consumo.galones) || 0).toFixed(2)}</td><td>$${(parseFloat(consumo.costo) || 0).toFixed(2)}</td><td>${consumo.empresa || ''}</td><td>${consumo.descripcion}</td>`;
+        const linkFactura = consumo.facturaURL
+            ? `<a href="${consumo.facturaURL}" target="_blank" title="Ver factura"><i class="fa-solid fa-file-invoice"></i></a>`
+            : 'N/A';
+        filaDato.innerHTML = `<td class="no-print"><button class="btn-accion btn-modificar button-warning" data-id="${consumo.id}" title="Modificar"><i class="fa-solid fa-pencil" style="margin: 0;"></i></button><button class="btn-accion btn-borrar" data-id="${consumo.id}" title="Borrar"><i class="fa-solid fa-trash-can" style="margin: 0;"></i></button></td>
+            <td>${linkFactura}</td><td>${consumo.fecha}</td><td>${consumo.hora || ''}</td><td>${consumo.numeroFactura || ''}</td><td>${consumo.chofer}</td><td>${consumo.volqueta}</td><td>${consumo.proveedor || ''}</td><td>${consumo.proyecto || ''}</td><td>${(parseFloat(consumo.galones) || 0).toFixed(2)}</td><td>$${(parseFloat(consumo.costo) || 0).toFixed(2)}</td><td>${consumo.empresa || ''}</td><td>${consumo.descripcion}</td>`;
         historialBody.appendChild(filaDato);
     });
-    historialFooter.innerHTML = `<tr><td class="no-print"></td><td colspan="7" style="text-align: right;"><strong>TOTAL GALONES:</strong></td><td><strong>${totalGalones.toFixed(2)}</strong></td><td style="text-align: right;"><strong>VALOR TOTAL:</strong></td><td><strong>$${totalCosto.toFixed(2)}</strong></td><td></td></tr>`;
+    historialFooter.innerHTML = `<tr><td class="no-print" colspan="2"></td><td colspan="7" style="text-align: right;"><strong>TOTAL GALONES:</strong></td><td><strong>${totalGalones.toFixed(2)}</strong></td><td style="text-align: right;"><strong>VALOR TOTAL:</strong></td><td><strong>$${totalCosto.toFixed(2)}</strong></td><td></td></tr>`;
 }
+// ===== FIN DE FUNCIÓN MODIFICADA =====
+
+// ===== INICIO DE FUNCIÓN NUEVA (PREPARA FACTURAS PARA IMPRESIÓN) =====
+function prepararFacturasParaImpresion() {
+    const contenedor = document.getElementById('facturas-impresion');
+    contenedor.innerHTML = ''; // Limpia el contenedor antes de llenarlo
+    const consumosFiltrados = obtenerConsumosFiltrados();
+
+    consumosFiltrados.forEach(consumo => {
+        if (consumo.facturaURL) {
+            const divFactura = document.createElement('div');
+            divFactura.className = 'factura-impresa';
+
+            const titulo = document.createElement('div');
+            titulo.className = 'factura-titulo';
+            titulo.textContent = `Factura del Registro: ${consumo.fecha} - ${consumo.volqueta}`;
+            divFactura.appendChild(titulo);
+
+            if (consumo.facturaURL.toLowerCase().includes('.pdf')) {
+                const embed = document.createElement('embed');
+                embed.src = consumo.facturaURL;
+                embed.width = "100%";
+                embed.height = "800px";
+                divFactura.appendChild(embed);
+            } else { // Asumimos que es una imagen
+                const img = document.createElement('img');
+                img.src = consumo.facturaURL;
+                divFactura.appendChild(img);
+            }
+            contenedor.appendChild(divFactura);
+        }
+    });
+}
+// ===== FIN DE FUNCIÓN NUEVA =====
 
 function asignarSincronizacionDeFiltros() {
     const filtros = document.querySelectorAll('.filtro-sincronizado');
@@ -277,7 +383,6 @@ function asignarSincronizacionDeFiltros() {
 function handleLogin(e) { e.preventDefault(); const email = document.getElementById('login-email').value; const password = document.getElementById('login-password').value; signInWithEmailAndPassword(auth, email, password).then(userCredential => { mostrarNotificacion("Bienvenido de nuevo", "exito"); }).catch(error => { mostrarNotificacion("Credenciales incorrectas.", "error"); }); }
 function handleLogout() { signOut(auth).catch(error => { mostrarNotificacion("Error al cerrar sesión: " + error.message, "error"); }); }
 
-// ===== INICIO DE BLOQUE MODIFICADO =====
 function asignarEventosApp() {
     btnAbrirModal.addEventListener('click', abrirModal);
     btnCerrarModal.addEventListener('click', cerrarModal);
@@ -289,13 +394,17 @@ function asignarEventosApp() {
     
     document.getElementById('consumoForm').addEventListener('submit', guardarOActualizar);
 
-    // Lógica de Impresión
     document.querySelectorAll('.btn-print').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const targetId = e.currentTarget.dataset.printTarget;
             const targetTab = document.getElementById(targetId);
             
             if (targetTab) {
+                // Si es la pestaña de historial, preparamos las facturas
+                if (targetId === 'tabHistorial') {
+                    prepararFacturasParaImpresion();
+                }
+                
                 tabActivaParaImprimir = targetTab;
                 targetTab.classList.add('printable-active');
                 window.print();
@@ -303,24 +412,21 @@ function asignarEventosApp() {
         });
     });
     
-    // Limpia la clase después de imprimir
     window.onafterprint = () => {
         if (tabActivaParaImprimir) {
             tabActivaParaImprimir.classList.remove('printable-active');
             tabActivaParaImprimir = null;
         }
+        // Limpia el contenedor de facturas después de imprimir
+        document.getElementById('facturas-impresion').innerHTML = '';
     };
     
-    // Se asigna a todos los botones, pero la sincronización asegura que los valores son consistentes
     document.querySelectorAll('#btnAplicarFiltros').forEach(btn => btn.addEventListener('click', actualizarTodaLaUI));
     document.querySelectorAll('#btnLimpiarFiltros').forEach(btn => btn.addEventListener('click', () => {
         document.querySelectorAll('.filtro-sincronizado').forEach(filtro => {
             const valorOriginal = filtro.value;
             if(filtro.tagName === 'SELECT') filtro.value = 'todos'; else filtro.value = '';
-            // Dispara el evento change para que los filtros se sincronicen
-            if (filtro.value !== valorOriginal) {
-                filtro.dispatchEvent(new Event('change', { 'bubbles': true }));
-            }
+            if (filtro.value !== valorOriginal) { filtro.dispatchEvent(new Event('change', { 'bubbles': true })); }
         });
         actualizarTodaLaUI();
     }));
@@ -343,7 +449,6 @@ function asignarEventosApp() {
 
     asignarSincronizacionDeFiltros();
 }
-// ===== FIN DE BLOQUE MODIFICADO =====
 
 function iniciarAplicacion() {
     asignarEventosApp();

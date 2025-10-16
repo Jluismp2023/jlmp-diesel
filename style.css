@@ -108,6 +108,7 @@ button:hover { opacity: 0.9; }
 .signature-block { display: none; }
 .credits { text-align: center; margin: 25px 0; font-weight: bold; color: var(--secondary-color); }
 #historialTabla { table-layout: auto; width: 100%; }
+#facturas-impresion { display: none; } /* Oculta el contenedor de facturas en la vista normal */
 
 @media screen and (max-width: 600px) {
     body { padding: 10px; }
@@ -121,16 +122,12 @@ button:hover { opacity: 0.9; }
     .admin-box { flex-basis: 100%; min-width: unset; }
 }
 
-/* ===== INICIO DE BLOQUE MODIFICADO ===== */
 @media print {
-    /* Oculta elementos no necesarios para la impresión */
     .no-print, #vista-login, .main-tabs { display: none !important; }
     
     body, #vista-app { display: block !important; }
 
-    /* Oculta todas las pestañas por defecto */
     .main-tab-content { display: none !important; }
-    /* Muestra solo la pestaña marcada como activa para impresión */
     .main-tab-content.printable-active { display: block !important; }
 
     .accordion-button { display: none !important; }
@@ -144,17 +141,10 @@ button:hover { opacity: 0.9; }
     .header-titles h2 { font-size: 12pt; color: #555 !important; }
     
     h2, .card-header h3 { color: black !important; text-align: left; font-size: 14pt; border-bottom: 2px solid black; padding-bottom: 5px; margin-top: 25px; }
-    .card-header .fa-solid { display: none; } /* Oculta el ícono del header de la tarjeta */
+    .card-header .fa-solid { display: none; }
 
-    /* Estilos para que las tarjetas se vean como secciones de un documento */
     .report-cards-container { display: block; }
-    .report-card {
-        display: block;
-        box-shadow: none;
-        border: none;
-        page-break-inside: avoid;
-        margin-bottom: 20px;
-    }
+    .report-card { display: block; box-shadow: none; border: none; page-break-inside: avoid; margin-bottom: 20px; }
 
     table { width: 100%; border-collapse: collapse; page-break-inside: auto; }
     tr { page-break-inside: avoid; page-break-after: auto; }
@@ -164,8 +154,27 @@ button:hover { opacity: 0.9; }
     .fila-grupo { background-color: #ccc !important; color: black !important; }
     .signature-block { display: block; text-align: center; margin-top: 80px; page-break-inside: avoid; }
     .signature-block .line { width: 250px; border-top: 1px solid black; margin: 0 auto 10px auto; }
+
+    /* ===== INICIO DE CÓDIGO NUEVO ===== */
+    #facturas-impresion { display: block; }
+    .factura-impresa {
+        page-break-before: always; /* Cada factura empieza en una nueva página */
+        padding-top: 20px;
+    }
+    .factura-impresa img, .factura-impresa embed {
+        max-width: 100%;
+        height: auto;
+        border: 1px solid #ccc;
+    }
+    .factura-titulo {
+        font-size: 14pt;
+        font-weight: bold;
+        border-bottom: 2px solid black;
+        padding-bottom: 5px;
+        margin-bottom: 15px;
+    }
+    /* ===== FIN DE CÓDIGO NUEVO ===== */
 }
-/* ===== FIN DE BLOQUE MODIFICADO ===== */
 
 #historialTabla th:nth-child(1), #historialTabla td:nth-child(1) { width: 120px; }
 #historialTabla th:nth-child(2), #historialTabla td:nth-child(2) { width: 105px; }
