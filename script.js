@@ -17,25 +17,32 @@ const auth = getAuth(app);
 
 const vistaLogin = document.getElementById('vista-login');
 const vistaApp = document.getElementById('vista-app');
+// ===== INICIO DE LÍNEA NUEVA =====
+const btnLogout = document.getElementById('btn-logout');
+// ===== FIN DE LÍNEA NUEVA =====
 
 let todosLosConsumos = [];
 let listasAdmin = { choferes: [], placas: [], empresas: [], proveedores: [], proyectos: [] };
 let appInicializada = false;
 
+// ===== INICIO DE BLOQUE MODIFICADO =====
 onAuthStateChanged(auth, (user) => {
     if (user) {
         vistaLogin.style.display = 'none';
         vistaApp.style.display = 'block';
+        btnLogout.style.display = 'block'; // Muestra el botón de logout
         if (!appInicializada) {
             iniciarAplicacion();
             appInicializada = true;
         }
     } else {
-        vistaLogin.style.display = 'flex';
+        vistaLogin.style.display = 'block';
         vistaApp.style.display = 'none';
+        btnLogout.style.display = 'none'; // Oculta el botón de logout
         appInicializada = false;
     }
 });
+// ===== FIN DE BLOQUE MODIFICADO =====
 
 function mostrarNotificacion(texto, tipo = 'info') {
     let backgroundColor;
@@ -67,11 +74,11 @@ async function cargarDatosIniciales() {
     document.getElementById('loadingMessage').style.display = 'block';
     try {
         const [consumosRes, choferesRes, placasRes, empresasRes, proveedoresRes, proyectosRes] = await Promise.all([
-            getDocs(query(collection(db, "consumos"), orderBy("fecha", "desc"))),
-            getDocs(query(collection(db, "choferes"), orderBy("nombre"))),
-            getDocs(query(collection(db, "placas"), orderBy("nombre"))),
-            getDocs(query(collection(db, "empresas"), orderBy("nombre"))),
-            getDocs(query(collection(db, "proveedores"), orderBy("nombre"))),
+            getDocs(query(collection(db, "consumos"), orderBy("fecha", "desc"))), 
+            getDocs(query(collection(db, "choferes"), orderBy("nombre"))), 
+            getDocs(query(collection(db, "placas"), orderBy("nombre"))), 
+            getDocs(query(collection(db, "empresas"), orderBy("nombre"))), 
+            getDocs(query(collection(db, "proveedores"), orderBy("nombre"))), 
             getDocs(query(collection(db, "proyectos"), orderBy("nombre")))
         ]);
         todosLosConsumos = consumosRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -104,27 +111,27 @@ function actualizarTodaLaUI() {
 }
 
 function poblarSelectores() {
-    const selectores = {
-        choferes: document.getElementById('selectChofer'),
-        placas: document.getElementById('selectVolqueta'),
-        empresas: document.getElementById('selectEmpresa'),
-        proveedores: document.getElementById('selectProveedor'),
-        proyectos: document.getElementById('selectProyecto')
+    const selectores = { 
+        choferes: document.getElementById('selectChofer'), 
+        placas: document.getElementById('selectVolqueta'), 
+        empresas: document.getElementById('selectEmpresa'), 
+        proveedores: document.getElementById('selectProveedor'), 
+        proyectos: document.getElementById('selectProyecto') 
     };
-    const titulos = {
-        choferes: '--- Chofer ---',
-        placas: '--- Placa ---',
-        empresas: '--- Empresa ---',
-        proveedores: '--- Proveedor ---',
-        proyectos: '--- Proyecto ---'
+    const titulos = { 
+        choferes: '--- Chofer ---', 
+        placas: '--- Placa ---', 
+        empresas: '--- Empresa ---', 
+        proveedores: '--- Proveedor ---', 
+        proyectos: '--- Proyecto ---' 
     };
     for (const tipo in selectores) {
         const select = selectores[tipo];
         if (!select) continue;
         const valorActual = select.value;
         select.innerHTML = `<option value="" disabled selected>${titulos[tipo]}</option>`;
-        listasAdmin[tipo].forEach(item => {
-            select.innerHTML += `<option value="${item.nombre}">${item.nombre}</option>`;
+        listasAdmin[tipo].forEach(item => { 
+            select.innerHTML += `<option value="${item.nombre}">${item.nombre}</option>`; 
         });
         select.value = valorActual;
     }
@@ -368,7 +375,7 @@ function asignarEventosApp() {
         boton.addEventListener('click', function() {
             this.classList.toggle('active');
             const panel = this.nextElementSibling;
-            if (panel.style.maxHeight) { panel.style.maxHeight = null; } else { panel.style.maxHeight = panel.scrollHeight + "px"; }
+            if (panel.style.maxHeight) { panel.style.maxHeight = null; } else { panel.style.maxHeight = panel.scrollHeight + "px"; } 
         });
     });
 }
@@ -380,4 +387,4 @@ function iniciarAplicacion() {
 
 // ASIGNACIÓN INICIAL DE EVENTOS DE LOGIN
 document.getElementById('login-form').addEventListener('submit', handleLogin);
-document.getElementById('btn-logout').addEventListener('click', handleLogout);
+btnLogout.addEventListener('click', handleLogout); // Se usa la referencia global

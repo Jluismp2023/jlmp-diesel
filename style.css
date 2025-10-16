@@ -58,9 +58,18 @@ button:hover { opacity: 0.9; }
 .filter-group label { font-weight: bold; }
 
 /* --- LOGIN VIEW & HEADER --- */
-#vista-login { display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f4f4f9; }
-.login-container { background: var(--white-color); padding: 40px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 450px; text-align: center; }
-#login-form h3 { margin-top: 25px; margin-bottom: 20px; }
+/* ===== ESTILO MODIFICADO ===== */
+.login-container { 
+    background: var(--white-color); 
+    padding: 40px; 
+    border-radius: 8px; 
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
+    width: 100%; 
+    max-width: 450px; 
+    text-align: center;
+    margin: 40px auto 0 auto; /* Centra el contenedor y le da espacio superior */
+}
+#login-form h3 { margin-top: 0; margin-bottom: 20px; } /* Ajuste de margen */
 #login-form input { width: calc(100% - 22px); margin-bottom: 15px; }
 #login-form button { width: 100%; margin-top: 10px; }
 
@@ -94,19 +103,9 @@ button:hover { opacity: 0.9; }
 .lista-gestion li small { color: var(--secondary-color); }
 
 /* --- BOTONES DE ACCIÓN (EDITAR/BORRAR) --- */
-.btn-accion {
-    padding: 5px 10px;
-    font-size: 12px;
-    margin-left: 5px;
-}
-.btn-modificar {
-    background-color: var(--warning-color);
-    color: black;
-}
-.btn-borrar {
-    background-color: var(--danger-color);
-    color: white;
-}
+.btn-accion { padding: 5px 10px; font-size: 12px; margin-left: 5px; }
+.btn-modificar { background-color: var(--warning-color); color: black; }
+.btn-borrar { background-color: var(--danger-color); color: white; }
 
 /* --- ACCORDION --- */
 .accordion-container { padding: 0; }
@@ -124,10 +123,16 @@ button:hover { opacity: 0.9; }
 .no-print { /* Se usa en la sección de impresión */ }
 .signature-block, #print-period-info { display: none; }
 
-#historialTabla {
-    table-layout: auto;
-    width: 100%;
+/* ===== INICIO DE CÓDIGO NUEVO ===== */
+.credits {
+    text-align: center;
+    margin: 25px 0;
+    font-weight: bold;
+    color: var(--secondary-color);
 }
+/* ===== FIN DE CÓDIGO NUEVO ===== */
+
+#historialTabla { table-layout: auto; width: 100%; }
 
 @media screen and (max-width: 600px) {
     body { padding: 10px; }
@@ -163,33 +168,8 @@ button:hover { opacity: 0.9; }
 }
 
 /* --- AJUSTES DE ANCHO PARA TABLA DE HISTORIAL --- */
-#historialTabla {
-    table-layout: auto;
-    width: 100%;
-}
-
-/* Columna de Acciones (1ra) */
-#historialTabla th:nth-child(1),
-#historialTabla td:nth-child(1) {
-    width: 120px; /* Ancho fijo para los botones */
-}
-
-/* Columna de Fecha (2da) */
-#historialTabla th:nth-child(2),
-#historialTabla td:nth-child(2) {
-    width: 105px;
-}
-
-/* Columna de Descripción (última) */
-#historialTabla th:last-child,
-#historialTabla td:last-child {
-    min-width: 250px; /* Ancho mínimo para que el texto no se comprima */
-}
-
-/* ===== INICIO DE CÓDIGO NUEVO ===== */
-/* --- CONTENEDOR PARA TABLAS ANCHAS --- */
-.table-container {
-    overflow-x: auto; /* Permite el scroll horizontal */
-    -webkit-overflow-scrolling: touch; /* Mejora el scroll en móviles */
-}
-/* ===== FIN DE CÓDIGO NUEVO ===== */
+#historialTabla { table-layout: auto; width: 100%; }
+#historialTabla th:nth-child(1), #historialTabla td:nth-child(1) { width: 120px; }
+#historialTabla th:nth-child(2), #historialTabla td:nth-child(2) { width: 105px; }
+#historialTabla th:last-child, #historialTabla td:last-child { min-width: 250px; }
+.table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
