@@ -116,6 +116,7 @@ button:hover { opacity: 0.9; }
     .header-container { flex-direction: column; gap: 15px; }
     .header-container .button-danger { width: 100%; }
     .header-content { justify-content: center; width: 100%;}
+    .report-card { flex-basis: 100%; } /* Las tarjetas ocupan todo el ancho en móviles */
 }
 
 @media print {
@@ -145,45 +146,24 @@ button:hover { opacity: 0.9; }
 #historialTabla th:last-child, #historialTabla td:last-child { min-width: 250px; }
 .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 
-/* ===== INICIO DE CÓDIGO NUEVO PARA TARJETAS DE REPORTE ===== */
-.report-cards-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 20px;
+.report-cards-container { display: flex; flex-wrap: wrap; gap: 20px; }
+.report-card { flex: 1 1 300px; background: var(--white-color); border: 1px solid var(--border-color); border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); display: flex; flex-direction: column; }
+.card-header { display: flex; align-items: center; padding: 15px; border-bottom: 1px solid var(--border-color); }
+.card-header .fa-solid { font-size: 1.2em; color: var(--primary-color); }
+.card-header h3 { margin: 0; font-size: 1.1em; }
+.card-body { padding: 15px; overflow-x: auto; }
+.card-body table th { font-size: 0.9em; padding: 8px; }
+.card-body table td { font-size: 0.9em; padding: 8px; }
+
+/* ===== INICIO DE CÓDIGO NUEVO PARA LEGIBILIDAD DE TABLAS ===== */
+/* Estilo para filas alternas (Zebra Striping) en el cuerpo de la tabla del historial */
+#historialTabla tbody tr:nth-child(even) {
+    background-color: #f8f9fa; /* Un gris muy claro */
 }
-.report-card {
-    flex: 1 1 300px; /* Permite que las tarjetas crezcan y se ajusten */
-    background: var(--white-color);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    display: flex;
-    flex-direction: column;
-}
-.card-header {
-    display: flex;
-    align-items: center;
-    padding: 15px;
-    border-bottom: 1px solid var(--border-color);
-}
-.card-header .fa-solid {
-    font-size: 1.2em;
-    color: var(--primary-color);
-}
-.card-header h3 {
-    margin: 0;
-    font-size: 1.1em;
-}
-.card-body {
-    padding: 15px;
-    overflow-x: auto;
-}
-.card-body table th {
-    font-size: 0.9em;
-    padding: 8px;
-}
-.card-body table td {
-    font-size: 0.9em;
-    padding: 8px;
+
+/* Estilo para resaltar la fila al pasar el ratón (hover) */
+#historialTabla tbody tr:not(.fila-grupo):hover {
+    background-color: #e9ecef; /* Un gris un poco más oscuro */
+    cursor: pointer; /* Cambia el cursor para indicar que la fila es interactiva */
 }
 /* ===== FIN DE CÓDIGO NUEVO ===== */
