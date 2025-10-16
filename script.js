@@ -22,6 +22,7 @@ const btnLogout = document.getElementById('btn-logout');
 let todosLosConsumos = [];
 let listasAdmin = { choferes: [], placas: [], empresas: [], proveedores: [], proyectos: [] };
 let appInicializada = false;
+let tabActivaParaImprimir = null; // Variable para saber qué limpiar después de imprimir
 
 onAuthStateChanged(auth, (user) => {
     if (user) {
@@ -86,7 +87,7 @@ async function cargarDatosIniciales() {
         actualizarTodaLaUI();
     } catch (error) {
         console.error("Error cargando datos:", error);
-        document.getElementById('loadingMessage').textContent = "Error al cargar datos. Revisa la consola (F12) y las Reglas de Firestore.";
+        document.getElementById('loadingMessage').textContent = "Error al cargar datos. Revisa la consola (F12).";
     } finally {
         if (document.getElementById('loaderContainer')) { document.getElementById('loaderContainer').style.display = 'none'; }
     }
@@ -107,13 +108,7 @@ function actualizarTodaLaUI() {
 }
 
 function poblarSelectores() {
-    const selectores = { 
-        choferes: document.getElementById('selectChofer'), 
-        placas: document.getElementById('selectVolqueta'), 
-        empresas: document.getElementById('selectEmpresa'), 
-        proveedores: document.getElementById('selectProveedor'), 
-        proyectos: document.getElementById('selectProyecto') 
-    };
+    const selectores = { choferes: document.getElementById('selectChofer'), placas: document.getElementById('selectVolqueta'), empresas: document.getElementById('selectEmpresa'), proveedores: document.getElementById('selectProveedor'), proyectos: document.getElementById('selectProyecto') };
     const titulos = { choferes: '--- Chofer ---', placas: '--- Placa ---', empresas: '--- Empresa ---', proveedores: '--- Proveedor ---', proyectos: '--- Proyecto ---' };
     for (const tipo in selectores) {
         const select = selectores[tipo];
@@ -174,11 +169,8 @@ async function agregarItemAdmin(tipo, inputElement) {
 
 function manejarAccionesHistorial(e) { const target = e.target.closest('button'); if (!target) return; const id = target.dataset.id; if (!id) return; if (target.classList.contains('btn-modificar')) cargarDatosParaModificar(id); if (target.classList.contains('btn-borrar')) borrarConsumoHistorial(id); }
 
-// ===== INICIO DE FUNCIÓN MODIFICADA =====
 function obtenerConsumosFiltrados() {
-    // Lee el valor de cualquiera de los filtros visibles usando el data-attribute
     const obtenerValorFiltro = (syncId) => document.querySelector(`.filtro-sincronizado[data-sync-id="${syncId}"]`).value;
-
     const mes = obtenerValorFiltro('filtroMes');
     const fechaInicio = obtenerValorFiltro('filtroFechaInicio');
     const fechaFin = obtenerValorFiltro('filtroFechaFin');
@@ -186,7 +178,6 @@ function obtenerConsumosFiltrados() {
     const proveedor = obtenerValorFiltro('filtroProveedor');
     const empresa = obtenerValorFiltro('filtroEmpresa');
     const proyecto = obtenerValorFiltro('filtroProyecto');
-
     let consumosFiltrados = todosLosConsumos;
     if (fechaInicio && fechaFin) {
         if (fechaFin < fechaInicio) { mostrarNotificacion("La fecha de fin no puede ser anterior a la de inicio.", "error"); return []; }
@@ -198,7 +189,6 @@ function obtenerConsumosFiltrados() {
     if (proyecto !== 'todos') { consumosFiltrados = consumosFiltrados.filter(c => c.proyecto === proyecto); }
     return consumosFiltrados;
 }
-// ===== FIN DE FUNCIÓN MODIFICADA =====
 
 function mostrarListasAdmin() {
     const contenedores = { choferes: 'listaChoferes', placas: 'listaPlacas', empresas: 'listaEmpresas', proveedores: 'listaProveedores', proyectos: 'listaProyectos' };
@@ -209,7 +199,7 @@ function mostrarListasAdmin() {
         if (listasAdmin[tipo].length === 0) { ul.innerHTML = `<li class="empty-state">No hay elementos.</li>`; continue; }
         listasAdmin[tipo].forEach(item => {
             const li = document.createElement('li');
-            li.innerHTML = `<span>${item.nombre}</span><div><button class="btn-accion btn-modificar" title="Modificar"><i class="fa-solid fa-pencil" style="margin:0;"></i></button><button class="btn-accion btn-borrar" title="Borrar"><i class="fa-solid fa-trash-can" style="margin:0;"></i></button></div>`;
+            li.innerHTML = `<span>${item.nombre}</span><div><button class="btn-accion btn-modificar button-warning" title="Modificar"><i class="fa-solid fa-pencil" style="margin:0;"></i></button><button class="btn-accion btn-borrar" title="Borrar"><i class="fa-solid fa-trash-can" style="margin:0;"></i></button></div>`;
             li.querySelector('.btn-modificar').addEventListener('click', () => modificarItemAdmin(item, tipo));
             li.querySelector('.btn-borrar').addEventListener('click', () => borrarItemAdmin(item, tipo));
             ul.appendChild(li);
@@ -217,7 +207,7 @@ function mostrarListasAdmin() {
     }
 }
 
-async function modificarItemAdmin(item, tipo) { const valorActual = item.nombre; const nuevoValor = prompt(`Modificar "${valorActual}":`, valorActual); if (!nuevoValor || nuevoValor.trim() === '' || nuevoValor.trim() === valorActual) return; const valorFormateado = (tipo === 'placas') ? nuevoValor.trim().toUpperCase() : nuevoValor.trim(); const propiedad = { placas: 'volqueta', choferes: 'chofer', empresas: 'empresa', proveedores: 'proveedor', proyectos: 'proyecto' }[tipo]; if (confirm(`¿Estás seguro de cambiar "${valorActual}" por "${valorFormateado}"? Esto actualizará TODOS los registros del historial.`)) { try { await updateDoc(doc(db, tipo, item.id), { nombre: valorFormateado }); const updates = todosLosConsumos.filter(consumo => consumo[propiedad] === valorActual).map(consumo => updateDoc(doc(db, "consumos", consumo.id), { [propiedad]: valorFormateado })); await Promise.all(updates); await cargarDatosIniciales(); mostrarNotificacion("Actualización masiva completada.", "exito"); } catch(e) { console.error("Error modificando:", e); mostrarNotificacion("Error al modificar.", "error"); } } }
+async function modificarItemAdmin(item, tipo) { const valorActual = item.nombre; const nuevoValor = prompt(`Modificar "${valorActual}":`, valorActual); if (!nuevoValor || nuevoValor.trim() === '' || nuevoValor.trim() === valorActual) return; const valorFormateado = (tipo === 'placas') ? nuevoValor.trim().toUpperCase() : nuevoValor.trim(); const propiedad = { placas: 'volqueta', choferes: 'chofer', empresas: 'empresa', proveedores: 'proveedor', proyectos: 'proyecto' }[tipo]; if (confirm(`¿Estás seguro de cambiar "${valorActual}" por "${valorFormateado}"? Esto actualizará TODOS los registros.`)) { try { await updateDoc(doc(db, tipo, item.id), { nombre: valorFormateado }); const updates = todosLosConsumos.filter(consumo => consumo[propiedad] === valorActual).map(consumo => updateDoc(doc(db, "consumos", consumo.id), { [propiedad]: valorFormateado })); await Promise.all(updates); await cargarDatosIniciales(); mostrarNotificacion("Actualización masiva completada.", "exito"); } catch(e) { console.error("Error modificando:", e); mostrarNotificacion("Error al modificar.", "error"); } } }
 
 function cargarDatosParaModificar(id) {
     const consumo = todosLosConsumos.find(c => c.id === id); if (!consumo) return;
@@ -226,17 +216,16 @@ function cargarDatosParaModificar(id) {
 }
 
 function calcularYMostrarTotalesPorCategoria(consumos, categoria, bodyId, footerId) {
-    const resumenBody = document.getElementById(bodyId);
-    const resumenFooter = document.getElementById(footerId);
+    const resumenBody = document.getElementById(bodyId); const resumenFooter = document.getElementById(footerId);
     resumenBody.innerHTML = ''; resumenFooter.innerHTML = '';
     const totales = {};
     consumos.forEach(c => { const clave = c[categoria]; if (!clave) return; if (!totales[clave]) totales[clave] = { totalGalones: 0, totalCosto: 0 }; totales[clave].totalGalones += parseFloat(c.galones) || 0; totales[clave].totalCosto += parseFloat(c.costo) || 0; });
-    if (Object.keys(totales).length === 0) { resumenBody.innerHTML = `<tr><td colspan="3" class="empty-state">No hay datos para esta categoría.</td></tr>`; return; }
+    if (Object.keys(totales).length === 0) { resumenBody.innerHTML = `<tr><td colspan="3" class="empty-state">No hay datos.</td></tr>`; return; }
     const clavesOrdenadas = Object.keys(totales).sort();
     let htmlBody = '', granTotalGalones = 0, granTotalCosto = 0;
     clavesOrdenadas.forEach(clave => { const total = totales[clave]; htmlBody += `<tr><td><strong>${clave}</strong></td><td>${total.totalGalones.toFixed(2)}</td><td>$${total.totalCosto.toFixed(2)}</td></tr>`; granTotalGalones += total.totalGalones; granTotalCosto += total.totalCosto; });
     resumenBody.innerHTML = htmlBody;
-    resumenFooter.innerHTML = `<tr><td><strong>TOTAL GENERAL</strong></td><td><strong>${granTotalGalones.toFixed(2)}</strong></td><td><strong>$${granTotalCosto.toFixed(2)}</strong></td></tr>`;
+    resumenFooter.innerHTML = `<tr><td><strong>TOTAL</strong></td><td><strong>${granTotalGalones.toFixed(2)}</strong></td><td><strong>$${granTotalCosto.toFixed(2)}</strong></td></tr>`;
 }
 
 const calcularYMostrarTotalesPorEmpresa = (consumos) => calcularYMostrarTotalesPorCategoria(consumos, 'empresa', 'resumenEmpresaBody', 'resumenEmpresaFooter');
@@ -245,8 +234,8 @@ const calcularYMostrarTotalesPorProyecto = (consumos) => calcularYMostrarTotales
 const calcularYMostrarTotalesPorChofer = (consumos) => calcularYMostrarTotalesPorCategoria(consumos, 'chofer', 'resumenChoferBody', 'resumenChoferFooter');
 const calcularYMostrarTotales = (consumos) => { calcularYMostrarTotalesPorCategoria(consumos, 'volqueta', 'resumenBody', 'resumenFooter'); };
 
-async function borrarItemAdmin(item, tipo) { if (confirm(`¿Seguro que quieres borrar "${item.nombre}"?`)) { try { await deleteDoc(doc(db, tipo, item.id)); mostrarNotificacion("Elemento borrado.", "exito"); await cargarDatosIniciales(); } catch(e) { console.error("Error borrando:", e); mostrarNotificacion("No se pudo borrar el elemento.", "error"); } } }
-async function borrarConsumoHistorial(id) { if (confirm('¿Seguro que quieres borrar este registro?')) { try { await deleteDoc(doc(db, "consumos", id)); mostrarNotificacion("Registro borrado.", "exito"); await cargarDatosIniciales(); } catch (e) { console.error("Error borrando consumo:", e); mostrarNotificacion("No se pudo borrar el registro.", "error"); } } }
+async function borrarItemAdmin(item, tipo) { if (confirm(`¿Seguro que quieres borrar "${item.nombre}"?`)) { try { await deleteDoc(doc(db, tipo, item.id)); mostrarNotificacion("Elemento borrado.", "exito"); await cargarDatosIniciales(); } catch(e) { console.error("Error borrando:", e); mostrarNotificacion("No se pudo borrar.", "error"); } } }
+async function borrarConsumoHistorial(id) { if (confirm('¿Seguro que quieres borrar este registro?')) { try { await deleteDoc(doc(db, "consumos", id)); mostrarNotificacion("Registro borrado.", "exito"); await cargarDatosIniciales(); } catch (e) { console.error("Error borrando consumo:", e); mostrarNotificacion("No se pudo borrar.", "error"); } } }
 
 function poblarFiltroDeMes() { const filtros = document.querySelectorAll('.filtro-sincronizado[data-sync-id="filtroMes"]'); const mesesUnicos = [...new Set(todosLosConsumos.map(c => c.fecha.substring(0, 7)))]; mesesUnicos.sort().reverse(); filtros.forEach(filtroSelect => { const valorSeleccionado = filtroSelect.value; filtroSelect.innerHTML = '<option value="todos">Todos los Meses</option>'; mesesUnicos.forEach(mes => { const [year, month] = mes.split('-'); const fechaMes = new Date(year, month - 1); const nombreMes = fechaMes.toLocaleDateString('es-EC', { month: 'long', year: 'numeric' }); const opcion = document.createElement('option'); opcion.value = mes; opcion.textContent = nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1); filtroSelect.appendChild(opcion); }); if (filtroSelect.value) filtroSelect.value = valorSeleccionado || 'todos'; }); }
 function poblarFiltrosReportes() { const tipos = { choferes: 'filtroChofer', proveedores: 'filtroProveedor', empresas: 'filtroEmpresa', proyectos: 'filtroProyecto' }; const titulos = { choferes: 'Todos los Choferes', proveedores: 'Todos los Proveedores', empresas: 'Todas las Empresas', proyectos: 'Todos los Proyectos' }; for (const tipo in tipos) { const syncId = tipos[tipo]; const selects = document.querySelectorAll(`.filtro-sincronizado[data-sync-id="${syncId}"]`); selects.forEach(select => { const valorActual = select.value; select.innerHTML = `<option value="todos">${titulos[tipo]}</option>`; listasAdmin[tipo].forEach(item => { select.innerHTML += `<option value="${item.nombre}">${item.nombre}</option>`; }); select.value = valorActual || 'todos'; }); } }
@@ -267,13 +256,12 @@ function mostrarHistorialAgrupado(consumos) {
             historialBody.appendChild(filaGrupo);
         }
         const filaDato = document.createElement('tr');
-        filaDato.innerHTML = `<td class="no-print"><button class="btn-accion btn-modificar" data-id="${consumo.id}" title="Modificar"><i class="fa-solid fa-pencil" style="margin: 0;"></i></button><button class="btn-accion btn-borrar" data-id="${consumo.id}" title="Borrar"><i class="fa-solid fa-trash-can" style="margin: 0;"></i></button></td><td>${consumo.fecha}</td><td>${consumo.hora || ''}</td><td>${consumo.numeroFactura || ''}</td><td>${consumo.chofer}</td><td>${consumo.volqueta}</td><td>${consumo.proveedor || ''}</td><td>${consumo.proyecto || ''}</td><td>${(parseFloat(consumo.galones) || 0).toFixed(2)}</td><td>$${(parseFloat(consumo.costo) || 0).toFixed(2)}</td><td>${consumo.empresa || ''}</td><td>${consumo.descripcion}</td>`;
+        filaDato.innerHTML = `<td class="no-print"><button class="btn-accion btn-modificar button-warning" data-id="${consumo.id}" title="Modificar"><i class="fa-solid fa-pencil" style="margin: 0;"></i></button><button class="btn-accion btn-borrar" data-id="${consumo.id}" title="Borrar"><i class="fa-solid fa-trash-can" style="margin: 0;"></i></button></td><td>${consumo.fecha}</td><td>${consumo.hora || ''}</td><td>${consumo.numeroFactura || ''}</td><td>${consumo.chofer}</td><td>${consumo.volqueta}</td><td>${consumo.proveedor || ''}</td><td>${consumo.proyecto || ''}</td><td>${(parseFloat(consumo.galones) || 0).toFixed(2)}</td><td>$${(parseFloat(consumo.costo) || 0).toFixed(2)}</td><td>${consumo.empresa || ''}</td><td>${consumo.descripcion}</td>`;
         historialBody.appendChild(filaDato);
     });
-    historialFooter.innerHTML = `<tr><td class="no-print"></td><td colspan="7" style="text-align: right;"><strong>TOTAL DE GALONES:</strong></td><td><strong>${totalGalones.toFixed(2)}</strong></td><td style="text-align: right;"><strong>VALOR TOTAL:</strong></td><td><strong>$${totalCosto.toFixed(2)}</strong></td><td></td></tr>`;
+    historialFooter.innerHTML = `<tr><td class="no-print"></td><td colspan="7" style="text-align: right;"><strong>TOTAL GALONES:</strong></td><td><strong>${totalGalones.toFixed(2)}</strong></td><td style="text-align: right;"><strong>VALOR TOTAL:</strong></td><td><strong>$${totalCosto.toFixed(2)}</strong></td><td></td></tr>`;
 }
 
-// ===== INICIO DE FUNCIÓN NUEVA =====
 function asignarSincronizacionDeFiltros() {
     const filtros = document.querySelectorAll('.filtro-sincronizado');
     filtros.forEach(filtro => {
@@ -281,26 +269,15 @@ function asignarSincronizacionDeFiltros() {
             const syncId = e.target.dataset.syncId;
             const newValue = e.target.value;
             const filtrosASincronizar = document.querySelectorAll(`.filtro-sincronizado[data-sync-id="${syncId}"]`);
-            filtrosASincronizar.forEach(f => {
-                if (f !== e.target) {
-                    f.value = newValue;
-                }
-            });
+            filtrosASincronizar.forEach(f => { if (f !== e.target) { f.value = newValue; } });
         });
     });
 }
-// ===== FIN DE FUNCIÓN NUEVA =====
 
-function handleLogin(e) {
-    e.preventDefault();
-    const email = document.getElementById('login-email').value; const password = document.getElementById('login-password').value;
-    signInWithEmailAndPassword(auth, email, password)
-        .then(userCredential => { mostrarNotificacion("Bienvenido de nuevo", "exito"); })
-        .catch(error => { mostrarNotificacion("Credenciales incorrectas.", "error"); });
-}
-
+function handleLogin(e) { e.preventDefault(); const email = document.getElementById('login-email').value; const password = document.getElementById('login-password').value; signInWithEmailAndPassword(auth, email, password).then(userCredential => { mostrarNotificacion("Bienvenido de nuevo", "exito"); }).catch(error => { mostrarNotificacion("Credenciales incorrectas.", "error"); }); }
 function handleLogout() { signOut(auth).catch(error => { mostrarNotificacion("Error al cerrar sesión: " + error.message, "error"); }); }
 
+// ===== INICIO DE BLOQUE MODIFICADO =====
 function asignarEventosApp() {
     btnAbrirModal.addEventListener('click', abrirModal);
     btnCerrarModal.addEventListener('click', cerrarModal);
@@ -312,12 +289,38 @@ function asignarEventosApp() {
     
     document.getElementById('consumoForm').addEventListener('submit', guardarOActualizar);
 
-    // Se asigna el evento a todos los botones con el mismo ID, no ideal pero funcional en este caso
-    document.querySelectorAll('#btnPrint').forEach(btn => btn.addEventListener('click', () => window.print()));
+    // Lógica de Impresión
+    document.querySelectorAll('.btn-print').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const targetId = e.currentTarget.dataset.printTarget;
+            const targetTab = document.getElementById(targetId);
+            
+            if (targetTab) {
+                tabActivaParaImprimir = targetTab;
+                targetTab.classList.add('printable-active');
+                window.print();
+            }
+        });
+    });
+    
+    // Limpia la clase después de imprimir
+    window.onafterprint = () => {
+        if (tabActivaParaImprimir) {
+            tabActivaParaImprimir.classList.remove('printable-active');
+            tabActivaParaImprimir = null;
+        }
+    };
+    
+    // Se asigna a todos los botones, pero la sincronización asegura que los valores son consistentes
     document.querySelectorAll('#btnAplicarFiltros').forEach(btn => btn.addEventListener('click', actualizarTodaLaUI));
     document.querySelectorAll('#btnLimpiarFiltros').forEach(btn => btn.addEventListener('click', () => {
         document.querySelectorAll('.filtro-sincronizado').forEach(filtro => {
+            const valorOriginal = filtro.value;
             if(filtro.tagName === 'SELECT') filtro.value = 'todos'; else filtro.value = '';
+            // Dispara el evento change para que los filtros se sincronicen
+            if (filtro.value !== valorOriginal) {
+                filtro.dispatchEvent(new Event('change', { 'bubbles': true }));
+            }
         });
         actualizarTodaLaUI();
     }));
@@ -338,10 +341,9 @@ function asignarEventosApp() {
         });
     });
 
-    // ===== INICIO DE LÍNEA NUEVA =====
     asignarSincronizacionDeFiltros();
-    // ===== FIN DE LÍNEA NUEVA =====
 }
+// ===== FIN DE BLOQUE MODIFICADO =====
 
 function iniciarAplicacion() {
     asignarEventosApp();

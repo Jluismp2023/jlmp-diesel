@@ -105,11 +105,10 @@ button:hover { opacity: 0.9; }
 
 .fa-solid { margin-right: 8px; }
 .no-print { }
-.signature-block, #print-period-info { display: none; }
+.signature-block { display: none; }
 .credits { text-align: center; margin: 25px 0; font-weight: bold; color: var(--secondary-color); }
 #historialTabla { table-layout: auto; width: 100%; }
 
-/* ===== INICIO DE BLOQUE MODIFICADO PARA RESPONSIVENESS ===== */
 @media screen and (max-width: 600px) {
     body { padding: 10px; }
     .filter-group { flex-direction: column; align-items: stretch; }
@@ -119,25 +118,34 @@ button:hover { opacity: 0.9; }
     .header-container .button-danger { width: 100%; }
     .header-content { justify-content: center; width: 100%;}
     .report-card { flex-basis: 100%; }
-    /* Apila las cajas de administración verticalmente en pantallas pequeñas */
-    .admin-box {
-        flex-basis: 100%; 
-        min-width: unset;
-    }
+    .admin-box { flex-basis: 100%; min-width: unset; }
 }
-/* ===== FIN DE BLOQUE MODIFICADO ===== */
 
+/* ===== INICIO DE BLOQUE MODIFICADO ===== */
 @media print {
-    .no-print, #vista-login, .main-tabs, #tabRegistrar, #tabAdmin, .accordion-button, .report-card { display: none !important; }
-    body, #vista-app, #tabReportes, #tabHistorial { display: block !important; }
+    .no-print, #vista-login, .main-tabs, .report-card { display: none !important; }
+    
+    body, #vista-app { display: block !important; }
+
+    /* Oculta todas las pestañas por defecto */
+    .main-tab-content {
+        display: none !important;
+    }
+    /* Muestra solo la pestaña marcada como activa para impresión */
+    .main-tab-content.printable-active {
+        display: block !important;
+    }
+
+    .accordion-button { display: none !important; }
     .accordion-panel { max-height: unset !important; overflow: visible !important; padding: 0 !important; border: none !important; }
+    
     body { margin: 0; padding: 10px; background-color: var(--white-color); color: black; font-size: 10pt; }
-    .container, .accordion-container { box-shadow: none; border: none; margin: 0 0 20px 0; padding: 0; width: 100%; }
+    .container { box-shadow: none; border: none; margin: 0 0 20px 0; padding: 0; width: 100%; }
     .header-container { justify-content: center; padding: 10px 0; border-bottom: 2px solid black; margin-bottom: 20px; box-shadow: none; border-radius: 0; }
     .header-logo { height: 50px; }
     .header-titles h1 { font-size: 16pt; color: black !important; }
     .header-titles h2 { font-size: 12pt; color: #555 !important; }
-    #print-period-info { display: block; text-align: center; margin: -10px 0 20px 0; font-size: 12pt; font-weight: bold; }
+    
     h2 { color: black !important; text-align: left; font-size: 14pt; border-bottom: 2px solid black; padding-bottom: 5px; margin-top: 25px; }
     table { width: 100%; border-collapse: collapse; page-break-inside: auto; }
     tr { page-break-inside: avoid; page-break-after: auto; }
@@ -148,6 +156,7 @@ button:hover { opacity: 0.9; }
     .signature-block { display: block; text-align: center; margin-top: 80px; page-break-inside: avoid; }
     .signature-block .line { width: 250px; border-top: 1px solid black; margin: 0 auto 10px auto; }
 }
+/* ===== FIN DE BLOQUE MODIFICADO ===== */
 
 #historialTabla th:nth-child(1), #historialTabla td:nth-child(1) { width: 120px; }
 #historialTabla th:nth-child(2), #historialTabla td:nth-child(2) { width: 105px; }
