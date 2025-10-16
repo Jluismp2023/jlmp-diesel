@@ -142,9 +142,7 @@ button:hover { opacity: 0.9; }
 /* --- ESTILOS PARA LA IMPRESIÓN (CORREGIDO) --- */
 @media print {
     .no-print, #vista-login, .main-tabs, #tabRegistrar, #tabAdmin, .accordion-button { display: none !important; }
-    /* ===== INICIO DE CÓDIGO MODIFICADO ===== */
     body, #vista-app, #tabReportes, #tabHistorial { display: block !important; }
-    /* ===== FIN DE CÓDIGO MODIFICADO ===== */
     .accordion-panel { max-height: unset !important; overflow: visible !important; padding: 0 !important; border: none !important; }
     body { margin: 0; padding: 10px; background-color: var(--white-color); color: black; font-size: 10pt; }
     .container, .accordion-container { box-shadow: none; border: none; margin: 0 0 20px 0; padding: 0; width: 100%; }
@@ -187,3 +185,11 @@ button:hover { opacity: 0.9; }
 #historialTabla td:last-child {
     min-width: 250px; /* Ancho mínimo para que el texto no se comprima */
 }
+
+/* ===== INICIO DE CÓDIGO NUEVO ===== */
+/* --- CONTENEDOR PARA TABLAS ANCHAS --- */
+.table-container {
+    overflow-x: auto; /* Permite el scroll horizontal */
+    -webkit-overflow-scrolling: touch; /* Mejora el scroll en móviles */
+}
+/* ===== FIN DE CÓDIGO NUEVO ===== */

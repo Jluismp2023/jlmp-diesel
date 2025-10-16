@@ -67,11 +67,11 @@ async function cargarDatosIniciales() {
     document.getElementById('loadingMessage').style.display = 'block';
     try {
         const [consumosRes, choferesRes, placasRes, empresasRes, proveedoresRes, proyectosRes] = await Promise.all([
-            getDocs(query(collection(db, "consumos"), orderBy("fecha", "desc"))), 
-            getDocs(query(collection(db, "choferes"), orderBy("nombre"))), 
-            getDocs(query(collection(db, "placas"), orderBy("nombre"))), 
-            getDocs(query(collection(db, "empresas"), orderBy("nombre"))), 
-            getDocs(query(collection(db, "proveedores"), orderBy("nombre"))), 
+            getDocs(query(collection(db, "consumos"), orderBy("fecha", "desc"))),
+            getDocs(query(collection(db, "choferes"), orderBy("nombre"))),
+            getDocs(query(collection(db, "placas"), orderBy("nombre"))),
+            getDocs(query(collection(db, "empresas"), orderBy("nombre"))),
+            getDocs(query(collection(db, "proveedores"), orderBy("nombre"))),
             getDocs(query(collection(db, "proyectos"), orderBy("nombre")))
         ]);
         todosLosConsumos = consumosRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -104,27 +104,27 @@ function actualizarTodaLaUI() {
 }
 
 function poblarSelectores() {
-    const selectores = { 
-        choferes: document.getElementById('selectChofer'), 
-        placas: document.getElementById('selectVolqueta'), 
-        empresas: document.getElementById('selectEmpresa'), 
-        proveedores: document.getElementById('selectProveedor'), 
-        proyectos: document.getElementById('selectProyecto') 
+    const selectores = {
+        choferes: document.getElementById('selectChofer'),
+        placas: document.getElementById('selectVolqueta'),
+        empresas: document.getElementById('selectEmpresa'),
+        proveedores: document.getElementById('selectProveedor'),
+        proyectos: document.getElementById('selectProyecto')
     };
-    const titulos = { 
-        choferes: '--- Chofer ---', 
-        placas: '--- Placa ---', 
-        empresas: '--- Empresa ---', 
-        proveedores: '--- Proveedor ---', 
-        proyectos: '--- Proyecto ---' 
+    const titulos = {
+        choferes: '--- Chofer ---',
+        placas: '--- Placa ---',
+        empresas: '--- Empresa ---',
+        proveedores: '--- Proveedor ---',
+        proyectos: '--- Proyecto ---'
     };
     for (const tipo in selectores) {
         const select = selectores[tipo];
         if (!select) continue;
         const valorActual = select.value;
         select.innerHTML = `<option value="" disabled selected>${titulos[tipo]}</option>`;
-        listasAdmin[tipo].forEach(item => { 
-            select.innerHTML += `<option value="${item.nombre}">${item.nombre}</option>`; 
+        listasAdmin[tipo].forEach(item => {
+            select.innerHTML += `<option value="${item.nombre}">${item.nombre}</option>`;
         });
         select.value = valorActual;
     }
@@ -344,9 +344,7 @@ function asignarEventosApp() {
     
     document.getElementById('btnTabRegistrar').addEventListener('click', (e) => openMainTab(e, 'tabRegistrar'));
     document.getElementById('btnTabReportes').addEventListener('click', (e) => openMainTab(e, 'tabReportes'));
-    // ===== INICIO DE CÓDIGO MODIFICADO =====
     document.getElementById('btnTabHistorial').addEventListener('click', (e) => openMainTab(e, 'tabHistorial'));
-    // ===== FIN DE CÓDIGO MODIFICADO =====
     document.getElementById('btnTabAdmin').addEventListener('click', (e) => openMainTab(e, 'tabAdmin'));
     
     document.getElementById('consumoForm').addEventListener('submit', guardarOActualizar);
@@ -370,7 +368,7 @@ function asignarEventosApp() {
         boton.addEventListener('click', function() {
             this.classList.toggle('active');
             const panel = this.nextElementSibling;
-            if (panel.style.maxHeight) { panel.style.maxHeight = null; } else { panel.style.maxHeight = panel.scrollHeight + "px"; } 
+            if (panel.style.maxHeight) { panel.style.maxHeight = null; } else { panel.style.maxHeight = panel.scrollHeight + "px"; }
         });
     });
 }

@@ -106,6 +106,7 @@
                 </div>
             </div>
         </div>
+        
         <div id="tabReportes" class="main-tab-content printable-section">
             <div class="container" id="loaderContainer"><h2 id="loadingMessage" class="loader">Cargando datos desde la nube...</h2></div>
             
@@ -122,29 +123,32 @@
             <div class="container">
                  <button class="accordion-button active">TOTAL DE CONSUMO DE DIESEL (HISTORIAL DETALLADO)</button>
                  <div class="accordion-panel" style="max-height: fit-content;">
-                     <table id="historialTabla">
-                         <thead>
-                             <tr>
-                                 <th class="no-print">Acciones</th>
-                                 <th>Fecha</th>
-                                 <th>Hora</th>
-                                 <th>Factura #</th>
-                                 <th>Chofer</th>
-                                 <th>Placa</th>
-                                 <th>Proveedor</th>
-                                 <th>Proyecto</th>
-                                 <th>Galones</th>
-                                 <th>Costo ($)</th>
-                                 <th>Empresa</th>
-                                 <th>Descripción</th>
-                             </tr>
-                         </thead>
-                         <tbody id="historialBody"></tbody>
-                         <tfoot id="historialFooter"></tfoot>
-                     </table>
-                 </div>
+                     <div class="table-container">
+                         <table id="historialTabla">
+                             <thead>
+                                 <tr>
+                                     <th class="no-print">Acciones</th>
+                                     <th>Fecha</th>
+                                     <th>Hora</th>
+                                     <th>Factura #</th>
+                                     <th>Chofer</th>
+                                     <th>Placa</th>
+                                     <th>Proveedor</th>
+                                     <th>Proyecto</th>
+                                     <th>Galones</th>
+                                     <th>Costo ($)</th>
+                                     <th>Empresa</th>
+                                     <th>Descripción</th>
+                                 </tr>
+                             </thead>
+                             <tbody id="historialBody"></tbody>
+                             <tfoot id="historialFooter"></tfoot>
+                         </table>
+                     </div>
+                     </div>
             </div>
         </div>
+
         <div id="tabAdmin" class="main-tab-content no-print">
             <div class="container" id="adminContainer">
                 <h2><i class="fa-solid fa-screwdriver-wrench"></i>Administración</h2>
