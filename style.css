@@ -57,19 +57,8 @@ button:hover { opacity: 0.9; }
 .filter-group { display: flex; flex-wrap: wrap; gap: 20px; align-items: center; }
 .filter-group label { font-weight: bold; }
 
-/* --- LOGIN VIEW & HEADER --- */
-/* ===== ESTILO MODIFICADO ===== */
-.login-container { 
-    background: var(--white-color); 
-    padding: 40px; 
-    border-radius: 8px; 
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
-    width: 100%; 
-    max-width: 450px; 
-    text-align: center;
-    margin: 40px auto 0 auto; /* Centra el contenedor y le da espacio superior */
-}
-#login-form h3 { margin-top: 0; margin-bottom: 20px; } /* Ajuste de margen */
+.login-container { background: var(--white-color); padding: 40px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 450px; text-align: center; margin: 40px auto 0 auto; }
+#login-form h3 { margin-top: 0; margin-bottom: 20px; }
 #login-form input { width: calc(100% - 22px); margin-bottom: 15px; }
 #login-form button { width: 100%; margin-top: 10px; }
 
@@ -80,14 +69,12 @@ button:hover { opacity: 0.9; }
 .header-titles h1 { font-size: 1.5em; }
 .header-titles h2 { font-size: 1em; font-weight: 400; color: var(--secondary-color); }
 
-/* --- MODAL --- */
 .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); }
 .modal-content { background-color: #fefefe; margin: 5% auto; padding: 25px; border: 1px solid var(--border-color); width: 90%; max-width: 600px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); position: relative; animation: fadeIn 0.3s; }
 .close-button { color: #aaa; position: absolute; top: 10px; right: 20px; font-size: 28px; font-weight: bold; cursor: pointer; }
 .close-button:hover, .close-button:focus { color: black; }
 @keyframes fadeIn { from {opacity: 0; transform: translateY(-20px);} to {opacity: 1; transform: translateY(0);} }
 
-/* --- ADMIN CARDS --- */
 .admin-section { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; }
 .admin-box { flex: 1; min-width: 350px; background: var(--white-color); border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: all 0.3s ease; }
 .admin-box:hover { transform: translateY(-5px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
@@ -102,13 +89,10 @@ button:hover { opacity: 0.9; }
 .empty-state .fa-solid { font-size: 2em; color: #ccc; margin-bottom: 10px; }
 .lista-gestion li small { color: var(--secondary-color); }
 
-/* --- BOTONES DE ACCIÓN (EDITAR/BORRAR) --- */
 .btn-accion { padding: 5px 10px; font-size: 12px; margin-left: 5px; }
 .btn-modificar { background-color: var(--warning-color); color: black; }
 .btn-borrar { background-color: var(--danger-color); color: white; }
 
-/* --- ACCORDION --- */
-.accordion-container { padding: 0; }
 .accordion-button { background-color: var(--light-gray); color: var(--text-color); cursor: pointer; padding: 18px; width: 100%; border: none; text-align: left; outline: none; font-size: 16px; font-weight: bold; transition: background-color 0.4s ease; border-bottom: 1px solid var(--border-color); }
 .accordion-button:first-of-type { border-top-left-radius: 8px; border-top-right-radius: 8px; }
 .accordion-button:last-of-type { border-bottom-left-radius: 8px; border-bottom-right-radius: 8px; border-bottom: none; }
@@ -118,20 +102,10 @@ button:hover { opacity: 0.9; }
 .accordion-panel { padding: 0 18px; background-color: var(--white-color); max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; border-bottom: 1px solid var(--border-color); }
 .accordion-panel table { margin: 15px 0; }
 
-/* --- HELPERS & RESPONSIVE --- */
 .fa-solid { margin-right: 8px; }
-.no-print { /* Se usa en la sección de impresión */ }
+.no-print { }
 .signature-block, #print-period-info { display: none; }
-
-/* ===== INICIO DE CÓDIGO NUEVO ===== */
-.credits {
-    text-align: center;
-    margin: 25px 0;
-    font-weight: bold;
-    color: var(--secondary-color);
-}
-/* ===== FIN DE CÓDIGO NUEVO ===== */
-
+.credits { text-align: center; margin: 25px 0; font-weight: bold; color: var(--secondary-color); }
 #historialTabla { table-layout: auto; width: 100%; }
 
 @media screen and (max-width: 600px) {
@@ -144,9 +118,8 @@ button:hover { opacity: 0.9; }
     .header-content { justify-content: center; width: 100%;}
 }
 
-/* --- ESTILOS PARA LA IMPRESIÓN (CORREGIDO) --- */
 @media print {
-    .no-print, #vista-login, .main-tabs, #tabRegistrar, #tabAdmin, .accordion-button { display: none !important; }
+    .no-print, #vista-login, .main-tabs, #tabRegistrar, #tabAdmin, .accordion-button, .report-card { display: none !important; }
     body, #vista-app, #tabReportes, #tabHistorial { display: block !important; }
     .accordion-panel { max-height: unset !important; overflow: visible !important; padding: 0 !important; border: none !important; }
     body { margin: 0; padding: 10px; background-color: var(--white-color); color: black; font-size: 10pt; }
@@ -167,9 +140,50 @@ button:hover { opacity: 0.9; }
     .signature-block .line { width: 250px; border-top: 1px solid black; margin: 0 auto 10px auto; }
 }
 
-/* --- AJUSTES DE ANCHO PARA TABLA DE HISTORIAL --- */
-#historialTabla { table-layout: auto; width: 100%; }
 #historialTabla th:nth-child(1), #historialTabla td:nth-child(1) { width: 120px; }
 #historialTabla th:nth-child(2), #historialTabla td:nth-child(2) { width: 105px; }
 #historialTabla th:last-child, #historialTabla td:last-child { min-width: 250px; }
 .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+/* ===== INICIO DE CÓDIGO NUEVO PARA TARJETAS DE REPORTE ===== */
+.report-cards-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+.report-card {
+    flex: 1 1 300px; /* Permite que las tarjetas crezcan y se ajusten */
+    background: var(--white-color);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+}
+.card-header {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    border-bottom: 1px solid var(--border-color);
+}
+.card-header .fa-solid {
+    font-size: 1.2em;
+    color: var(--primary-color);
+}
+.card-header h3 {
+    margin: 0;
+    font-size: 1.1em;
+}
+.card-body {
+    padding: 15px;
+    overflow-x: auto;
+}
+.card-body table th {
+    font-size: 0.9em;
+    padding: 8px;
+}
+.card-body table td {
+    font-size: 0.9em;
+    padding: 8px;
+}
+/* ===== FIN DE CÓDIGO NUEVO ===== */
