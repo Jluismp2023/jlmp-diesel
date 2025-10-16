@@ -128,9 +128,6 @@ button:hover { opacity: 0.9; }
     table-layout: auto;
     width: 100%;
 }
-#historialTabla th:nth-child(1), #historialTabla td:nth-child(1) { width: 120px; }
-#historialTabla th:nth-child(2), #historialTabla td:nth-child(2) { width: 105px; }
-#historialTabla th:nth-child(10), #historialTabla td:nth-child(10) { min-width: 250px; }
 
 @media screen and (max-width: 600px) {
     body { padding: 10px; }
@@ -183,8 +180,10 @@ button:hover { opacity: 0.9; }
     width: 105px;
 }
 
-/* Columna de Descripción (10ma) */
-#historialTabla th:nth-child(10),
-#historialTabla td:nth-child(10) {
+/* Las nuevas columnas (Hora y Factura) tomarán un ancho automático */
+
+/* Columna de Descripción (última) */
+#historialTabla th:last-child,
+#historialTabla td:last-child {
     min-width: 250px; /* Ancho mínimo para que el texto no se comprima */
 }

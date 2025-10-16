@@ -141,7 +141,21 @@ function reiniciarFormulario() {
 async function guardarOActualizar(e) {
     e.preventDefault();
     const id = document.getElementById('registroId').value;
-    const datosConsumo = { volqueta: document.getElementById('selectVolqueta').value, fecha: document.getElementById('fecha').value, galones: document.getElementById('galones').value, costo: document.getElementById('costo').value, descripcion: document.getElementById('descripcion').value, chofer: document.getElementById('selectChofer').value, empresa: document.getElementById('selectEmpresa').value, proveedor: document.getElementById('selectProveedor').value, proyecto: document.getElementById('selectProyecto').value };
+    const datosConsumo = {
+        volqueta: document.getElementById('selectVolqueta').value,
+        fecha: document.getElementById('fecha').value,
+        // ===== INICIO DE CÓDIGO MODIFICADO =====
+        hora: document.getElementById('hora').value,
+        numeroFactura: document.getElementById('numeroFactura').value,
+        // ===== FIN DE CÓDIGO MODIFICADO =====
+        galones: document.getElementById('galones').value,
+        costo: document.getElementById('costo').value,
+        descripcion: document.getElementById('descripcion').value,
+        chofer: document.getElementById('selectChofer').value,
+        empresa: document.getElementById('selectEmpresa').value,
+        proveedor: document.getElementById('selectProveedor').value,
+        proyecto: document.getElementById('selectProyecto').value
+    };
     if (!datosConsumo.chofer || !datosConsumo.volqueta || !datosConsumo.empresa || !datosConsumo.proveedor || !datosConsumo.proyecto) {
         mostrarNotificacion("Por favor, complete todos los campos.", "error"); return;
     }
@@ -228,7 +242,20 @@ async function modificarItemAdmin(item, tipo) { const valorActual = item.nombre;
 
 function cargarDatosParaModificar(id) {
     const consumo = todosLosConsumos.find(c => c.id === id); if (!consumo) return;
-    document.getElementById('registroId').value = consumo.id; document.getElementById('fecha').value = consumo.fecha; document.getElementById('selectChofer').value = consumo.chofer; document.getElementById('selectVolqueta').value = consumo.volqueta; document.getElementById('galones').value = consumo.galones; document.getElementById('costo').value = consumo.costo; document.getElementById('descripcion').value = consumo.descripcion; document.getElementById('selectEmpresa').value = consumo.empresa || ""; document.getElementById('selectProveedor').value = consumo.proveedor || ""; document.getElementById('selectProyecto').value = consumo.proyecto || "";
+    document.getElementById('registroId').value = consumo.id;
+    document.getElementById('fecha').value = consumo.fecha;
+    // ===== INICIO DE CÓDIGO MODIFICADO =====
+    document.getElementById('hora').value = consumo.hora || '';
+    document.getElementById('numeroFactura').value = consumo.numeroFactura || '';
+    // ===== FIN DE CÓDIGO MODIFICADO =====
+    document.getElementById('selectChofer').value = consumo.chofer;
+    document.getElementById('selectVolqueta').value = consumo.volqueta;
+    document.getElementById('galones').value = consumo.galones;
+    document.getElementById('costo').value = consumo.costo;
+    document.getElementById('descripcion').value = consumo.descripcion;
+    document.getElementById('selectEmpresa').value = consumo.empresa || "";
+    document.getElementById('selectProveedor').value = consumo.proveedor || "";
+    document.getElementById('selectProyecto').value = consumo.proyecto || "";
     abrirModal();
 }
 
@@ -276,11 +303,12 @@ function poblarFiltroDeMes() { const filtroSelect = document.getElementById('fil
 function poblarFiltrosReportes() { const selectores = { choferes: document.getElementById('filtroChofer'), proveedores: document.getElementById('filtroProveedor'), empresas: document.getElementById('filtroEmpresa'), proyectos: document.getElementById('filtroProyecto') }; const titulos = { choferes: 'Todos los Choferes', proveedores: 'Todos los Proveedores', empresas: 'Todas las Empresas', proyectos: 'Todos los Proyectos' }; for (const tipo in selectores) { const select = selectores[tipo]; if (!select) continue; const valorActual = select.value; select.innerHTML = `<option value="todos">${titulos[tipo]}</option>`; listasAdmin[tipo].forEach(item => { select.innerHTML += `<option value="${item.nombre}">${item.nombre}</option>`; }); select.value = valorActual || 'todos'; } }
 
 function mostrarHistorialAgrupado(consumos) {
-    const historialBody = document.getElementById('historialBody'); const historialFooter = document.getElementById('historialFooter');
+    const historialBody = document.getElementById('historialBody');
+    const historialFooter = document.getElementById('historialFooter');
     historialBody.innerHTML = '';
     historialFooter.innerHTML = '';
     if (consumos.length === 0) {
-        historialBody.innerHTML = `<tr><td colspan="10" class="empty-state"><i class="fa-solid fa-folder-open"></i><p>No se encontraron registros para los filtros seleccionados.</p></td></tr>`;
+        historialBody.innerHTML = `<tr><td colspan="12" class="empty-state"><i class="fa-solid fa-folder-open"></i><p>No se encontraron registros para los filtros seleccionados.</p></td></tr>`;
         return;
     }
     let totalGalones = 0, totalCosto = 0;
@@ -291,14 +319,18 @@ function mostrarHistorialAgrupado(consumos) {
         const fechaConsumo = new Date(consumo.fecha + 'T00:00:00'); const mesAnio = fechaConsumo.toLocaleDateString('es-EC', { month: 'long', year: 'numeric' });
         if (mesAnio !== mesAnioActual && !(document.getElementById('filtroFechaInicio').value && document.getElementById('filtroFechaFin').value)) {
             mesAnioActual = mesAnio;
-            const filaGrupo = document.createElement('tr'); filaGrupo.className = 'fila-grupo'; filaGrupo.innerHTML = `<td colspan="10">${mesAnioActual.charAt(0).toUpperCase() + mesAnioActual.slice(1)}</td>`;
+            const filaGrupo = document.createElement('tr'); filaGrupo.className = 'fila-grupo'; filaGrupo.innerHTML = `<td colspan="12">${mesAnioActual.charAt(0).toUpperCase() + mesAnioActual.slice(1)}</td>`;
             historialBody.appendChild(filaGrupo);
         }
         const filaDato = document.createElement('tr');
-        filaDato.innerHTML = `<td class="no-print"><button class="btn-accion btn-modificar" data-id="${consumo.id}" title="Modificar"><i class="fa-solid fa-pencil" style="margin: 0;"></i></button><button class="btn-accion btn-borrar" data-id="${consumo.id}" title="Borrar"><i class="fa-solid fa-trash-can" style="margin: 0;"></i></button></td><td>${consumo.fecha}</td> <td>${consumo.chofer}</td> <td>${consumo.volqueta}</td> <td>${consumo.proveedor || ''}</td> <td>${consumo.proyecto || ''}</td> <td>${(parseFloat(consumo.galones) || 0).toFixed(2)}</td> <td>$${(parseFloat(consumo.costo) || 0).toFixed(2)}</td> <td>${consumo.empresa || ''}</td> <td>${consumo.descripcion}</td>`;
+        // ===== INICIO DE CÓDIGO MODIFICADO =====
+        filaDato.innerHTML = `<td class="no-print"><button class="btn-accion btn-modificar" data-id="${consumo.id}" title="Modificar"><i class="fa-solid fa-pencil" style="margin: 0;"></i></button><button class="btn-accion btn-borrar" data-id="${consumo.id}" title="Borrar"><i class="fa-solid fa-trash-can" style="margin: 0;"></i></button></td><td>${consumo.fecha}</td><td>${consumo.hora || ''}</td><td>${consumo.numeroFactura || ''}</td><td>${consumo.chofer}</td><td>${consumo.volqueta}</td><td>${consumo.proveedor || ''}</td><td>${consumo.proyecto || ''}</td><td>${(parseFloat(consumo.galones) || 0).toFixed(2)}</td><td>$${(parseFloat(consumo.costo) || 0).toFixed(2)}</td><td>${consumo.empresa || ''}</td><td>${consumo.descripcion}</td>`;
+        // ===== FIN DE CÓDIGO MODIFICADO =====
         historialBody.appendChild(filaDato);
     });
-    historialFooter.innerHTML = `<tr><td class="no-print"></td><td colspan="5" style="text-align: right;"><strong>TOTAL DE GALONES:</strong></td><td><strong>${totalGalones.toFixed(2)}</strong></td><td style="text-align: right;"><strong>VALOR TOTAL:</strong></td><td><strong>$${totalCosto.toFixed(2)}</strong></td><td></td></tr>`;
+    // ===== INICIO DE CÓDIGO MODIFICADO =====
+    historialFooter.innerHTML = `<tr><td class="no-print"></td><td colspan="7" style="text-align: right;"><strong>TOTAL DE GALONES:</strong></td><td><strong>${totalGalones.toFixed(2)}</strong></td><td style="text-align: right;"><strong>VALOR TOTAL:</strong></td><td><strong>$${totalCosto.toFixed(2)}</strong></td><td></td></tr>`;
+    // ===== FIN DE CÓDIGO MODIFICADO =====
 }
 
 function handleLogin(e) {
