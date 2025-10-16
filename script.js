@@ -1,15 +1,12 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, collection, getDocs, doc, addDoc, updateDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-// ===== INICIO DE CÓDIGO NUEVO (IMPORTS PARA STORAGE) =====
-import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
-// ===== FIN DE CÓDIGO NUEVO =====
 
 const firebaseConfig = {
     apiKey: "AIzaSyCElg_et8_Z8ERTWo5tAwZJk2tb2ztUwlc",
     authDomain: "jlmp-diesel.firebaseapp.com",
     projectId: "jlmp-diesel",
-    storageBucket: "jlmp-diesel.appspot.com", // Asegúrate que el bucket sea el correcto
+    storageBucket: "jlmp-diesel.appspot.com",
     messagingSenderId: "763318949751",
     appId: "1:763318949751:web:e712d1008d34fbc98ab372"
 };
@@ -17,9 +14,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
-// ===== INICIO DE CÓDIGO NUEVO (INICIALIZAR STORAGE) =====
-const storage = getStorage(app);
-// ===== FIN DE CÓDIGO NUEVO =====
 
 const vistaLogin = document.getElementById('vista-login');
 const vistaApp = document.getElementById('vista-app');
@@ -134,17 +128,18 @@ function reiniciarFormulario() {
     poblarSelectores();
 }
 
-// ===== INICIO DE FUNCIÓN MODIFICADA (LÓGICA DE SUBIDA DE ARCHIVOS) =====
+// ===== INICIO DE FUNCIÓN MODIFICADA (LÓGICA DE BASE64) =====
 async function guardarOActualizar(e) {
     e.preventDefault();
     const btnGuardar = document.getElementById('btnGuardar');
-    btnGuardar.disabled = true; // Deshabilita el botón para evitar doble clic
+    btnGuardar.disabled = true;
     btnGuardar.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Guardando...';
 
     const id = document.getElementById('registroId').value;
-    const archivo = document.getElementById('facturaArchivo').files[0];
-    
-    let datosConsumo = {
+    const archivoInput = document.getElementById('facturaArchivo');
+    const archivo = archivoInput.files[0];
+
+    const datosConsumo = {
         volqueta: document.getElementById('selectVolqueta').value,
         fecha: document.getElementById('fecha').value,
         hora: document.getElementById('hora').value,
@@ -158,43 +153,64 @@ async function guardarOActualizar(e) {
         proyecto: document.getElementById('selectProyecto').value
     };
 
-    if (!datosConsumo.chofer || !datosConsumo.volqueta || !datosConsumo.empresa || !datosConsumo.proveedor || !datosConsumo.proyecto) {
-        mostrarNotificacion("Por favor, complete todos los campos obligatorios.", "error");
+    if (!datosConsumo.chofer || !datosConsumo.volqueta) {
+        mostrarNotificacion("Por favor, complete al menos el chofer y la placa.", "error");
         btnGuardar.disabled = false;
         btnGuardar.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Guardar Registro';
         return;
     }
 
-    try {
-        if (archivo) {
-            mostrarNotificacion("Subiendo factura...", "info", 5000);
-            const nombreArchivo = `${Date.now()}-${archivo.name}`;
-            const storageRef = ref(storage, `facturas/${nombreArchivo}`);
-            const snapshot = await uploadBytes(storageRef, archivo);
-            const downloadURL = await getDownloadURL(snapshot.ref);
-            
-            datosConsumo.facturaURL = downloadURL;
-            datosConsumo.facturaPath = snapshot.ref.fullPath; // Guardamos la ruta para poder borrarlo
+    const guardarEnFirestore = async (datosFinales) => {
+        try {
+            if (id) {
+                await updateDoc(doc(db, "consumos", id), datosFinales);
+                mostrarNotificacion("Registro actualizado con éxito", "exito");
+            } else {
+                await addDoc(collection(db, "consumos"), datosFinales);
+                mostrarNotificacion("Registro guardado con éxito", "exito");
+            }
+            reiniciarFormulario();
+            cerrarModal();
+            await cargarDatosIniciales();
+        } catch (error) {
+            console.error("Error guardando en Firestore:", error);
+            mostrarNotificacion(`Error al guardar: ${error.message}`, "error", 5000);
+        } finally {
+            btnGuardar.disabled = false;
+            btnGuardar.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Guardar Registro';
+        }
+    };
+
+    if (archivo) {
+        // Validación de tamaño del archivo (aprox. 700 KB)
+        if (archivo.size > 700 * 1024) {
+            mostrarNotificacion("El archivo es demasiado grande. El máximo es 700 KB.", "error", 5000);
+            btnGuardar.disabled = false;
+            btnGuardar.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Guardar Registro';
+            return;
         }
 
+        const reader = new FileReader();
+        reader.readAsDataURL(archivo);
+        reader.onload = () => {
+            datosConsumo.facturaBase64 = reader.result; // Guardamos el string Base64
+            guardarEnFirestore(datosConsumo);
+        };
+        reader.onerror = (error) => {
+            console.error("Error leyendo el archivo:", error);
+            mostrarNotificacion("No se pudo leer el archivo adjunto.", "error");
+            btnGuardar.disabled = false;
+            btnGuardar.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Guardar Registro';
+        };
+    } else {
+        // Si no se sube un nuevo archivo al editar, mantenemos el antiguo si existe.
         if (id) {
-            await updateDoc(doc(db, "consumos", id), datosConsumo);
-            mostrarNotificacion("Registro actualizado con éxito", "exito");
-        } else {
-            await addDoc(collection(db, "consumos"), datosConsumo);
-            mostrarNotificacion("Registro guardado con éxito", "exito");
+            const registroExistente = todosLosConsumos.find(c => c.id === id);
+            if (registroExistente && registroExistente.facturaBase64) {
+                datosConsumo.facturaBase64 = registroExistente.facturaBase64;
+            }
         }
-        
-        reiniciarFormulario();
-        cerrarModal();
-        await cargarDatosIniciales();
-
-    } catch (error) {
-        console.error("Error guardando o subiendo archivo:", error);
-        mostrarNotificacion("Error: No se pudo guardar el registro o subir la factura.", "error");
-    } finally {
-        btnGuardar.disabled = false;
-        btnGuardar.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Guardar Registro';
+        guardarEnFirestore(datosConsumo);
     }
 }
 // ===== FIN DE FUNCIÓN MODIFICADA =====
@@ -258,7 +274,6 @@ async function modificarItemAdmin(item, tipo) { const valorActual = item.nombre;
 function cargarDatosParaModificar(id) {
     const consumo = todosLosConsumos.find(c => c.id === id); if (!consumo) return;
     document.getElementById('registroId').value = consumo.id; document.getElementById('fecha').value = consumo.fecha; document.getElementById('hora').value = consumo.hora || ''; document.getElementById('numeroFactura').value = consumo.numeroFactura || ''; document.getElementById('selectChofer').value = consumo.chofer; document.getElementById('selectVolqueta').value = consumo.volqueta; document.getElementById('galones').value = consumo.galones; document.getElementById('costo').value = consumo.costo; document.getElementById('descripcion').value = consumo.descripcion; document.getElementById('selectEmpresa').value = consumo.empresa || ""; document.getElementById('selectProveedor').value = consumo.proveedor || ""; document.getElementById('selectProyecto').value = consumo.proyecto || "";
-    // Nota: No se puede pre-cargar el campo de archivo por seguridad del navegador.
     abrirModal();
 }
 
@@ -281,24 +296,17 @@ const calcularYMostrarTotalesPorProyecto = (consumos) => calcularYMostrarTotales
 const calcularYMostrarTotalesPorChofer = (consumos) => calcularYMostrarTotalesPorCategoria(consumos, 'chofer', 'resumenChoferBody', 'resumenChoferFooter');
 const calcularYMostrarTotales = (consumos) => { calcularYMostrarTotalesPorCategoria(consumos, 'volqueta', 'resumenBody', 'resumenFooter'); };
 
-// ===== INICIO DE FUNCIÓN MODIFICADA (LÓGICA DE BORRADO DE ARCHIVOS) =====
+// ===== INICIO DE FUNCIÓN MODIFICADA (BORRADO SIMPLIFICADO) =====
 async function borrarConsumoHistorial(id) {
     if (confirm('¿Seguro que quieres borrar este registro? Esta acción no se puede deshacer.')) {
         try {
-            const consumo = todosLosConsumos.find(c => c.id === id);
-            // Si el registro tiene una factura asociada, borrarla de Storage primero
-            if (consumo && consumo.facturaPath) {
-                mostrarNotificacion("Borrando factura adjunta...", "info");
-                const facturaRef = ref(storage, consumo.facturaPath);
-                await deleteObject(facturaRef);
-            }
-            // Luego, borrar el registro de Firestore
+            // Con Base64, el archivo está en el documento. Borrar el documento es todo lo que se necesita.
             await deleteDoc(doc(db, "consumos", id));
             mostrarNotificacion("Registro borrado con éxito.", "exito");
             await cargarDatosIniciales();
         } catch (error) {
-            console.error("Error borrando registro o factura:", error);
-            mostrarNotificacion("No se pudo borrar el registro o su factura.", "error");
+            console.error("Error borrando registro:", error);
+            mostrarNotificacion("No se pudo borrar el registro.", "error");
         }
     }
 }
@@ -307,7 +315,7 @@ async function borrarConsumoHistorial(id) {
 function poblarFiltroDeMes() { const filtros = document.querySelectorAll('.filtro-sincronizado[data-sync-id="filtroMes"]'); const mesesUnicos = [...new Set(todosLosConsumos.map(c => c.fecha.substring(0, 7)))]; mesesUnicos.sort().reverse(); filtros.forEach(filtroSelect => { const valorSeleccionado = filtroSelect.value; filtroSelect.innerHTML = '<option value="todos">Todos los Meses</option>'; mesesUnicos.forEach(mes => { const [year, month] = mes.split('-'); const fechaMes = new Date(year, month - 1); const nombreMes = fechaMes.toLocaleDateString('es-EC', { month: 'long', year: 'numeric' }); const opcion = document.createElement('option'); opcion.value = mes; opcion.textContent = nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1); filtroSelect.appendChild(opcion); }); if (filtroSelect.value) filtroSelect.value = valorSeleccionado || 'todos'; }); }
 function poblarFiltrosReportes() { const tipos = { choferes: 'filtroChofer', proveedores: 'filtroProveedor', empresas: 'filtroEmpresa', proyectos: 'filtroProyecto' }; const titulos = { choferes: 'Todos los Choferes', proveedores: 'Todos los Proveedores', empresas: 'Todas las Empresas', proyectos: 'Todos los Proyectos' }; for (const tipo in tipos) { const syncId = tipos[tipo]; const selects = document.querySelectorAll(`.filtro-sincronizado[data-sync-id="${syncId}"]`); selects.forEach(select => { const valorActual = select.value; select.innerHTML = `<option value="todos">${titulos[tipo]}</option>`; listasAdmin[tipo].forEach(item => { select.innerHTML += `<option value="${item.nombre}">${item.nombre}</option>`; }); select.value = valorActual || 'todos'; }); } }
 
-// ===== INICIO DE FUNCIÓN MODIFICADA (MUESTRA EL ENLACE A LA FACTURA) =====
+// ===== INICIO DE FUNCIÓN MODIFICADA (MUESTRA EL ENLACE BASE64) =====
 function mostrarHistorialAgrupado(consumos) {
     const historialBody = document.getElementById('historialBody'); const historialFooter = document.getElementById('historialFooter');
     historialBody.innerHTML = ''; historialFooter.innerHTML = '';
@@ -324,8 +332,8 @@ function mostrarHistorialAgrupado(consumos) {
             historialBody.appendChild(filaGrupo);
         }
         const filaDato = document.createElement('tr');
-        const linkFactura = consumo.facturaURL
-            ? `<a href="${consumo.facturaURL}" target="_blank" title="Ver factura"><i class="fa-solid fa-file-invoice"></i></a>`
+        const linkFactura = consumo.facturaBase64
+            ? `<a href="${consumo.facturaBase64}" target="_blank" title="Ver adjunto"><i class="fa-solid fa-file-invoice"></i></a>`
             : 'N/A';
         filaDato.innerHTML = `<td class="no-print"><button class="btn-accion btn-modificar button-warning" data-id="${consumo.id}" title="Modificar"><i class="fa-solid fa-pencil" style="margin: 0;"></i></button><button class="btn-accion btn-borrar" data-id="${consumo.id}" title="Borrar"><i class="fa-solid fa-trash-can" style="margin: 0;"></i></button></td>
             <td>${linkFactura}</td><td>${consumo.fecha}</td><td>${consumo.hora || ''}</td><td>${consumo.numeroFactura || ''}</td><td>${consumo.chofer}</td><td>${consumo.volqueta}</td><td>${consumo.proveedor || ''}</td><td>${consumo.proyecto || ''}</td><td>${(parseFloat(consumo.galones) || 0).toFixed(2)}</td><td>$${(parseFloat(consumo.costo) || 0).toFixed(2)}</td><td>${consumo.empresa || ''}</td><td>${consumo.descripcion}</td>`;
@@ -335,38 +343,38 @@ function mostrarHistorialAgrupado(consumos) {
 }
 // ===== FIN DE FUNCIÓN MODIFICADA =====
 
-// ===== INICIO DE FUNCIÓN NUEVA (PREPARA FACTURAS PARA IMPRESIÓN) =====
+// ===== INICIO DE FUNCIÓN MODIFICADA (PREPARA BASE64 PARA IMPRESIÓN) =====
 function prepararFacturasParaImpresion() {
     const contenedor = document.getElementById('facturas-impresion');
-    contenedor.innerHTML = ''; // Limpia el contenedor antes de llenarlo
+    contenedor.innerHTML = '';
     const consumosFiltrados = obtenerConsumosFiltrados();
 
     consumosFiltrados.forEach(consumo => {
-        if (consumo.facturaURL) {
+        if (consumo.facturaBase64) {
             const divFactura = document.createElement('div');
             divFactura.className = 'factura-impresa';
 
             const titulo = document.createElement('div');
             titulo.className = 'factura-titulo';
-            titulo.textContent = `Factura del Registro: ${consumo.fecha} - ${consumo.volqueta}`;
+            titulo.textContent = `Adjunto del Registro: ${consumo.fecha} - ${consumo.volqueta}`;
             divFactura.appendChild(titulo);
 
-            if (consumo.facturaURL.toLowerCase().includes('.pdf')) {
+            if (consumo.facturaBase64.startsWith('data:application/pdf')) {
                 const embed = document.createElement('embed');
-                embed.src = consumo.facturaURL;
+                embed.src = consumo.facturaBase64;
                 embed.width = "100%";
                 embed.height = "800px";
                 divFactura.appendChild(embed);
-            } else { // Asumimos que es una imagen
+            } else {
                 const img = document.createElement('img');
-                img.src = consumo.facturaURL;
+                img.src = consumo.facturaBase64;
                 divFactura.appendChild(img);
             }
             contenedor.appendChild(divFactura);
         }
     });
 }
-// ===== FIN DE FUNCIÓN NUEVA =====
+// ===== FIN DE FUNCIÓN MODIFICADA =====
 
 function asignarSincronizacionDeFiltros() {
     const filtros = document.querySelectorAll('.filtro-sincronizado');
@@ -398,13 +406,8 @@ function asignarEventosApp() {
         btn.addEventListener('click', (e) => {
             const targetId = e.currentTarget.dataset.printTarget;
             const targetTab = document.getElementById(targetId);
-            
             if (targetTab) {
-                // Si es la pestaña de historial, preparamos las facturas
-                if (targetId === 'tabHistorial') {
-                    prepararFacturasParaImpresion();
-                }
-                
+                if (targetId === 'tabHistorial') { prepararFacturasParaImpresion(); }
                 tabActivaParaImprimir = targetTab;
                 targetTab.classList.add('printable-active');
                 window.print();
@@ -417,7 +420,6 @@ function asignarEventosApp() {
             tabActivaParaImprimir.classList.remove('printable-active');
             tabActivaParaImprimir = null;
         }
-        // Limpia el contenedor de facturas después de imprimir
         document.getElementById('facturas-impresion').innerHTML = '';
     };
     
@@ -446,7 +448,6 @@ function asignarEventosApp() {
             if (panel.style.maxHeight) { panel.style.maxHeight = null; } else { panel.style.maxHeight = panel.scrollHeight + "px"; } 
         });
     });
-
     asignarSincronizacionDeFiltros();
 }
 
