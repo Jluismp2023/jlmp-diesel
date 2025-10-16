@@ -76,7 +76,7 @@ button:hover { opacity: 0.9; }
 @keyframes fadeIn { from {opacity: 0; transform: translateY(-20px);} to {opacity: 1; transform: translateY(0);} }
 
 .admin-section { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; }
-.admin-box { flex: 1; min-width: 350px; background: var(--white-color); border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: all 0.3s ease; }
+.admin-box { flex: 1 1 350px; background: var(--white-color); border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: all 0.3s ease; }
 .admin-box:hover { transform: translateY(-5px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
 .admin-box h3 { margin-top: 0; padding-bottom: 10px; border-bottom: 1px solid #eee; color: var(--primary-color); }
 .admin-form { display: flex; gap: 10px; margin-bottom: 15px; }
@@ -90,6 +90,7 @@ button:hover { opacity: 0.9; }
 .lista-gestion li small { color: var(--secondary-color); }
 
 .btn-accion { padding: 5px 10px; font-size: 12px; margin-left: 5px; }
+.button-warning { background-color: var(--warning-color); color: var(--dark-text-color); }
 .btn-modificar { background-color: var(--warning-color); color: black; }
 .btn-borrar { background-color: var(--danger-color); color: white; }
 
@@ -108,6 +109,7 @@ button:hover { opacity: 0.9; }
 .credits { text-align: center; margin: 25px 0; font-weight: bold; color: var(--secondary-color); }
 #historialTabla { table-layout: auto; width: 100%; }
 
+/* ===== INICIO DE BLOQUE MODIFICADO PARA RESPONSIVENESS ===== */
 @media screen and (max-width: 600px) {
     body { padding: 10px; }
     .filter-group { flex-direction: column; align-items: stretch; }
@@ -117,7 +119,13 @@ button:hover { opacity: 0.9; }
     .header-container .button-danger { width: 100%; }
     .header-content { justify-content: center; width: 100%;}
     .report-card { flex-basis: 100%; }
+    /* Apila las cajas de administración verticalmente en pantallas pequeñas */
+    .admin-box {
+        flex-basis: 100%; 
+        min-width: unset;
+    }
 }
+/* ===== FIN DE BLOQUE MODIFICADO ===== */
 
 @media print {
     .no-print, #vista-login, .main-tabs, #tabRegistrar, #tabAdmin, .accordion-button, .report-card { display: none !important; }
@@ -158,14 +166,7 @@ button:hover { opacity: 0.9; }
 #historialTabla tbody tr:nth-child(even) { background-color: #f8f9fa; }
 #historialTabla tbody tr:not(.fila-grupo):hover { background-color: #e9ecef; cursor: pointer; }
 
-/* ===== INICIO DE CÓDIGO NUEVO PARA ÍCONOS Y COLORES CONSISTENTES ===== */
-.button-warning {
-    background-color: var(--warning-color);
-    color: var(--dark-text-color); /* Texto oscuro para mejor contraste con amarillo */
-}
-.btn-modificar i {
-    color: var(--dark-text-color) !important;
-}
+.btn-modificar i { color: var(--dark-text-color) !important; }
 .admin-form .button-success i,
 .button-danger i,
 .button-primary i,
@@ -173,4 +174,3 @@ button:hover { opacity: 0.9; }
 .button-success i {
     color: var(--white-color) !important;
 }
-/* ===== FIN DE CÓDIGO NUEVO ===== */
