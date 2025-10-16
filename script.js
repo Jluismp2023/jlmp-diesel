@@ -135,9 +135,7 @@ async function guardarOActualizar(e) {
     btnGuardar.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Guardando...';
 
     const id = document.getElementById('registroId').value;
-    const archivoInput = document.getElementById('facturaArchivo');
-    const archivo = archivoInput.files[0];
-
+    
     const datosConsumo = {
         volqueta: document.getElementById('selectVolqueta').value,
         fecha: document.getElementById('fecha').value,
@@ -159,55 +157,23 @@ async function guardarOActualizar(e) {
         return;
     }
 
-    const guardarEnFirestore = async (datosFinales) => {
-        try {
-            if (id) {
-                await updateDoc(doc(db, "consumos", id), datosFinales);
-                mostrarNotificacion("Registro actualizado con éxito", "exito");
-            } else {
-                await addDoc(collection(db, "consumos"), datosFinales);
-                mostrarNotificacion("Registro guardado con éxito", "exito");
-            }
-            reiniciarFormulario();
-            cerrarModal();
-            await cargarDatosIniciales();
-        } catch (error) {
-            console.error("Error guardando en Firestore:", error);
-            mostrarNotificacion(`Error al guardar: ${error.message}`, "error", 5000);
-        } finally {
-            btnGuardar.disabled = false;
-            btnGuardar.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Guardar Registro';
-        }
-    };
-
-    if (archivo) {
-        if (archivo.size > 700 * 1024) {
-            mostrarNotificacion("El archivo es demasiado grande. El máximo es 700 KB.", "error", 5000);
-            btnGuardar.disabled = false;
-            btnGuardar.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Guardar Registro';
-            return;
-        }
-
-        const reader = new FileReader();
-        reader.readAsDataURL(archivo);
-        reader.onload = () => {
-            datosConsumo.facturaBase64 = reader.result;
-            guardarEnFirestore(datosConsumo);
-        };
-        reader.onerror = (error) => {
-            console.error("Error leyendo el archivo:", error);
-            mostrarNotificacion("No se pudo leer el archivo adjunto.", "error");
-            btnGuardar.disabled = false;
-            btnGuardar.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Guardar Registro';
-        };
-    } else {
+    try {
         if (id) {
-            const registroExistente = todosLosConsumos.find(c => c.id === id);
-            if (registroExistente && registroExistente.facturaBase64) {
-                datosConsumo.facturaBase64 = registroExistente.facturaBase64;
-            }
+            await updateDoc(doc(db, "consumos", id), datosConsumo);
+            mostrarNotificacion("Registro actualizado con éxito", "exito");
+        } else {
+            await addDoc(collection(db, "consumos"), datosConsumo);
+            mostrarNotificacion("Registro guardado con éxito", "exito");
         }
-        guardarEnFirestore(datosConsumo);
+        reiniciarFormulario();
+        cerrarModal();
+        await cargarDatosIniciales();
+    } catch (error) {
+        console.error("Error guardando en Firestore:", error);
+        mostrarNotificacion(`Error al guardar: ${error.message}`, "error", 5000);
+    } finally {
+        btnGuardar.disabled = false;
+        btnGuardar.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Guardar Registro';
     }
 }
 
@@ -229,24 +195,9 @@ async function agregarItemAdmin(tipo, inputElement) {
 }
 
 function manejarAccionesHistorial(e) { 
-    const target = e.target.closest('button, a'); // Captura clics en botones o enlaces
+    const target = e.target.closest('button');
     if (!target) return;
     
-    // ===== INICIO DE CÓDIGO NUEVO =====
-    // Lógica para ver adjunto
-    if (target.classList.contains('ver-adjunto')) {
-        e.preventDefault(); // Evita que el enlace intente navegar
-        const base64Data = target.dataset.base64;
-        const newWindow = window.open();
-        if (base64Data.startsWith('data:application/pdf')) {
-            newWindow.document.write(`<embed src="${base64Data}" width="100%" height="100%" type="application/pdf">`);
-        } else {
-            newWindow.document.write(`<img src="${base64Data}" style="max-width: 100%;">`);
-        }
-        return; // Termina la función aquí para no procesar los botones de abajo
-    }
-    // ===== FIN DE CÓDIGO NUEVO =====
-
     const id = target.dataset.id; 
     if (!id) return; 
     if (target.classList.contains('btn-modificar')) cargarDatosParaModificar(id); 
@@ -331,11 +282,10 @@ async function borrarConsumoHistorial(id) {
 function poblarFiltroDeMes() { const filtros = document.querySelectorAll('.filtro-sincronizado[data-sync-id="filtroMes"]'); const mesesUnicos = [...new Set(todosLosConsumos.map(c => c.fecha.substring(0, 7)))]; mesesUnicos.sort().reverse(); filtros.forEach(filtroSelect => { const valorSeleccionado = filtroSelect.value; filtroSelect.innerHTML = '<option value="todos">Todos los Meses</option>'; mesesUnicos.forEach(mes => { const [year, month] = mes.split('-'); const fechaMes = new Date(year, month - 1); const nombreMes = fechaMes.toLocaleDateString('es-EC', { month: 'long', year: 'numeric' }); const opcion = document.createElement('option'); opcion.value = mes; opcion.textContent = nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1); filtroSelect.appendChild(opcion); }); if (filtroSelect.value) filtroSelect.value = valorSeleccionado || 'todos'; }); }
 function poblarFiltrosReportes() { const tipos = { choferes: 'filtroChofer', proveedores: 'filtroProveedor', empresas: 'filtroEmpresa', proyectos: 'filtroProyecto' }; const titulos = { choferes: 'Todos los Choferes', proveedores: 'Todos los Proveedores', empresas: 'Todas las Empresas', proyectos: 'Todos los Proyectos' }; for (const tipo in tipos) { const syncId = tipos[tipo]; const selects = document.querySelectorAll(`.filtro-sincronizado[data-sync-id="${syncId}"]`); selects.forEach(select => { const valorActual = select.value; select.innerHTML = `<option value="todos">${titulos[tipo]}</option>`; listasAdmin[tipo].forEach(item => { select.innerHTML += `<option value="${item.nombre}">${item.nombre}</option>`; }); select.value = valorActual || 'todos'; }); } }
 
-// ===== INICIO DE FUNCIÓN MODIFICADA (MUESTRA EL ENLACE CON DATA ATTRIBUTE) =====
 function mostrarHistorialAgrupado(consumos) {
     const historialBody = document.getElementById('historialBody'); const historialFooter = document.getElementById('historialFooter');
     historialBody.innerHTML = ''; historialFooter.innerHTML = '';
-    if (consumos.length === 0) { historialBody.innerHTML = `<tr><td colspan="13" class="empty-state"><i class="fa-solid fa-folder-open"></i><p>No se encontraron registros.</p></td></tr>`; return; }
+    if (consumos.length === 0) { historialBody.innerHTML = `<tr><td colspan="12" class="empty-state"><i class="fa-solid fa-folder-open"></i><p>No se encontraron registros.</p></td></tr>`; return; }
     let totalGalones = 0, totalCosto = 0;
     consumos.sort((a,b) => new Date(b.fecha) - new Date(a.fecha) || a.volqueta.localeCompare(b.volqueta));
     let mesAnioActual = "";
@@ -344,51 +294,15 @@ function mostrarHistorialAgrupado(consumos) {
         const fechaConsumo = new Date(consumo.fecha + 'T00:00:00'); const mesAnio = fechaConsumo.toLocaleDateString('es-EC', { month: 'long', year: 'numeric' });
         if (mesAnio !== mesAnioActual && !(obtenerConsumosFiltrados.fechaInicio && obtenerConsumosFiltrados.fechaFin)) {
             mesAnioActual = mesAnio;
-            const filaGrupo = document.createElement('tr'); filaGrupo.className = 'fila-grupo'; filaGrupo.innerHTML = `<td colspan="13">${mesAnioActual.charAt(0).toUpperCase() + mesAnioActual.slice(1)}</td>`;
+            const filaGrupo = document.createElement('tr'); filaGrupo.className = 'fila-grupo'; filaGrupo.innerHTML = `<td colspan="12">${mesAnioActual.charAt(0).toUpperCase() + mesAnioActual.slice(1)}</td>`;
             historialBody.appendChild(filaGrupo);
         }
         const filaDato = document.createElement('tr');
-        // El `href` es "#" y añadimos una clase y un data-attribute
-        const linkFactura = consumo.facturaBase64
-            ? `<a href="#" class="ver-adjunto" data-base64="${consumo.facturaBase64}" title="Ver adjunto"><i class="fa-solid fa-file-invoice"></i></a>`
-            : 'N/A';
         filaDato.innerHTML = `<td class="no-print"><button class="btn-accion btn-modificar button-warning" data-id="${consumo.id}" title="Modificar"><i class="fa-solid fa-pencil" style="margin: 0;"></i></button><button class="btn-accion btn-borrar" data-id="${consumo.id}" title="Borrar"><i class="fa-solid fa-trash-can" style="margin: 0;"></i></button></td>
-            <td>${linkFactura}</td><td>${consumo.fecha}</td><td>${consumo.hora || ''}</td><td>${consumo.numeroFactura || ''}</td><td>${consumo.chofer}</td><td>${consumo.volqueta}</td><td>${consumo.proveedor || ''}</td><td>${consumo.proyecto || ''}</td><td>${(parseFloat(consumo.galones) || 0).toFixed(2)}</td><td>$${(parseFloat(consumo.costo) || 0).toFixed(2)}</td><td>${consumo.empresa || ''}</td><td>${consumo.descripcion}</td>`;
+            <td>${consumo.fecha}</td><td>${consumo.hora || ''}</td><td>${consumo.numeroFactura || ''}</td><td>${consumo.chofer}</td><td>${consumo.volqueta}</td><td>${consumo.proveedor || ''}</td><td>${consumo.proyecto || ''}</td><td>${(parseFloat(consumo.galones) || 0).toFixed(2)}</td><td>$${(parseFloat(consumo.costo) || 0).toFixed(2)}</td><td>${consumo.empresa || ''}</td><td>${consumo.descripcion}</td>`;
         historialBody.appendChild(filaDato);
     });
-    historialFooter.innerHTML = `<tr><td class="no-print" colspan="2"></td><td colspan="7" style="text-align: right;"><strong>TOTAL GALONES:</strong></td><td><strong>${totalGalones.toFixed(2)}</strong></td><td style="text-align: right;"><strong>VALOR TOTAL:</strong></td><td><strong>$${totalCosto.toFixed(2)}</strong></td><td></td></tr>`;
-}
-// ===== FIN DE FUNCIÓN MODIFICADA =====
-
-function prepararFacturasParaImpresion() {
-    const contenedor = document.getElementById('facturas-impresion');
-    contenedor.innerHTML = '';
-    const consumosFiltrados = obtenerConsumosFiltrados();
-
-    consumosFiltrados.forEach(consumo => {
-        if (consumo.facturaBase64) {
-            const divFactura = document.createElement('div');
-            divFactura.className = 'factura-impresa';
-
-            const titulo = document.createElement('div');
-            titulo.className = 'factura-titulo';
-            titulo.textContent = `Adjunto del Registro: ${consumo.fecha} - ${consumo.volqueta}`;
-            divFactura.appendChild(titulo);
-
-            if (consumo.facturaBase64.startsWith('data:application/pdf')) {
-                const embed = document.createElement('embed');
-                embed.src = consumo.facturaBase64;
-                embed.width = "100%";
-                embed.height = "800px";
-                divFactura.appendChild(embed);
-            } else {
-                const img = document.createElement('img');
-                img.src = consumo.facturaBase64;
-                divFactura.appendChild(img);
-            }
-            contenedor.appendChild(divFactura);
-        }
-    });
+    historialFooter.innerHTML = `<tr><td class="no-print"></td><td colspan="7" style="text-align: right;"><strong>TOTAL GALONES:</strong></td><td><strong>${totalGalones.toFixed(2)}</strong></td><td style="text-align: right;"><strong>VALOR TOTAL:</strong></td><td><strong>$${totalCosto.toFixed(2)}</strong></td><td></td></tr>`;
 }
 
 function asignarSincronizacionDeFiltros() {
@@ -422,7 +336,6 @@ function asignarEventosApp() {
             const targetId = e.currentTarget.dataset.printTarget;
             const targetTab = document.getElementById(targetId);
             if (targetTab) {
-                if (targetId === 'tabHistorial') { prepararFacturasParaImpresion(); }
                 tabActivaParaImprimir = targetTab;
                 targetTab.classList.add('printable-active');
                 window.print();

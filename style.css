@@ -108,7 +108,7 @@ button:hover { opacity: 0.9; }
 .signature-block { display: none; }
 .credits { text-align: center; margin: 25px 0; font-weight: bold; color: var(--secondary-color); }
 #historialTabla { table-layout: auto; width: 100%; }
-#facturas-impresion { display: none; } /* Oculta el contenedor de facturas en la vista normal */
+#facturas-impresion { display: none; }
 
 @media screen and (max-width: 600px) {
     body { padding: 10px; }
@@ -124,28 +124,21 @@ button:hover { opacity: 0.9; }
 
 @media print {
     .no-print, #vista-login, .main-tabs { display: none !important; }
-    
     body, #vista-app { display: block !important; }
-
     .main-tab-content { display: none !important; }
     .main-tab-content.printable-active { display: block !important; }
-
     .accordion-button { display: none !important; }
     .accordion-panel { max-height: unset !important; overflow: visible !important; padding: 0 !important; border: none !important; }
-    
     body { margin: 0; padding: 10px; background-color: var(--white-color); color: black; font-size: 10pt; }
     .container { box-shadow: none; border: none; margin: 0 0 20px 0; padding: 0; width: 100%; }
     .header-container { justify-content: center; padding: 10px 0; border-bottom: 2px solid black; margin-bottom: 20px; box-shadow: none; border-radius: 0; }
     .header-logo { height: 50px; }
     .header-titles h1 { font-size: 16pt; color: black !important; }
     .header-titles h2 { font-size: 12pt; color: #555 !important; }
-    
     h2, .card-header h3 { color: black !important; text-align: left; font-size: 14pt; border-bottom: 2px solid black; padding-bottom: 5px; margin-top: 25px; }
     .card-header .fa-solid { display: none; }
-
     .report-cards-container { display: block; }
     .report-card { display: block; box-shadow: none; border: none; page-break-inside: avoid; margin-bottom: 20px; }
-
     table { width: 100%; border-collapse: collapse; page-break-inside: auto; }
     tr { page-break-inside: avoid; page-break-after: auto; }
     th, td { border: 1px solid #333 !important; padding: 5px; }
@@ -154,26 +147,7 @@ button:hover { opacity: 0.9; }
     .fila-grupo { background-color: #ccc !important; color: black !important; }
     .signature-block { display: block; text-align: center; margin-top: 80px; page-break-inside: avoid; }
     .signature-block .line { width: 250px; border-top: 1px solid black; margin: 0 auto 10px auto; }
-
-    /* ===== INICIO DE CÓDIGO NUEVO ===== */
-    #facturas-impresion { display: block; }
-    .factura-impresa {
-        page-break-before: always; /* Cada factura empieza en una nueva página */
-        padding-top: 20px;
-    }
-    .factura-impresa img, .factura-impresa embed {
-        max-width: 100%;
-        height: auto;
-        border: 1px solid #ccc;
-    }
-    .factura-titulo {
-        font-size: 14pt;
-        font-weight: bold;
-        border-bottom: 2px solid black;
-        padding-bottom: 5px;
-        margin-bottom: 15px;
-    }
-    /* ===== FIN DE CÓDIGO NUEVO ===== */
+    #facturas-impresion { display: none; } /* Nos aseguramos que no aparezca */
 }
 
 #historialTabla th:nth-child(1), #historialTabla td:nth-child(1) { width: 120px; }
