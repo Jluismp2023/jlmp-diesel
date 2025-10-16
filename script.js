@@ -144,10 +144,8 @@ async function guardarOActualizar(e) {
     const datosConsumo = {
         volqueta: document.getElementById('selectVolqueta').value,
         fecha: document.getElementById('fecha').value,
-        // ===== INICIO DE CÓDIGO MODIFICADO =====
         hora: document.getElementById('hora').value,
         numeroFactura: document.getElementById('numeroFactura').value,
-        // ===== FIN DE CÓDIGO MODIFICADO =====
         galones: document.getElementById('galones').value,
         costo: document.getElementById('costo').value,
         descripcion: document.getElementById('descripcion').value,
@@ -244,10 +242,8 @@ function cargarDatosParaModificar(id) {
     const consumo = todosLosConsumos.find(c => c.id === id); if (!consumo) return;
     document.getElementById('registroId').value = consumo.id;
     document.getElementById('fecha').value = consumo.fecha;
-    // ===== INICIO DE CÓDIGO MODIFICADO =====
     document.getElementById('hora').value = consumo.hora || '';
     document.getElementById('numeroFactura').value = consumo.numeroFactura || '';
-    // ===== FIN DE CÓDIGO MODIFICADO =====
     document.getElementById('selectChofer').value = consumo.chofer;
     document.getElementById('selectVolqueta').value = consumo.volqueta;
     document.getElementById('galones').value = consumo.galones;
@@ -323,14 +319,10 @@ function mostrarHistorialAgrupado(consumos) {
             historialBody.appendChild(filaGrupo);
         }
         const filaDato = document.createElement('tr');
-        // ===== INICIO DE CÓDIGO MODIFICADO =====
         filaDato.innerHTML = `<td class="no-print"><button class="btn-accion btn-modificar" data-id="${consumo.id}" title="Modificar"><i class="fa-solid fa-pencil" style="margin: 0;"></i></button><button class="btn-accion btn-borrar" data-id="${consumo.id}" title="Borrar"><i class="fa-solid fa-trash-can" style="margin: 0;"></i></button></td><td>${consumo.fecha}</td><td>${consumo.hora || ''}</td><td>${consumo.numeroFactura || ''}</td><td>${consumo.chofer}</td><td>${consumo.volqueta}</td><td>${consumo.proveedor || ''}</td><td>${consumo.proyecto || ''}</td><td>${(parseFloat(consumo.galones) || 0).toFixed(2)}</td><td>$${(parseFloat(consumo.costo) || 0).toFixed(2)}</td><td>${consumo.empresa || ''}</td><td>${consumo.descripcion}</td>`;
-        // ===== FIN DE CÓDIGO MODIFICADO =====
         historialBody.appendChild(filaDato);
     });
-    // ===== INICIO DE CÓDIGO MODIFICADO =====
     historialFooter.innerHTML = `<tr><td class="no-print"></td><td colspan="7" style="text-align: right;"><strong>TOTAL DE GALONES:</strong></td><td><strong>${totalGalones.toFixed(2)}</strong></td><td style="text-align: right;"><strong>VALOR TOTAL:</strong></td><td><strong>$${totalCosto.toFixed(2)}</strong></td><td></td></tr>`;
-    // ===== FIN DE CÓDIGO MODIFICADO =====
 }
 
 function handleLogin(e) {
@@ -352,6 +344,9 @@ function asignarEventosApp() {
     
     document.getElementById('btnTabRegistrar').addEventListener('click', (e) => openMainTab(e, 'tabRegistrar'));
     document.getElementById('btnTabReportes').addEventListener('click', (e) => openMainTab(e, 'tabReportes'));
+    // ===== INICIO DE CÓDIGO MODIFICADO =====
+    document.getElementById('btnTabHistorial').addEventListener('click', (e) => openMainTab(e, 'tabHistorial'));
+    // ===== FIN DE CÓDIGO MODIFICADO =====
     document.getElementById('btnTabAdmin').addEventListener('click', (e) => openMainTab(e, 'tabAdmin'));
     
     document.getElementById('consumoForm').addEventListener('submit', guardarOActualizar);

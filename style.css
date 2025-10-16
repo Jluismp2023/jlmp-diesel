@@ -42,14 +42,14 @@ button:hover { opacity: 0.9; }
 .main-tabs button.active { background-color: var(--primary-color); color: var(--white-color); border-color: var(--primary-color); }
 .main-tab-content { display: none; }
 
-#resumenTabla th, #resumenEmpresaTabla th, #resumenProveedorTabla th, #resumenChoferTabla th, #resumenProyectoTabla th { 
+#resumenTabla th, #resumenEmpresaTabla th, #resumenProveedorTabla th, #resumenChoferTabla th, #resumenProyectoTabla th {
     background-color: var(--success-color);
-    color: var(--white-color); 
+    color: var(--white-color);
 }
-#resumenTabla tfoot tr, #resumenEmpresaTabla tfoot tr, #resumenProveedorTabla tfoot tr, #resumenChoferTabla tfoot tr, #resumenProyectoTabla tfoot tr, #historialTabla tfoot tr { 
-    font-weight: bold; 
-    background-color: #e9ecef; 
-    border-top: 2px solid var(--dark-text-color); 
+#resumenTabla tfoot tr, #resumenEmpresaTabla tfoot tr, #resumenProveedorTabla tfoot tr, #resumenChoferTabla tfoot tr, #resumenProyectoTabla tfoot tr, #historialTabla tfoot tr {
+    font-weight: bold;
+    background-color: #e9ecef;
+    border-top: 2px solid var(--dark-text-color);
 }
 .fila-grupo td { background-color: var(--secondary-color); color: var(--white-color); font-weight: bold; text-align: center; font-size: 1.1em; }
 
@@ -142,7 +142,9 @@ button:hover { opacity: 0.9; }
 /* --- ESTILOS PARA LA IMPRESIÓN (CORREGIDO) --- */
 @media print {
     .no-print, #vista-login, .main-tabs, #tabRegistrar, #tabAdmin, .accordion-button { display: none !important; }
-    body, #vista-app, #tabReportes { display: block !important; }
+    /* ===== INICIO DE CÓDIGO MODIFICADO ===== */
+    body, #vista-app, #tabReportes, #tabHistorial { display: block !important; }
+    /* ===== FIN DE CÓDIGO MODIFICADO ===== */
     .accordion-panel { max-height: unset !important; overflow: visible !important; padding: 0 !important; border: none !important; }
     body { margin: 0; padding: 10px; background-color: var(--white-color); color: black; font-size: 10pt; }
     .container, .accordion-container { box-shadow: none; border: none; margin: 0 0 20px 0; padding: 0; width: 100%; }
@@ -179,8 +181,6 @@ button:hover { opacity: 0.9; }
 #historialTabla td:nth-child(2) {
     width: 105px;
 }
-
-/* Las nuevas columnas (Hora y Factura) tomarán un ancho automático */
 
 /* Columna de Descripción (última) */
 #historialTabla th:last-child,

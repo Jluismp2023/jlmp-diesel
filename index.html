@@ -50,6 +50,7 @@
             <div class="main-tabs">
                 <button class="main-tab-link active" id="btnTabRegistrar"><i class="fa-solid fa-pencil"></i>Registrar</button>
                 <button class="main-tab-link" id="btnTabReportes"><i class="fa-solid fa-chart-pie"></i>Reportes</button>
+                <button class="main-tab-link" id="btnTabHistorial"><i class="fa-solid fa-list-ul"></i>Historial Detallado</button>
                 <button class="main-tab-link" id="btnTabAdmin"><i class="fa-solid fa-gear"></i>Administración</button>
             </div>
         </div>
@@ -67,29 +68,17 @@
                         <h2 id="formularioTitulo">Nuevo Registro</h2>
                         <form id="consumoForm">
                             <input type="hidden" id="registroId">
-                            <label for="fecha">Fecha:</label>
-                            <input type="date" id="fecha" required>
-                            
-                            <label for="hora">Hora de Carga:</label>
-                            <input type="time" id="hora">
-                            <label for="numeroFactura">Número de Factura:</label>
-                            <input type="text" id="numeroFactura" placeholder="Ej: 001-001-123456789">
-                            <label for="selectChofer">Nombre del Chofer:</label>
-                            <select id="selectChofer" required></select>
-                            <label for="selectVolqueta">Placa de la Volqueta:</label>
-                            <select id="selectVolqueta" required></select>
-                            <label for="selectProveedor">Proveedor de Diesel:</label>
-                            <select id="selectProveedor" required></select>
-                            <label for="selectProyecto">Proyecto:</label>
-                            <select id="selectProyecto" required></select>
-                            <label for="galones">Galones de Diésel (Volumen):</label>
-                            <input type="number" id="galones" step="0.01" required>
-                            <label for="costo">Costo Total ($):</label>
-                            <input type="number" id="costo" step="0.01" required>
-                            <label for="selectEmpresa">Empresa:</label>
-                            <select id="selectEmpresa" required></select>
-                            <label for="descripcion">Descripción del Uso:</label>
-                            <textarea id="descripcion" required></textarea>
+                            <label for="fecha">Fecha:</label><input type="date" id="fecha" required>
+                            <label for="hora">Hora de Carga:</label><input type="time" id="hora">
+                            <label for="numeroFactura">Número de Factura:</label><input type="text" id="numeroFactura" placeholder="Ej: 001-001-123456789">
+                            <label for="selectChofer">Nombre del Chofer:</label><select id="selectChofer" required></select>
+                            <label for="selectVolqueta">Placa de la Volqueta:</label><select id="selectVolqueta" required></select>
+                            <label for="selectProveedor">Proveedor de Diesel:</label><select id="selectProveedor" required></select>
+                            <label for="selectProyecto">Proyecto:</label><select id="selectProyecto" required></select>
+                            <label for="galones">Galones de Diésel (Volumen):</label><input type="number" id="galones" step="0.01" required>
+                            <label for="costo">Costo Total ($):</label><input type="number" id="costo" step="0.01" required>
+                            <label for="selectEmpresa">Empresa:</label><select id="selectEmpresa" required></select>
+                            <label for="descripcion">Descripción del Uso:</label><textarea id="descripcion" required></textarea>
                             <button type="submit" id="btnGuardar" class="button-primary"><i class="fa-solid fa-floppy-disk"></i>Guardar Registro</button>
                         </form>
                     </div>
@@ -97,28 +86,27 @@
             </div>
         </div>
 
-        <div id="tabReportes" class="main-tab-content printable-section">
-            <div class="container no-print">
-                <div class="filter-section">
-                    <div class="filter-group">
-                        <div><label for="filtroMes">Por Mes:</label><select id="filtroMes"></select></div>
-                        <div><label for="filtroFechaInicio">Por Rango:</label><input type="date" id="filtroFechaInicio" title="Desde la Fecha"></div>
-                        <div><label for="filtroFechaFin">-</label><input type="date" id="filtroFechaFin" title="Hasta la Fecha"></div>
-                    </div>
-                    <div class="filter-group">
-                        <div><label for="filtroChofer">Por Chofer:</label><select id="filtroChofer"></select></div>
-                        <div><label for="filtroProveedor">Por Proveedor:</label><select id="filtroProveedor"></select></div>
-                        <div><label for="filtroEmpresa">Por Empresa:</label><select id="filtroEmpresa"></select></div>
-                        <div><label for="filtroProyecto">Por Proyecto:</label><select id="filtroProyecto"></select></div>
-                    </div>
-                     <div class="filter-group">
-                         <button id="btnAplicarFiltros" class="button-success"><i class="fa-solid fa-filter"></i>Aplicar Filtros</button>
-                         <button id="btnLimpiarFiltros" class="button-secondary"><i class="fa-solid fa-eraser"></i>Limpiar Filtros</button>
-                         <button id="btnPrint" class="button-info" style="margin-left: auto;"><i class="fa-solid fa-print"></i>Imprimir Reporte</button>
-                    </div>
+        <div class="container no-print">
+            <div class="filter-section">
+                <div class="filter-group">
+                    <div><label for="filtroMes">Por Mes:</label><select id="filtroMes"></select></div>
+                    <div><label for="filtroFechaInicio">Por Rango:</label><input type="date" id="filtroFechaInicio" title="Desde la Fecha"></div>
+                    <div><label for="filtroFechaFin">-</label><input type="date" id="filtroFechaFin" title="Hasta la Fecha"></div>
+                </div>
+                <div class="filter-group">
+                    <div><label for="filtroChofer">Por Chofer:</label><select id="filtroChofer"></select></div>
+                    <div><label for="filtroProveedor">Por Proveedor:</label><select id="filtroProveedor"></select></div>
+                    <div><label for="filtroEmpresa">Por Empresa:</label><select id="filtroEmpresa"></select></div>
+                    <div><label for="filtroProyecto">Por Proyecto:</label><select id="filtroProyecto"></select></div>
+                </div>
+                 <div class="filter-group">
+                     <button id="btnAplicarFiltros" class="button-success"><i class="fa-solid fa-filter"></i>Aplicar Filtros</button>
+                     <button id="btnLimpiarFiltros" class="button-secondary"><i class="fa-solid fa-eraser"></i>Limpiar Filtros</button>
+                     <button id="btnPrint" class="button-info" style="margin-left: auto;"><i class="fa-solid fa-print"></i>Imprimir Reporte</button>
                 </div>
             </div>
-            
+        </div>
+        <div id="tabReportes" class="main-tab-content printable-section">
             <div class="container" id="loaderContainer"><h2 id="loadingMessage" class="loader">Cargando datos desde la nube...</h2></div>
             
             <div class="container accordion-container">
@@ -127,32 +115,36 @@
                 <button class="accordion-button">CONSUMO DE DIESEL POR PROYECTO</button><div class="accordion-panel"><table id="resumenProyectoTabla"><thead><tr><th>Proyecto</th><th>Total Galones (Volumen)</th><th>Costo Total ($)</th></tr></thead><tbody id="resumenProyectoBody"></tbody><tfoot id="resumenProyectoFooter"></tfoot></table></div>
                 <button class="accordion-button">CONSUMO DE DIESEL POR CHOFER</button><div class="accordion-panel"><table id="resumenChoferTabla"><thead><tr><th>Chofer</th><th>Total Galones (Volumen)</th><th>Costo Total ($)</th></tr></thead><tbody id="resumenChoferBody"></tbody><tfoot id="resumenChoferFooter"></tfoot></table></div>
                 <button class="accordion-button">CONSUMO DE DIESEL POR PLACA</button><div class="accordion-panel"><table id="resumenTabla"><thead><tr><th>Volqueta (Placa)</th><th>Total Galones (Volumen)</th><th>Costo Total ($)</th></tr></thead><tbody id="resumenBody"></tbody><tfoot id="resumenFooter"></tfoot></table></div>
-                <button class="accordion-button">TOTAL DE CONSUMO DE DIESEL (HISTORIAL DETALLADO)</button>
-                <div class="accordion-panel">
-                    <table id="historialTabla">
-                        <thead>
-                            <tr>
-                                <th class="no-print">Acciones</th>
-                                <th>Fecha</th>
-                                <th>Hora</th>
-                                <th>Factura #</th>
-                                <th>Chofer</th>
-                                <th>Placa</th>
-                                <th>Proveedor</th>
-                                <th>Proyecto</th>
-                                <th>Galones</th>
-                                <th>Costo ($)</th>
-                                <th>Empresa</th>
-                                <th>Descripción</th>
-                            </tr>
-                            </thead>
-                        <tbody id="historialBody"></tbody>
-                        <tfoot id="historialFooter"></tfoot>
-                    </table>
-                </div>
             </div>
         </div>
 
+        <div id="tabHistorial" class="main-tab-content printable-section">
+            <div class="container">
+                 <button class="accordion-button active">TOTAL DE CONSUMO DE DIESEL (HISTORIAL DETALLADO)</button>
+                 <div class="accordion-panel" style="max-height: fit-content;">
+                     <table id="historialTabla">
+                         <thead>
+                             <tr>
+                                 <th class="no-print">Acciones</th>
+                                 <th>Fecha</th>
+                                 <th>Hora</th>
+                                 <th>Factura #</th>
+                                 <th>Chofer</th>
+                                 <th>Placa</th>
+                                 <th>Proveedor</th>
+                                 <th>Proyecto</th>
+                                 <th>Galones</th>
+                                 <th>Costo ($)</th>
+                                 <th>Empresa</th>
+                                 <th>Descripción</th>
+                             </tr>
+                         </thead>
+                         <tbody id="historialBody"></tbody>
+                         <tfoot id="historialFooter"></tfoot>
+                     </table>
+                 </div>
+            </div>
+        </div>
         <div id="tabAdmin" class="main-tab-content no-print">
             <div class="container" id="adminContainer">
                 <h2><i class="fa-solid fa-screwdriver-wrench"></i>Administración</h2>
