@@ -128,7 +128,6 @@ function reiniciarFormulario() {
     poblarSelectores();
 }
 
-// ===== INICIO DE FUNCIÓN MODIFICADA (LÓGICA DE BASE64) =====
 async function guardarOActualizar(e) {
     e.preventDefault();
     const btnGuardar = document.getElementById('btnGuardar');
@@ -182,7 +181,6 @@ async function guardarOActualizar(e) {
     };
 
     if (archivo) {
-        // Validación de tamaño del archivo (aprox. 700 KB)
         if (archivo.size > 700 * 1024) {
             mostrarNotificacion("El archivo es demasiado grande. El máximo es 700 KB.", "error", 5000);
             btnGuardar.disabled = false;
@@ -193,7 +191,7 @@ async function guardarOActualizar(e) {
         const reader = new FileReader();
         reader.readAsDataURL(archivo);
         reader.onload = () => {
-            datosConsumo.facturaBase64 = reader.result; // Guardamos el string Base64
+            datosConsumo.facturaBase64 = reader.result;
             guardarEnFirestore(datosConsumo);
         };
         reader.onerror = (error) => {
@@ -203,7 +201,6 @@ async function guardarOActualizar(e) {
             btnGuardar.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Guardar Registro';
         };
     } else {
-        // Si no se sube un nuevo archivo al editar, mantenemos el antiguo si existe.
         if (id) {
             const registroExistente = todosLosConsumos.find(c => c.id === id);
             if (registroExistente && registroExistente.facturaBase64) {
@@ -213,7 +210,6 @@ async function guardarOActualizar(e) {
         guardarEnFirestore(datosConsumo);
     }
 }
-// ===== FIN DE FUNCIÓN MODIFICADA =====
 
 async function agregarItemAdmin(tipo, inputElement) {
     const valor = (tipo === 'placas') ? inputElement.value.trim().toUpperCase() : inputElement.value.trim();
@@ -232,7 +228,30 @@ async function agregarItemAdmin(tipo, inputElement) {
     }
 }
 
-function manejarAccionesHistorial(e) { const target = e.target.closest('button'); if (!target) return; const id = target.dataset.id; if (!id) return; if (target.classList.contains('btn-modificar')) cargarDatosParaModificar(id); if (target.classList.contains('btn-borrar')) borrarConsumoHistorial(id); }
+function manejarAccionesHistorial(e) { 
+    const target = e.target.closest('button, a'); // Captura clics en botones o enlaces
+    if (!target) return;
+    
+    // ===== INICIO DE CÓDIGO NUEVO =====
+    // Lógica para ver adjunto
+    if (target.classList.contains('ver-adjunto')) {
+        e.preventDefault(); // Evita que el enlace intente navegar
+        const base64Data = target.dataset.base64;
+        const newWindow = window.open();
+        if (base64Data.startsWith('data:application/pdf')) {
+            newWindow.document.write(`<embed src="${base64Data}" width="100%" height="100%" type="application/pdf">`);
+        } else {
+            newWindow.document.write(`<img src="${base64Data}" style="max-width: 100%;">`);
+        }
+        return; // Termina la función aquí para no procesar los botones de abajo
+    }
+    // ===== FIN DE CÓDIGO NUEVO =====
+
+    const id = target.dataset.id; 
+    if (!id) return; 
+    if (target.classList.contains('btn-modificar')) cargarDatosParaModificar(id); 
+    if (target.classList.contains('btn-borrar')) borrarConsumoHistorial(id); 
+}
 
 function obtenerConsumosFiltrados() {
     const obtenerValorFiltro = (syncId) => document.querySelector(`.filtro-sincronizado[data-sync-id="${syncId}"]`).value;
@@ -296,11 +315,9 @@ const calcularYMostrarTotalesPorProyecto = (consumos) => calcularYMostrarTotales
 const calcularYMostrarTotalesPorChofer = (consumos) => calcularYMostrarTotalesPorCategoria(consumos, 'chofer', 'resumenChoferBody', 'resumenChoferFooter');
 const calcularYMostrarTotales = (consumos) => { calcularYMostrarTotalesPorCategoria(consumos, 'volqueta', 'resumenBody', 'resumenFooter'); };
 
-// ===== INICIO DE FUNCIÓN MODIFICADA (BORRADO SIMPLIFICADO) =====
 async function borrarConsumoHistorial(id) {
     if (confirm('¿Seguro que quieres borrar este registro? Esta acción no se puede deshacer.')) {
         try {
-            // Con Base64, el archivo está en el documento. Borrar el documento es todo lo que se necesita.
             await deleteDoc(doc(db, "consumos", id));
             mostrarNotificacion("Registro borrado con éxito.", "exito");
             await cargarDatosIniciales();
@@ -310,12 +327,11 @@ async function borrarConsumoHistorial(id) {
         }
     }
 }
-// ===== FIN DE FUNCIÓN MODIFICADA =====
 
 function poblarFiltroDeMes() { const filtros = document.querySelectorAll('.filtro-sincronizado[data-sync-id="filtroMes"]'); const mesesUnicos = [...new Set(todosLosConsumos.map(c => c.fecha.substring(0, 7)))]; mesesUnicos.sort().reverse(); filtros.forEach(filtroSelect => { const valorSeleccionado = filtroSelect.value; filtroSelect.innerHTML = '<option value="todos">Todos los Meses</option>'; mesesUnicos.forEach(mes => { const [year, month] = mes.split('-'); const fechaMes = new Date(year, month - 1); const nombreMes = fechaMes.toLocaleDateString('es-EC', { month: 'long', year: 'numeric' }); const opcion = document.createElement('option'); opcion.value = mes; opcion.textContent = nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1); filtroSelect.appendChild(opcion); }); if (filtroSelect.value) filtroSelect.value = valorSeleccionado || 'todos'; }); }
 function poblarFiltrosReportes() { const tipos = { choferes: 'filtroChofer', proveedores: 'filtroProveedor', empresas: 'filtroEmpresa', proyectos: 'filtroProyecto' }; const titulos = { choferes: 'Todos los Choferes', proveedores: 'Todos los Proveedores', empresas: 'Todas las Empresas', proyectos: 'Todos los Proyectos' }; for (const tipo in tipos) { const syncId = tipos[tipo]; const selects = document.querySelectorAll(`.filtro-sincronizado[data-sync-id="${syncId}"]`); selects.forEach(select => { const valorActual = select.value; select.innerHTML = `<option value="todos">${titulos[tipo]}</option>`; listasAdmin[tipo].forEach(item => { select.innerHTML += `<option value="${item.nombre}">${item.nombre}</option>`; }); select.value = valorActual || 'todos'; }); } }
 
-// ===== INICIO DE FUNCIÓN MODIFICADA (MUESTRA EL ENLACE BASE64) =====
+// ===== INICIO DE FUNCIÓN MODIFICADA (MUESTRA EL ENLACE CON DATA ATTRIBUTE) =====
 function mostrarHistorialAgrupado(consumos) {
     const historialBody = document.getElementById('historialBody'); const historialFooter = document.getElementById('historialFooter');
     historialBody.innerHTML = ''; historialFooter.innerHTML = '';
@@ -332,8 +348,9 @@ function mostrarHistorialAgrupado(consumos) {
             historialBody.appendChild(filaGrupo);
         }
         const filaDato = document.createElement('tr');
+        // El `href` es "#" y añadimos una clase y un data-attribute
         const linkFactura = consumo.facturaBase64
-            ? `<a href="${consumo.facturaBase64}" target="_blank" title="Ver adjunto"><i class="fa-solid fa-file-invoice"></i></a>`
+            ? `<a href="#" class="ver-adjunto" data-base64="${consumo.facturaBase64}" title="Ver adjunto"><i class="fa-solid fa-file-invoice"></i></a>`
             : 'N/A';
         filaDato.innerHTML = `<td class="no-print"><button class="btn-accion btn-modificar button-warning" data-id="${consumo.id}" title="Modificar"><i class="fa-solid fa-pencil" style="margin: 0;"></i></button><button class="btn-accion btn-borrar" data-id="${consumo.id}" title="Borrar"><i class="fa-solid fa-trash-can" style="margin: 0;"></i></button></td>
             <td>${linkFactura}</td><td>${consumo.fecha}</td><td>${consumo.hora || ''}</td><td>${consumo.numeroFactura || ''}</td><td>${consumo.chofer}</td><td>${consumo.volqueta}</td><td>${consumo.proveedor || ''}</td><td>${consumo.proyecto || ''}</td><td>${(parseFloat(consumo.galones) || 0).toFixed(2)}</td><td>$${(parseFloat(consumo.costo) || 0).toFixed(2)}</td><td>${consumo.empresa || ''}</td><td>${consumo.descripcion}</td>`;
@@ -343,7 +360,6 @@ function mostrarHistorialAgrupado(consumos) {
 }
 // ===== FIN DE FUNCIÓN MODIFICADA =====
 
-// ===== INICIO DE FUNCIÓN MODIFICADA (PREPARA BASE64 PARA IMPRESIÓN) =====
 function prepararFacturasParaImpresion() {
     const contenedor = document.getElementById('facturas-impresion');
     contenedor.innerHTML = '';
@@ -374,7 +390,6 @@ function prepararFacturasParaImpresion() {
         }
     });
 }
-// ===== FIN DE FUNCIÓN MODIFICADA =====
 
 function asignarSincronizacionDeFiltros() {
     const filtros = document.querySelectorAll('.filtro-sincronizado');
