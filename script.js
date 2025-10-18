@@ -323,6 +323,21 @@ async function guardarOActualizar(e) {
     }
 }
 
+// *** DEFINICIÓN DE LA FUNCIÓN QUE FALTABA ***
+function manejarAccionesHistorial(e) {
+    const target = e.target.closest('button'); // Busca el botón más cercano al clic
+    if (!target) return; // Si no se hizo clic en un botón, salir
+    const id = target.dataset.id; // Obtener el ID del registro desde el atributo data-id
+    if (!id) return; // Si el botón no tiene ID, salir
+    if (target.classList.contains('btn-modificar')) {
+        cargarDatosParaModificar(id); // Llamar a la función para modificar
+    }
+    if (target.classList.contains('btn-borrar')) {
+        borrarConsumoHistorial(id); // Llamar a la función para borrar
+    }
+}
+// *** FIN DE LA DEFINICIÓN ***
+
 function cargarDatosParaModificar(id) {
     const consumo = todosLosConsumos.find(c => c.id === id);
     if (!consumo) {
@@ -1034,7 +1049,7 @@ function asignarEventosApp() {
 function iniciarAplicacion() {
     asignarEventosApp();
     cargarDatosIniciales();
-    openMainTab(null, 'tabRegistrar'); // Empezar en la pestaña Registrar
+    // openMainTab(null, 'tabRegistrar'); // No es necesario si el HTML ya la define como activa
 }
 
 // Listeners Globales (Login/Logout)
