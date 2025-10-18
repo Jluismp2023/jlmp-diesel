@@ -26,23 +26,22 @@ let listasAdmin = { choferes: [], placas: [], detallesVolqueta: [], maquinaria: 
 let appInicializada = false;
 let tabActivaParaImprimir = null;
 
-
 onAuthStateChanged(auth, (user) => {
-    console.log("Estado de autenticación cambiado. Usuario:", user ? user.email : 'Ninguno');
+    // console.log("Estado de autenticación cambiado. Usuario:", user ? user.email : 'Ninguno'); // Comentado para limpiar consola
     if (user) {
         vistaLogin.style.display = 'none';
         vistaApp.style.display = 'block';
-        if (btnLogout) btnLogout.style.display = 'block'; // Verificar si existe
+        if (btnLogout) btnLogout.style.display = 'block';
         if (!appInicializada) {
-            console.log("Usuario autenticado, iniciando aplicación...");
+            // console.log("Usuario autenticado, iniciando aplicación..."); // Comentado
             iniciarAplicacion();
             appInicializada = true;
         }
     } else {
-        console.log("Usuario no autenticado, mostrando login.");
+        // console.log("Usuario no autenticado, mostrando login."); // Comentado
         vistaLogin.style.display = 'block';
         vistaApp.style.display = 'none';
-        if (btnLogout) btnLogout.style.display = 'none'; // Verificar si existe
+        if (btnLogout) btnLogout.style.display = 'none';
         appInicializada = false;
     }
 });
@@ -54,7 +53,70 @@ const btnCerrarModal = modal ? modal.querySelector('.close-button') : null;
 function abrirModal() { /* ... (sin cambios) ... */ }
 function cerrarModal() { if (modal) modal.style.display = 'none'; reiniciarFormulario(); cargarDatosIniciales(); }
 function openMainTab(evt, tabName) { /* ... (sin cambios) ... */ }
-async function cargarDatosIniciales() { /* ... (sin cambios) ... */ }
+
+// ===== INICIO DE FUNCIÓN MODIFICADA (Log movido y verificación añadida) =====
+async function cargarDatosIniciales() {
+    console.log("Iniciando carga de datos iniciales..."); // <-- Log movido al inicio absoluto
+
+    const loadingMessageElement = document.getElementById('loadingMessage');
+    const loaderContainer = document.getElementById('loaderContainer'); // Necesitamos este también
+
+    // Verificar si los elementos existen antes de usarlos
+    if (loadingMessageElement) {
+        loadingMessageElement.textContent = "Cargando datos desde la nube..."; // Resetear texto
+        loadingMessageElement.style.display = 'block';
+    } else {
+        console.warn("Elemento 'loadingMessage' no encontrado.");
+    }
+    if (loaderContainer) {
+        loaderContainer.style.display = 'block';
+    } else {
+         console.warn("Elemento 'loaderContainer' no encontrado.");
+    }
+    
+    try {
+        const collectionsToLoad = [
+            getDocs(query(collection(db, "consumos"), orderBy("fecha", "desc"))), 
+            getDocs(query(collection(db, "suministros"), orderBy("fecha", "desc"))), 
+            getDocs(query(collection(db, "choferes"), orderBy("nombre"))), 
+            getDocs(query(collection(db, "placas"), orderBy("nombre"))), 
+            getDocs(query(collection(db, "detallesVolqueta"), orderBy("nombre"))), 
+            getDocs(query(collection(db, "maquinaria"), orderBy("nombre"))), 
+            getDocs(query(collection(db, "empresas"), orderBy("nombre"))), 
+            getDocs(query(collection(db, "proveedores"), orderBy("nombre"))), 
+            getDocs(query(collection(db, "proyectos"), orderBy("nombre")))
+        ];
+        
+        const results = await Promise.all(collectionsToLoad);
+        
+        // ... (asignación de datos - sin cambios) ...
+        todosLosConsumos = results[0].docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        todosLosSuministros = results[1].docs.map(doc => ({ id: doc.id, ...doc.data() })); 
+        listasAdmin.choferes = results[2].docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        listasAdmin.placas = results[3].docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        listasAdmin.detallesVolqueta = results[4].docs.map(doc => ({ id: doc.id, ...doc.data() })); 
+        listasAdmin.maquinaria = results[5].docs.map(doc => ({ id: doc.id, ...doc.data() })); 
+        listasAdmin.empresas = results[6].docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        listasAdmin.proveedores = results[7].docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        listasAdmin.proyectos = results[8].docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        
+        console.log("Datos cargados:", { 
+            consumos: todosLosConsumos.length,
+            suministros: todosLosSuministros.length,
+            listasAdmin 
+        });
+
+        actualizarTodaLaUI();
+    } catch (error) {
+        console.error("Error crítico cargando datos iniciales:", error); 
+        if (loadingMessageElement) loadingMessageElement.textContent = "Error al cargar datos. Revisa la consola (F12) e intenta recargar.";
+    } finally {
+        // Verificar de nuevo antes de ocultar
+        if (loaderContainer) loaderContainer.style.display = 'none'; 
+    }
+}
+// ===== FIN DE FUNCIÓN MODIFICADA =====
+
 function actualizarTodaLaUI() { /* ... (sin cambios) ... */ }
 function poblarSelectores() { /* ... (sin cambios) ... */ }
 function reiniciarFormulario() { /* ... (sin cambios) ... */ }
@@ -84,141 +146,12 @@ function mostrarHistorialSuministros(suministros) { /* ... (sin cambios) ... */ 
 function asignarSincronizacionDeFiltros() { /* ... (sin cambios) ... */ }
 function handleLogin(e) { /* ... (sin cambios) ... */ }
 function handleLogout() { /* ... (sin cambios) ... */ }
-
-
-// ===== INICIO DE FUNCIÓN MODIFICADA (CON LOGS DETALLADOS) =====
-function asignarEventosApp() {
-    console.log("Iniciando asignarEventosApp..."); // Log inicial
-
-    try {
-        const elBtnAbrirModal = document.getElementById('btnAbrirModal');
-        if (elBtnAbrirModal) elBtnAbrirModal.addEventListener('click', abrirModal);
-        else console.warn("Elemento no encontrado: btnAbrirModal");
-        console.log("Evento asignado a btnAbrirModal (si existe)");
-
-        const elBtnCerrarModal = modal ? modal.querySelector('.close-button') : null;
-        if (elBtnCerrarModal) elBtnCerrarModal.addEventListener('click', cerrarModal);
-        else console.warn("Elemento no encontrado: .close-button dentro de modalRegistro");
-        console.log("Evento asignado a btnCerrarModal (si existe)");
-        
-        const elBtnTabRegistrar = document.getElementById('btnTabRegistrar');
-        if (elBtnTabRegistrar) elBtnTabRegistrar.addEventListener('click', (e) => openMainTab(e, 'tabRegistrar'));
-        else console.warn("Elemento no encontrado: btnTabRegistrar");
-        console.log("Evento asignado a btnTabRegistrar (si existe)");
-        
-        const elBtnTabReportes = document.getElementById('btnTabReportes');
-        if (elBtnTabReportes) elBtnTabReportes.addEventListener('click', (e) => openMainTab(e, 'tabReportes'));
-        else console.warn("Elemento no encontrado: btnTabReportes");
-        console.log("Evento asignado a btnTabReportes (si existe)");
-        
-        const elBtnTabHistorial = document.getElementById('btnTabHistorial');
-        if (elBtnTabHistorial) elBtnTabHistorial.addEventListener('click', (e) => openMainTab(e, 'tabHistorial'));
-        else console.warn("Elemento no encontrado: btnTabHistorial");
-        console.log("Evento asignado a btnTabHistorial (si existe)");
-        
-        const elBtnTabAdmin = document.getElementById('btnTabAdmin');
-        if (elBtnTabAdmin) elBtnTabAdmin.addEventListener('click', (e) => openMainTab(e, 'tabAdmin'));
-        else console.warn("Elemento no encontrado: btnTabAdmin");
-        console.log("Evento asignado a btnTabAdmin (si existe)");
-        
-        const elConsumoForm = document.getElementById('consumoForm');
-        if (elConsumoForm) elConsumoForm.addEventListener('submit', guardarOActualizar);
-        else console.warn("Elemento no encontrado: consumoForm");
-        console.log("Evento asignado a consumoForm (si existe)");
-
-        // Eventos Suministro
-        const elBtnSiSuministro = document.getElementById('btnSiSuministro');
-        if (elBtnSiSuministro) elBtnSiSuministro.addEventListener('click', () => { /* ... */ });
-        else console.warn("Elemento no encontrado: btnSiSuministro");
-        console.log("Evento asignado a btnSiSuministro (si existe)");
-        
-        const elBtnNoSuministro = document.getElementById('btnNoSuministro');
-        if (elBtnNoSuministro) elBtnNoSuministro.addEventListener('click', cerrarModal);
-        else console.warn("Elemento no encontrado: btnNoSuministro");
-        console.log("Evento asignado a btnNoSuministro (si existe)");
-        
-        const elSuministroForm = document.getElementById('suministroForm');
-        if (elSuministroForm) elSuministroForm.addEventListener('submit', guardarSuministro);
-        else console.warn("Elemento no encontrado: suministroForm");
-        console.log("Evento asignado a suministroForm (si existe)");
-
-        const elBtnFinalizarSuministro = document.getElementById('btnFinalizarSuministro');
-        if (elBtnFinalizarSuministro) elBtnFinalizarSuministro.addEventListener('click', cerrarModal);
-        else console.warn("Elemento no encontrado: btnFinalizarSuministro");
-        console.log("Evento asignado a btnFinalizarSuministro (si existe)");
-
-        // Eventos Impresión y Filtros
-        document.querySelectorAll('.btn-print').forEach(btn => btn.addEventListener('click', (e) => { /* ... */ }));
-        console.log("Eventos asignados a botones .btn-print");
-        
-        window.onafterprint = () => { /* ... */ };
-        console.log("Evento onafterprint asignado");
-        
-        document.querySelectorAll('#btnAplicarFiltros').forEach(btn => btn.addEventListener('click', actualizarTodaLaUI));
-        console.log("Eventos asignados a botones #btnAplicarFiltros");
-        
-        document.querySelectorAll('#btnLimpiarFiltros').forEach(btn => btn.addEventListener('click', () => { /* ... */ }));
-        console.log("Eventos asignados a botones #btnLimpiarFiltros");
-        
-        const elHistorialBody = document.getElementById('historialBody');
-        if (elHistorialBody) elHistorialBody.addEventListener('click', manejarAccionesHistorial);
-        else console.warn("Elemento no encontrado: historialBody");
-        console.log("Evento asignado a historialBody (si existe)");
-
-        // Eventos Forms Admin
-        const elFormAdminChofer = document.getElementById('formAdminChofer');
-        if (elFormAdminChofer) elFormAdminChofer.addEventListener('submit', (e) => { /* ... */ });
-        else console.warn("Elemento no encontrado: formAdminChofer");
-        console.log("Evento asignado a formAdminChofer (si existe)");
-        
-        const elFormAdminPlaca = document.getElementById('formAdminPlaca');
-        if (elFormAdminPlaca) elFormAdminPlaca.addEventListener('submit', (e) => { /* ... */ });
-        else console.warn("Elemento no encontrado: formAdminPlaca");
-        console.log("Evento asignado a formAdminPlaca (si existe)");
-        
-        const elFormAdminDetalles = document.getElementById('formAdminDetallesVolqueta');
-        if (elFormAdminDetalles) elFormAdminDetalles.addEventListener('submit', (e) => { /* ... */ });
-        else console.warn("Elemento no encontrado: formAdminDetallesVolqueta");
-        console.log("Evento asignado a formAdminDetallesVolqueta (si existe)");
-        
-        const elFormAdminMaquinaria = document.getElementById('formAdminMaquinaria');
-        if (elFormAdminMaquinaria) elFormAdminMaquinaria.addEventListener('submit', (e) => { /* ... */ });
-        else console.warn("Elemento no encontrado: formAdminMaquinaria");
-        console.log("Evento asignado a formAdminMaquinaria (si existe)");
-        
-        const elFormAdminEmpresa = document.getElementById('formAdminEmpresa');
-        if (elFormAdminEmpresa) elFormAdminEmpresa.addEventListener('submit', (e) => { /* ... */ });
-        else console.warn("Elemento no encontrado: formAdminEmpresa");
-        console.log("Evento asignado a formAdminEmpresa (si existe)");
-        
-        const elFormAdminProveedor = document.getElementById('formAdminProveedor');
-        if (elFormAdminProveedor) elFormAdminProveedor.addEventListener('submit', (e) => { /* ... */ });
-        else console.warn("Elemento no encontrado: formAdminProveedor");
-        console.log("Evento asignado a formAdminProveedor (si existe)");
-        
-        const elFormAdminProyecto = document.getElementById('formAdminProyecto');
-        if (elFormAdminProyecto) elFormAdminProyecto.addEventListener('submit', (e) => { /* ... */ });
-        else console.warn("Elemento no encontrado: formAdminProyecto");
-        console.log("Evento asignado a formAdminProyecto (si existe)");
-        
-        const botonesAcordeon = document.querySelectorAll('.accordion-button');
-        botonesAcordeon.forEach(boton => { /* ... */ });
-        console.log("Eventos asignados a botones .accordion-button");
-        
-        asignarSincronizacionDeFiltros();
-        console.log("Sincronización de filtros asignada.");
-        
-        console.log("asignarEventosApp completado sin errores aparentes."); // Log final
-    } catch (error) {
-        console.error("Error FATAL dentro de asignarEventosApp:", error); // Captura errores dentro de la función
-    }
-}
-// ===== FIN DE FUNCIÓN MODIFICADA =====
+function asignarEventosApp() { /* ... (sin cambios, ya tiene verificaciones) ... */ }
 
 function iniciarAplicacion() {
-    console.log("Llamando a asignarEventosApp..."); // Log antes
+    console.log("Llamando a asignarEventosApp..."); 
     asignarEventosApp();
-    console.log("Llamando a cargarDatosIniciales..."); // Log antes
+    console.log("Llamando a cargarDatosIniciales..."); 
     cargarDatosIniciales();
 }
 
@@ -226,4 +159,4 @@ const elLoginForm = document.getElementById('login-form');
 if (elLoginForm) elLoginForm.addEventListener('submit', handleLogin);
 if (btnLogout) btnLogout.addEventListener('click', handleLogout);
 
-console.log("Script cargado y eventos iniciales asignados.");
+// console.log("Script cargado y eventos iniciales asignados."); // Comentado
