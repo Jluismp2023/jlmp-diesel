@@ -123,7 +123,6 @@ button:hover { opacity: 0.9; }
     .admin-box { flex-basis: 100%; min-width: unset; }
 }
 
-/* ===== INICIO DE BLOQUE MODIFICADO ===== */
 @media print {
     .no-print, #vista-login, .main-tabs { display: none !important; }
     body, #vista-app { display: block !important; }
@@ -166,7 +165,6 @@ button:hover { opacity: 0.9; }
      /* Definir un ancho mínimo solo para la descripción para que no desaparezca */
      #historialTabla th:last-child, #historialTabla td:last-child { min-width: 100px; } 
 }
-/* ===== FIN DE BLOQUE MODIFICADO ===== */
 
 #historialTabla th:nth-child(1), #historialTabla td:nth-child(1) { width: 120px; } /* Acciones (no impresión) */
 #historialTabla th:nth-child(2), #historialTabla td:nth-child(2) { width: 105px; } /* Fecha (no impresión) */

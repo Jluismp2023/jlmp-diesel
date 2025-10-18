@@ -20,7 +20,6 @@ const vistaApp = document.getElementById('vista-app');
 const btnLogout = document.getElementById('btn-logout');
 
 let todosLosConsumos = [];
-// --- LÍNEA MODIFICADA (se añadió 'maquinaria') ---
 let listasAdmin = { choferes: [], placas: [], detallesVolqueta: [], maquinaria: [], empresas: [], proveedores: [], proyectos: [] };
 let appInicializada = false;
 let tabActivaParaImprimir = null;
@@ -65,7 +64,6 @@ function openMainTab(evt, tabName) {
     tablinks = document.getElementsByClassName("main-tab-link");
     for (i = 0; i < tablinks.length; i++) { tablinks[i].className = tablinks[i].className.replace(" active", ""); }
     document.getElementById(tabName).style.display = "block";
-    // Si el evento existe (clic real), usa currentTarget. Si no (llamada programática), busca por ID.
     const buttonToActivate = evt ? evt.currentTarget : document.getElementById(`btnTab${tabName.replace('tab','')}`);
     if (buttonToActivate) {
         buttonToActivate.className += " active";
@@ -78,7 +76,7 @@ async function cargarDatosIniciales() {
         const [
             consumosRes, choferesRes, placasRes, detallesVolquetaRes, 
             empresasRes, proveedoresRes, proyectosRes,
-            maquinariaRes // <-- LÍNEA AÑADIDA
+            maquinariaRes
         ] = await Promise.all([
             getDocs(query(collection(db, "consumos"), orderBy("fecha", "desc"))), 
             getDocs(query(collection(db, "choferes"), orderBy("nombre"))), 
@@ -87,7 +85,7 @@ async function cargarDatosIniciales() {
             getDocs(query(collection(db, "empresas"), orderBy("nombre"))), 
             getDocs(query(collection(db, "proveedores"), orderBy("nombre"))), 
             getDocs(query(collection(db, "proyectos"), orderBy("nombre"))),
-            getDocs(query(collection(db, "maquinaria"), orderBy("nombre"))) // <-- LÍNEA AÑADIDA
+            getDocs(query(collection(db, "maquinaria"), orderBy("nombre")))
         ]);
         todosLosConsumos = consumosRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         listasAdmin.choferes = choferesRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -96,7 +94,7 @@ async function cargarDatosIniciales() {
         listasAdmin.empresas = empresasRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         listasAdmin.proveedores = proveedoresRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         listasAdmin.proyectos = proyectosRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        listasAdmin.maquinaria = maquinariaRes.docs.map(doc => ({ id: doc.id, ...doc.data() })); // <-- LÍNEA AÑADIDA
+        listasAdmin.maquinaria = maquinariaRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         actualizarTodaLaUI();
     } catch (error) {
         console.error("Error cargando datos:", error);
@@ -120,11 +118,13 @@ function actualizarTodaLaUI() {
     mostrarHistorialAgrupado(consumosFiltrados);
 }
 
+// --- FUNCIÓN MODIFICADA ---
 function poblarSelectores() {
     const selectores = { 
         choferes: document.getElementById('selectChofer'), 
         placas: document.getElementById('selectVolqueta'), 
         detallesVolqueta: document.getElementById('selectDetallesVolqueta'), 
+        maquinaria: document.getElementById('selectMaquinariaDestino'), // <-- AÑADIDO
         empresas: document.getElementById('selectEmpresa'), 
         proveedores: document.getElementById('selectProveedor'), 
         proyectos: document.getElementById('selectProyecto') 
@@ -133,6 +133,7 @@ function poblarSelectores() {
         choferes: '--- Chofer ---', 
         placas: '--- Placa ---', 
         detallesVolqueta: '--- Detalles Volqueta ---', 
+        maquinaria: '--- Maquinaria ---', // <-- AÑADIDO
         empresas: '--- Empresa ---', 
         proveedores: '--- Proveedor ---', 
         proyectos: '--- Proyecto ---' 
@@ -147,14 +148,27 @@ function poblarSelectores() {
     }
 }
 
+// --- FUNCIÓN MODIFICADA ---
 function reiniciarFormulario() {
     document.getElementById('consumoForm').reset();
     document.getElementById('registroId').value = '';
     document.getElementById('fecha').valueAsDate = new Date();
     document.getElementById('formularioTitulo').textContent = 'Nuevo Registro';
     poblarSelectores();
+
+    // --- NUEVO: Reiniciar visibilidad del formulario ---
+    document.getElementById('camposCompra').style.display = 'block';
+    document.getElementById('camposTransferencia').style.display = 'none';
+    document.getElementById('tipoRegistro').value = 'compra';
+
+    // --- NUEVO: Reiniciar campos 'required' ---
+    document.getElementById('selectProveedor').required = true;
+    document.getElementById('costo').required = true;
+    document.getElementById('selectMaquinariaDestino').required = false;
+    // --- FIN DE LÓGICA NUEVA ---
 }
 
+// --- FUNCIÓN MODIFICADA ---
 async function guardarOActualizar(e) {
     e.preventDefault();
     const btnGuardar = document.getElementById('btnGuardar');
@@ -163,24 +177,41 @@ async function guardarOActualizar(e) {
 
     const id = document.getElementById('registroId').value;
     
+    // --- INICIO DE BLOQUE MODIFICADO ---
+    const tipoRegistro = document.getElementById('tipoRegistro').value;
+
+    // Objeto base con campos comunes
     const datosConsumo = {
-        volqueta: document.getElementById('selectVolqueta').value,
+        tipoRegistro: tipoRegistro, // Guardamos el tipo
+        volqueta: document.getElementById('selectVolqueta').value, // En transf: volqueta QUE DA
         fecha: document.getElementById('fecha').value,
         hora: document.getElementById('hora').value,
-        numeroFactura: document.getElementById('numeroFactura').value,
         galones: document.getElementById('galones').value,
-        costo: document.getElementById('costo').value,
-        descripcion: document.getElementById('descripcion').value,
         chofer: document.getElementById('selectChofer').value,
-        empresa: document.getElementById('selectEmpresa').value,
-        proveedor: document.getElementById('selectProveedor').value,
         proyecto: document.getElementById('selectProyecto').value,
+        empresa: document.getElementById('selectEmpresa').value,
+        descripcion: document.getElementById('descripcion').value,
         detallesVolqueta: document.getElementById('selectDetallesVolqueta').value || "", 
         kilometraje: document.getElementById('kilometraje').value || null 
     };
 
-    if (!datosConsumo.chofer || !datosConsumo.volqueta) {
-        mostrarNotificacion("Por favor, complete al menos el chofer y la placa.", "error");
+    if (tipoRegistro === 'compra') {
+        // Es una COMPRA (como antes)
+        datosConsumo.numeroFactura = document.getElementById('numeroFactura').value;
+        datosConsumo.proveedor = document.getElementById('selectProveedor').value;
+        datosConsumo.costo = document.getElementById('costo').value;
+        datosConsumo.maquinariaDestino = null; // No aplica
+    } else {
+        // Es una TRANSFERENCIA (Abastecimiento)
+        datosConsumo.numeroFactura = null;
+        datosConsumo.proveedor = "Transferencia Interna"; // Valor para identificarlo
+        datosConsumo.costo = 0; // ¡Importante! No tiene costo de compra
+        datosConsumo.maquinariaDestino = document.getElementById('selectMaquinariaDestino').value; 
+    }
+    // --- FIN DE BLOQUE MODIFICADO ---
+
+    if (!datosConsumo.chofer || !datosConsumo.volqueta || !datosConsumo.proyecto) {
+        mostrarNotificacion("Por favor, complete Chofer, Placa y Proyecto.", "error");
         btnGuardar.disabled = false;
         btnGuardar.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Guardar Registro';
         return;
@@ -251,17 +282,15 @@ function obtenerConsumosFiltrados() {
 }
 
 function mostrarListasAdmin() {
-    // --- BLOQUE MODIFICADO (se añadió 'maquinaria') ---
     const contenedores = { 
         choferes: 'listaChoferes', 
         placas: 'listaPlacas', 
         detallesVolqueta: 'listaDetallesVolqueta', 
-        maquinaria: 'listaMaquinaria', // <-- LÍNEA AÑADIDA
+        maquinaria: 'listaMaquinaria',
         empresas: 'listaEmpresas', 
         proveedores: 'listaProveedores', 
         proyectos: 'listaProyectos' 
     };
-    // --- FIN DE BLOQUE MODIFICADO ---
     for (const tipo in contenedores) {
         const ul = document.getElementById(contenedores[tipo]);
         if (!ul) continue;
@@ -282,13 +311,11 @@ async function modificarItemAdmin(item, tipo) {
     const nuevoValor = prompt(`Modificar "${valorActual}":`, valorActual); 
     if (!nuevoValor || nuevoValor.trim() === '' || nuevoValor.trim() === valorActual) return; 
     const valorFormateado = (tipo === 'placas') ? nuevoValor.trim().toUpperCase() : nuevoValor.trim(); 
-    // --- BLOQUE MODIFICADO (se añadió 'maquinaria') ---
     const propiedad = { 
         placas: 'volqueta', choferes: 'chofer', empresas: 'empresa', proveedores: 'proveedor', 
         proyectos: 'proyecto', detallesVolqueta: 'detallesVolqueta',
-        maquinaria: 'maquinariaDestino' // <-- LÍNEA AÑADIDA
+        maquinaria: 'maquinariaDestino'
     }[tipo]; 
-    // --- FIN DE BLOQUE MODIFICADO ---
     if (!propiedad) { console.error("Tipo de item desconocido:", tipo); mostrarNotificacion("Error interno al modificar.", "error"); return; }
     if (confirm(`¿Estás seguro de cambiar "${valorActual}" por "${valorFormateado}"? Esto actualizará TODOS los registros.`)) { 
         try { 
@@ -301,22 +328,43 @@ async function modificarItemAdmin(item, tipo) {
     } 
 }
 
+// --- FUNCIÓN MODIFICADA ---
 function cargarDatosParaModificar(id) {
     const consumo = todosLosConsumos.find(c => c.id === id); if (!consumo) return;
+
+    // --- NUEVO: Detectar el tipo de registro ---
+    const tipoRegistro = consumo.tipoRegistro || 'compra'; // Asumir 'compra' para datos antiguos
+    const selectTipo = document.getElementById('tipoRegistro');
+    selectTipo.value = tipoRegistro;
+    
+    // Disparamos el evento 'change' para que el formulario se adapte
+    setTimeout(() => {
+        selectTipo.dispatchEvent(new Event('change'));
+    }, 0);
+    // --- FIN LÓGICA NUEVA ---
+
     document.getElementById('registroId').value = consumo.id; 
     document.getElementById('fecha').value = consumo.fecha; 
     document.getElementById('hora').value = consumo.hora || ''; 
-    document.getElementById('numeroFactura').value = consumo.numeroFactura || ''; 
+    
     document.getElementById('selectChofer').value = consumo.chofer; 
     document.getElementById('selectVolqueta').value = consumo.volqueta; 
     document.getElementById('galones').value = consumo.galones; 
-    document.getElementById('costo').value = consumo.costo; 
     document.getElementById('descripcion').value = consumo.descripcion; 
     document.getElementById('selectEmpresa').value = consumo.empresa || ""; 
-    document.getElementById('selectProveedor').value = consumo.proveedor || ""; 
     document.getElementById('selectProyecto').value = consumo.proyecto || "";
     document.getElementById('selectDetallesVolqueta').value = consumo.detallesVolqueta || "";
     document.getElementById('kilometraje').value = consumo.kilometraje || "";
+
+    // --- NUEVO: Llenar campos dinámicos ---
+    if (tipoRegistro === 'compra') {
+        document.getElementById('numeroFactura').value = consumo.numeroFactura || ''; 
+        document.getElementById('selectProveedor').value = consumo.proveedor || ""; 
+        document.getElementById('costo').value = consumo.costo || 0; 
+    } else {
+        document.getElementById('maquinariaDestino').value = consumo.maquinariaDestino || '';
+    }
+    // --- FIN LÓGICA NUEVA ---
 
     openMainTab(null, 'tabRegistrar'); 
     abrirModal(); 
@@ -342,7 +390,6 @@ const calcularYMostrarTotalesPorChofer = (consumos) => calcularYMostrarTotalesPo
 const calcularYMostrarTotales = (consumos) => { calcularYMostrarTotalesPorCategoria(consumos, 'volqueta', 'resumenBody', 'resumenFooter'); };
 
 async function borrarItemAdmin(item, tipo) { 
-    // --- LÍNEA MODIFICADA (se añadió 'maquinaria') ---
     const coleccionesPermitidas = ["choferes", "placas", "detallesVolqueta", "maquinaria", "empresas", "proveedores", "proyectos"];
     if (!coleccionesPermitidas.includes(tipo)) { console.error("Intento de borrar de una colección no permitida:", tipo); mostrarNotificacion("Error interno al borrar.", "error"); return; }
     if (confirm(`¿Seguro que quieres borrar "${item.nombre}"?`)) { 
@@ -456,9 +503,47 @@ function asignarEventosApp() {
     document.getElementById('formAdminEmpresa').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('empresas', document.getElementById('nuevaEmpresa')); });
     document.getElementById('formAdminProveedor').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('proveedores', document.getElementById('nuevoProveedor')); });
     document.getElementById('formAdminProyecto').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('proyectos', document.getElementById('nuevoProyecto')); });
-    // --- LÍNEA AÑADIDA ---
     document.getElementById('formAdminMaquinaria').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('maquinaria', document.getElementById('nuevaMaquinaria')); });
     
+    // --- NUEVO: Lógica para formulario dinámico ---
+    const selectTipoRegistro = document.getElementById('tipoRegistro');
+    if (selectTipoRegistro) {
+        selectTipoRegistro.addEventListener('change', (e) => {
+            const tipo = e.target.value;
+            const camposCompra = document.getElementById('camposCompra');
+            const camposTransferencia = document.getElementById('camposTransferencia');
+
+            // Inputs que cambiaremos
+            const inputProveedor = document.getElementById('selectProveedor');
+            const inputCosto = document.getElementById('costo');
+            const inputMaquinaria = document.getElementById('selectMaquinariaDestino');
+
+            if (tipo === 'transferencia') {
+                // Ocultar Compra, Mostrar Transferencia
+                if (camposCompra) camposCompra.style.display = 'none';
+                if (camposTransferencia) camposTransferencia.style.display = 'block';
+
+                // Quitar 'required' de Compra
+                if (inputProveedor) inputProveedor.required = false;
+                if (inputCosto) inputCosto.required = false;
+                // Añadir 'required' a Transferencia
+                if (inputMaquinaria) inputMaquinaria.required = true;
+
+            } else { // 'compra'
+                // Mostrar Compra, Ocultar Transferencia
+                if (camposCompra) camposCompra.style.display = 'block';
+                if (camposTransferencia) camposTransferencia.style.display = 'none';
+
+                // Restaurar 'required' a Compra
+                if (inputProveedor) inputProveedor.required = true;
+                if (inputCosto) inputCosto.required = true;
+                // Quitar 'required' de Transferencia
+                if (inputMaquinaria) inputMaquinaria.required = false;
+            }
+        });
+    }
+    // --- FIN DE LÓGICA NUEVA ---
+
     const botonesAcordeon = document.querySelectorAll('.accordion-button');
     botonesAcordeon.forEach(boton => {
         boton.addEventListener('click', function() {
@@ -477,5 +562,3 @@ function iniciarAplicacion() {
 
 document.getElementById('login-form').addEventListener('submit', handleLogin);
 btnLogout.addEventListener('click', handleLogout);
-
-// (Se eliminó la llave '}' extra que estaba aquí en el archivo original)
