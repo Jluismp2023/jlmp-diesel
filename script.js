@@ -2,7 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/fireba
 import { getFirestore, collection, getDocs, doc, addDoc, updateDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-// ... (firebaseConfig, app, db, auth, variables globales - sin cambios) ...
+// ... (firebaseConfig, app, db, auth - sin cambios) ...
 const firebaseConfig = {
     apiKey: "AIzaSyCElg_et8_Z8ERTWo5tAwZJk2tb2ztUwlc",
     authDomain: "jlmp-diesel.firebaseapp.com",
@@ -16,9 +16,23 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
+
+// ===== INICIO DE CÓDIGO MODIFICADO =====
 const vistaLogin = document.getElementById('vista-login');
 const vistaApp = document.getElementById('vista-app');
 const btnLogout = document.getElementById('btn-logout');
+
+// Verificar si los elementos principales existen al cargar el script
+console.log("Verificando elementos principales al inicio:");
+if (!vistaLogin) console.error("¡ERROR CRÍTICO! Elemento 'vista-login' no encontrado.");
+else console.log("Elemento 'vista-login' encontrado.");
+
+if (!vistaApp) console.error("¡ERROR CRÍTICO! Elemento 'vista-app' no encontrado.");
+else console.log("Elemento 'vista-app' encontrado.");
+
+if (!btnLogout) console.warn("Elemento 'btn-logout' no encontrado (puede ser normal si el usuario no está logueado).");
+else console.log("Elemento 'btn-logout' encontrado.");
+// ===== FIN DE CÓDIGO MODIFICADO =====
 
 let todosLosConsumos = [];
 let todosLosSuministros = [];
@@ -27,180 +41,96 @@ let appInicializada = false;
 let tabActivaParaImprimir = null;
 
 onAuthStateChanged(auth, (user) => {
-    // console.log("Estado de autenticación cambiado. Usuario:", user ? user.email : 'Ninguno');
+    console.log("onAuthStateChanged ejecutado. Usuario:", user ? user.email : 'Ninguno');
+
+    // ===== INICIO DE CÓDIGO MODIFICADO (Verificaciones dentro del listener) =====
+    // Re-verificar los elementos DENTRO del listener, por si acaso
+    if (!vistaLogin) {
+        console.error("¡ERROR dentro de onAuthStateChanged! 'vista-login' es null.");
+        return; // Detener ejecución si falta un elemento crítico
+    }
+     if (!vistaApp) {
+        console.error("¡ERROR dentro de onAuthStateChanged! 'vista-app' es null.");
+        return; // Detener ejecución si falta un elemento crítico
+    }
+    // ===== FIN DE CÓDIGO MODIFICADO =====
+
     if (user) {
+        console.log("Usuario detectado, mostrando vista de app...");
         vistaLogin.style.display = 'none';
         vistaApp.style.display = 'block';
         if (btnLogout) btnLogout.style.display = 'block';
+        else console.warn("btnLogout no encontrado al intentar mostrarlo.");
+
         if (!appInicializada) {
-            // console.log("Usuario autenticado, iniciando aplicación...");
+            console.log("Usuario autenticado Y app no inicializada, llamando a iniciarAplicacion...");
             iniciarAplicacion();
             appInicializada = true;
+        } else {
+             console.log("Usuario autenticado PERO app ya inicializada.");
         }
     } else {
-        // console.log("Usuario no autenticado, mostrando login.");
-        vistaLogin.style.display = 'block';
+        console.log("Usuario NO detectado, mostrando vista de login...");
+        vistaLogin.style.display = 'block'; // Asegurarse que se muestre
         vistaApp.style.display = 'none';
         if (btnLogout) btnLogout.style.display = 'none';
+        else console.warn("btnLogout no encontrado al intentar ocultarlo.");
         appInicializada = false;
     }
 });
 
-function mostrarNotificacion(texto, tipo = 'info', duracion = 3500) { /* ... (sin cambios) ... */ }
+// ... (Resto de funciones: mostrarNotificacion, abrirModal, cerrarModal, openMainTab, etc. SIN CAMBIOS) ...
+function mostrarNotificacion(texto, tipo = 'info', duracion = 3500) { /* ... */ }
 const modal = document.getElementById('modalRegistro');
 const btnAbrirModal = document.getElementById('btnAbrirModal');
 const btnCerrarModal = modal ? modal.querySelector('.close-button') : null;
-function abrirModal() { /* ... (sin cambios) ... */ }
+function abrirModal() { /* ... */ }
 function cerrarModal() { if (modal) modal.style.display = 'none'; reiniciarFormulario(); cargarDatosIniciales(); }
-function openMainTab(evt, tabName) { /* ... (sin cambios) ... */ }
-async function cargarDatosIniciales() { /* ... (sin cambios) ... */ }
-
-// ===== INICIO DE FUNCIÓN MODIFICADA (Verificaciones robustas) =====
-function actualizarTodaLaUI() {
-    console.log("Actualizando toda la UI...");
-    try {
-        poblarFiltroDeMes();
-        poblarFiltrosReportes();
-
-        // --- VERIFICACIÓN ROBUSTA ---
-        let consumosFiltrados = obtenerConsumosFiltrados();
-        if (!Array.isArray(consumosFiltrados)) {
-            console.error("¡ALERTA! obtenerConsumosFiltrados no devolvió un array! Valor:", consumosFiltrados);
-            consumosFiltrados = []; // Forzar array vacío para evitar error fatal
-        }
-        console.log(`Consumos filtrados: ${consumosFiltrados.length}`);
-
-        let suministrosFiltrados = obtenerSuministrosFiltrados();
-        if (!Array.isArray(suministrosFiltrados)) {
-            console.error("¡ALERTA! obtenerSuministrosFiltrados no devolvió un array! Valor:", suministrosFiltrados);
-            suministrosFiltrados = []; // Forzar array vacío
-        }
-        console.log(`Suministros filtrados: ${suministrosFiltrados.length}`);
-        // --- FIN VERIFICACIÓN ROBUSTA ---
-        
-        calcularYMostrarTotalesPorEmpresa(consumosFiltrados);
-        calcularYMostrarTotalesPorProveedor(consumosFiltrados);
-        calcularYMostrarTotalesPorProyecto(consumosFiltrados);
-        calcularYMostrarTotalesPorChofer(consumosFiltrados);
-        calcularYMostrarTotales(consumosFiltrados); 
-
-        calcularYMostrarSuministrosPorVolqueta(suministrosFiltrados);
-        calcularYMostrarSuministrosPorMaquinaria(suministrosFiltrados);
-
-        poblarSelectores();
-        mostrarListasAdmin();
-        
-        mostrarHistorialAgrupado(consumosFiltrados);
-        mostrarHistorialSuministros(suministrosFiltrados); 
-        console.log("UI actualizada correctamente."); 
-    } catch (error) {
-        console.error("Error actualizando la UI:", error); 
-        mostrarNotificacion("Ocurrió un error al actualizar la interfaz.", "error");
-    }
-}
-// ===== FIN DE FUNCIÓN MODIFICADA =====
-
-
-function poblarSelectores() { /* ... (sin cambios) ... */ }
-function reiniciarFormulario() { /* ... (sin cambios) ... */ }
-async function guardarOActualizar(e) { /* ... (sin cambios) ... */ }
-async function guardarSuministro(e) { /* ... (sin cambios) ... */ }
-async function agregarItemAdmin(tipo, inputElement) { /* ... (sin cambios) ... */ }
-function manejarAccionesHistorial(e) { /* ... (sin cambios) ... */ }
-
-// ===== INICIO DE FUNCIÓN MODIFICADA (Verificación robusta del selector) =====
-function obtenerConsumosFiltrados() {
-    try { // Añadir try...catch para aislar errores aquí
-        const obtenerValorFiltro = (syncId) => {
-            const elemento = document.querySelector(`.filtro-sincronizado[data-sync-id="${syncId}"]`);
-            if (!elemento) {
-                console.error(`Elemento de filtro no encontrado para syncId: ${syncId}`);
-                // Devolver valor por defecto seguro
-                return (syncId.startsWith('filtroFecha')) ? '' : 'todos';
-            }
-            return elemento.value;
-        };
-        const mes = obtenerValorFiltro('filtroMes');
-        const fechaInicio = obtenerValorFiltro('filtroFechaInicio');
-        const fechaFin = obtenerValorFiltro('filtroFechaFin');
-        const chofer = obtenerValorFiltro('filtroChofer');
-        const proveedor = obtenerValorFiltro('filtroProveedor');
-        const empresa = obtenerValorFiltro('filtroEmpresa');
-        const proyecto = obtenerValorFiltro('filtroProyecto');
-        
-        let consumosFiltrados = todosLosConsumos; // Empezar con todos
-
-        // Aplicar filtros... (lógica sin cambios)
-        if (fechaInicio && fechaFin) { if (fechaFin < fechaInicio) { mostrarNotificacion("La fecha de fin no puede ser anterior a la de inicio.", "error"); return []; } consumosFiltrados = consumosFiltrados.filter(c => c.fecha >= fechaInicio && c.fecha <= fechaFin); } else if (fechaInicio) { consumosFiltrados = consumosFiltrados.filter(c => c.fecha === fechaInicio); } else if (mes !== 'todos') { consumosFiltrados = consumosFiltrados.filter(c => c.fecha && c.fecha.startsWith(mes)); } // Añadir c.fecha &&
-        if (chofer !== 'todos') { consumosFiltrados = consumosFiltrados.filter(c => c.chofer === chofer); }
-        if (proveedor !== 'todos') { consumosFiltrados = consumosFiltrados.filter(c => c.proveedor === proveedor); }
-        if (empresa !== 'todos') { consumosFiltrados = consumosFiltrados.filter(c => c.empresa === empresa); }
-        if (proyecto !== 'todos') { consumosFiltrados = consumosFiltrados.filter(c => c.proyecto === proyecto); }
-        
-        return consumosFiltrados; // Asegurarse de que siempre devuelve un array
-    } catch (error) {
-        console.error("Error dentro de obtenerConsumosFiltrados:", error);
-        return []; // Devolver array vacío en caso de error
-    }
-}
-// ===== FIN DE FUNCIÓN MODIFICADA =====
-
-// ===== INICIO DE FUNCIÓN MODIFICADA (Verificación robusta del selector) =====
-function obtenerSuministrosFiltrados() {
-     try { // Añadir try...catch
-        const obtenerValorFiltro = (syncId) => {
-             const elemento = document.querySelector(`.filtro-sincronizado[data-sync-id="${syncId}"]`);
-            if (!elemento) {
-                console.error(`Elemento de filtro no encontrado para syncId: ${syncId}`);
-                return (syncId.startsWith('filtroFecha')) ? '' : 'todos';
-            }
-            return elemento.value;
-        };
-        const mes = obtenerValorFiltro('filtroMes');
-        const fechaInicio = obtenerValorFiltro('filtroFechaInicio');
-        const fechaFin = obtenerValorFiltro('filtroFechaFin');
-        const proyecto = obtenerValorFiltro('filtroProyecto'); 
-
-        let suministrosFiltrados = todosLosSuministros;
-
-        // Aplicar filtros... (lógica sin cambios)
-        if (fechaInicio && fechaFin) { if (fechaFin < fechaInicio) { return []; } suministrosFiltrados = suministrosFiltrados.filter(s => s.fecha >= fechaInicio && s.fecha <= fechaFin); } else if (fechaInicio) { suministrosFiltrados = suministrosFiltrados.filter(s => s.fecha === fechaInicio); } else if (mes !== 'todos') { suministrosFiltrados = suministrosFiltrados.filter(s => s.fecha && s.fecha.startsWith(mes)); } // Añadir s.fecha &&
-        if (proyecto !== 'todos') { suministrosFiltrados = suministrosFiltrados.filter(s => s.proyecto === proyecto); }
-        
-        return suministrosFiltrados;
-    } catch (error) {
-        console.error("Error dentro de obtenerSuministrosFiltrados:", error);
-        return []; // Devolver array vacío en caso de error
-    }
-}
-// ===== FIN DE FUNCIÓN MODIFICADA =====
-
-
-function mostrarListasAdmin() { /* ... (sin cambios) ... */ }
-async function modificarItemAdmin(item, tipo) { /* ... (sin cambios) ... */ }
-function cargarDatosParaModificar(id) { /* ... (sin cambios) ... */ }
-function calcularYMostrarTotalesPorCategoria(consumos, categoria, bodyId, footerId) { /* ... (sin cambios) ... */ }
-function calcularYMostrarSuministrosPorVolqueta(suministros) { /* ... (sin cambios) ... */ }
-function calcularYMostrarSuministrosPorMaquinaria(suministros) { /* ... (sin cambios) ... */ }
+function openMainTab(evt, tabName) { /* ... */ }
+async function cargarDatosIniciales() { /* ... */ }
+function actualizarTodaLaUI() { /* ... */ }
+function poblarSelectores() { /* ... */ }
+function reiniciarFormulario() { /* ... */ }
+async function guardarOActualizar(e) { /* ... */ }
+async function guardarSuministro(e) { /* ... */ }
+async function agregarItemAdmin(tipo, inputElement) { /* ... */ }
+function manejarAccionesHistorial(e) { /* ... */ }
+function obtenerConsumosFiltrados() { /* ... */ }
+function obtenerSuministrosFiltrados() { /* ... */ }
+function mostrarListasAdmin() { /* ... */ }
+async function modificarItemAdmin(item, tipo) { /* ... */ }
+function cargarDatosParaModificar(id) { /* ... */ }
+function calcularYMostrarTotalesPorCategoria(consumos, categoria, bodyId, footerId) { /* ... */ }
+function calcularYMostrarSuministrosPorVolqueta(suministros) { /* ... */ }
+function calcularYMostrarSuministrosPorMaquinaria(suministros) { /* ... */ }
 const calcularYMostrarTotalesPorEmpresa = (consumos) => calcularYMostrarTotalesPorCategoria(consumos, 'empresa', 'resumenEmpresaBody', 'resumenEmpresaFooter');
 const calcularYMostrarTotalesPorProveedor = (consumos) => calcularYMostrarTotalesPorCategoria(consumos, 'proveedor', 'resumenProveedorBody', 'resumenProveedorFooter');
 const calcularYMostrarTotalesPorProyecto = (consumos) => calcularYMostrarTotalesPorCategoria(consumos, 'proyecto', 'resumenProyectoBody', 'resumenProyectoFooter');
 const calcularYMostrarTotalesPorChofer = (consumos) => calcularYMostrarTotalesPorCategoria(consumos, 'chofer', 'resumenChoferBody', 'resumenChoferFooter');
 const calcularYMostrarTotales = (consumos) => { calcularYMostrarTotalesPorCategoria(consumos, 'volqueta', 'resumenBody', 'resumenFooter'); };
-async function borrarItemAdmin(item, tipo) { /* ... (sin cambios) ... */ }
-async function borrarConsumoHistorial(id) { /* ... (sin cambios) ... */ }
-function poblarFiltroDeMes() { /* ... (sin cambios) ... */ }
-function poblarFiltrosReportes() { /* ... (sin cambios) ... */ }
-function mostrarHistorialAgrupado(consumos) { /* ... (sin cambios, ya tiene verificaciones) ... */ }
-function mostrarHistorialSuministros(suministros) { /* ... (sin cambios, ya tiene verificaciones) ... */ }
-function asignarSincronizacionDeFiltros() { /* ... (sin cambios) ... */ }
-function handleLogin(e) { /* ... (sin cambios) ... */ }
-function handleLogout() { /* ... (sin cambios) ... */ }
-function asignarEventosApp() { /* ... (sin cambios, ya tiene verificaciones) ... */ }
-function iniciarAplicacion() { /* ... (sin cambios) ... */ }
+async function borrarItemAdmin(item, tipo) { /* ... */ }
+async function borrarConsumoHistorial(id) { /* ... */ }
+function poblarFiltroDeMes() { /* ... */ }
+function poblarFiltrosReportes() { /* ... */ }
+function mostrarHistorialAgrupado(consumos) { /* ... */ }
+function mostrarHistorialSuministros(suministros) { /* ... */ }
+function asignarSincronizacionDeFiltros() { /* ... */ }
+function handleLogin(e) { /* ... */ }
+function handleLogout() { /* ... */ }
+function asignarEventosApp() { /* ... */ }
+
+
+function iniciarAplicacion() {
+    console.log("Ejecutando iniciarAplicacion..."); // Log al inicio
+    asignarEventosApp();
+    cargarDatosIniciales();
+}
 
 const elLoginForm = document.getElementById('login-form');
 if (elLoginForm) elLoginForm.addEventListener('submit', handleLogin);
-if (btnLogout) btnLogout.addEventListener('click', handleLogout);
+else console.warn("Elemento 'login-form' no encontrado al asignar evento inicial.");
 
-// console.log("Script cargado y eventos iniciales asignados.");
+if (btnLogout) btnLogout.addEventListener('click', handleLogout);
+else console.warn("Elemento 'btn-logout' no encontrado al asignar evento inicial.");
+
+// console.log("Script cargado y eventos iniciales asignados."); // Movido más arriba
