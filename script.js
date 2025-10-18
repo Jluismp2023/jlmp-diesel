@@ -20,7 +20,9 @@ const vistaApp = document.getElementById('vista-app');
 const btnLogout = document.getElementById('btn-logout');
 
 let todosLosConsumos = [];
-let listasAdmin = { choferes: [], placas: [], detallesVolqueta: [], empresas: [], proveedores: [], proyectos: [] };
+// ===== INICIO DE CÓDIGO MODIFICADO =====
+let listasAdmin = { choferes: [], placas: [], detallesVolqueta: [], maquinaria: [], empresas: [], proveedores: [], proyectos: [] };
+// ===== FIN DE CÓDIGO MODIFICADO =====
 let appInicializada = false;
 let tabActivaParaImprimir = null;
 
@@ -64,24 +66,23 @@ function openMainTab(evt, tabName) {
     tablinks = document.getElementsByClassName("main-tab-link");
     for (i = 0; i < tablinks.length; i++) { tablinks[i].className = tablinks[i].className.replace(" active", ""); }
     document.getElementById(tabName).style.display = "block";
-    // Si el evento existe (clic real), usa currentTarget. Si no (llamada programática), busca por ID.
     const buttonToActivate = evt ? evt.currentTarget : document.getElementById(`btnTab${tabName.replace('tab','')}`);
-    if (buttonToActivate) {
-        buttonToActivate.className += " active";
-    }
+    if (buttonToActivate) { buttonToActivate.className += " active"; }
 }
 
+// ===== INICIO DE FUNCIÓN MODIFICADA =====
 async function cargarDatosIniciales() {
     document.getElementById('loadingMessage').style.display = 'block';
     try {
         const [
-            consumosRes, choferesRes, placasRes, detallesVolquetaRes, 
+            consumosRes, choferesRes, placasRes, detallesVolquetaRes, maquinariaRes, // Añadir maquinariaRes
             empresasRes, proveedoresRes, proyectosRes
         ] = await Promise.all([
             getDocs(query(collection(db, "consumos"), orderBy("fecha", "desc"))), 
             getDocs(query(collection(db, "choferes"), orderBy("nombre"))), 
             getDocs(query(collection(db, "placas"), orderBy("nombre"))), 
             getDocs(query(collection(db, "detallesVolqueta"), orderBy("nombre"))), 
+            getDocs(query(collection(db, "maquinaria"), orderBy("nombre"))), // Cargar nueva colección
             getDocs(query(collection(db, "empresas"), orderBy("nombre"))), 
             getDocs(query(collection(db, "proveedores"), orderBy("nombre"))), 
             getDocs(query(collection(db, "proyectos"), orderBy("nombre")))
@@ -90,6 +91,7 @@ async function cargarDatosIniciales() {
         listasAdmin.choferes = choferesRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         listasAdmin.placas = placasRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         listasAdmin.detallesVolqueta = detallesVolquetaRes.docs.map(doc => ({ id: doc.id, ...doc.data() })); 
+        listasAdmin.maquinaria = maquinariaRes.docs.map(doc => ({ id: doc.id, ...doc.data() })); // Guardar maquinaria
         listasAdmin.empresas = empresasRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         listasAdmin.proveedores = proveedoresRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         listasAdmin.proyectos = proyectosRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -101,6 +103,7 @@ async function cargarDatosIniciales() {
         if (document.getElementById('loaderContainer')) { document.getElementById('loaderContainer').style.display = 'none'; }
     }
 }
+// ===== FIN DE FUNCIÓN MODIFICADA =====
 
 function actualizarTodaLaUI() {
     poblarFiltroDeMes();
@@ -135,7 +138,7 @@ function poblarSelectores() {
     };
     for (const tipo in selectores) {
         const select = selectores[tipo];
-        if (!select) continue;
+        if (!select || !listasAdmin[tipo]) continue; // Asegurarse que la lista existe
         const valorActual = select.value;
         select.innerHTML = `<option value="">${titulos[tipo]}</option>`; 
         listasAdmin[tipo].forEach(item => { select.innerHTML += `<option value="${item.nombre}">${item.nombre}</option>`; });
@@ -202,7 +205,16 @@ async function guardarOActualizar(e) {
     }
 }
 
+// ===== INICIO DE FUNCIÓN MODIFICADA =====
 async function agregarItemAdmin(tipo, inputElement) {
+    // Añadir 'maquinaria' a los tipos permitidos
+    const tiposPermitidos = ["choferes", "placas", "detallesVolqueta", "maquinaria", "empresas", "proveedores", "proyectos"];
+    if (!tiposPermitidos.includes(tipo)) {
+        console.error("Tipo de item desconocido:", tipo);
+        mostrarNotificacion("Error interno al agregar.", "error");
+        return;
+    }
+
     const valor = (tipo === 'placas') ? inputElement.value.trim().toUpperCase() : inputElement.value.trim();
     if (valor) {
         const listaNombres = listasAdmin[tipo].map(item => item.nombre.toUpperCase());
@@ -211,13 +223,14 @@ async function agregarItemAdmin(tipo, inputElement) {
             await addDoc(collection(db, tipo), { nombre: valor });
             mostrarNotificacion(`Elemento agregado correctamente.`, "exito");
             inputElement.value = '';
-            await cargarDatosIniciales();
+            await cargarDatosIniciales(); // Recarga todo para actualizar las listas
         } catch (error) {
             console.error("Error agregando:", error);
             mostrarNotificacion("No se pudo agregar el elemento.", "error");
         }
     }
 }
+// ===== FIN DE FUNCIÓN MODIFICADA =====
 
 function manejarAccionesHistorial(e) { 
     const target = e.target.closest('button');
@@ -246,21 +259,25 @@ function obtenerConsumosFiltrados() {
     return consumosFiltrados;
 }
 
+// ===== INICIO DE FUNCIÓN MODIFICADA =====
 function mostrarListasAdmin() {
     const contenedores = { 
         choferes: 'listaChoferes', 
         placas: 'listaPlacas', 
         detallesVolqueta: 'listaDetallesVolqueta', 
+        maquinaria: 'listaMaquinaria', // Nuevo contenedor
         empresas: 'listaEmpresas', 
         proveedores: 'listaProveedores', 
         proyectos: 'listaProyectos' 
     };
     for (const tipo in contenedores) {
         const ul = document.getElementById(contenedores[tipo]);
-        if (!ul) continue;
+        if (!ul || !listasAdmin[tipo]) continue; // Asegurarse que la lista y el ul existen
         ul.innerHTML = '';
         if (listasAdmin[tipo].length === 0) { ul.innerHTML = `<li class="empty-state">No hay elementos.</li>`; continue; }
-        listasAdmin[tipo].forEach(item => {
+        // Ordenar alfabéticamente antes de mostrar
+        const listaOrdenada = [...listasAdmin[tipo]].sort((a, b) => a.nombre.localeCompare(b.nombre));
+        listaOrdenada.forEach(item => {
             const li = document.createElement('li');
             li.innerHTML = `<span>${item.nombre}</span><div><button class="btn-accion btn-modificar button-warning" title="Modificar"><i class="fa-solid fa-pencil" style="margin:0;"></i></button><button class="btn-accion btn-borrar" title="Borrar"><i class="fa-solid fa-trash-can" style="margin:0;"></i></button></div>`;
             li.querySelector('.btn-modificar').addEventListener('click', () => modificarItemAdmin(item, tipo));
@@ -269,6 +286,7 @@ function mostrarListasAdmin() {
         });
     }
 }
+// ===== FIN DE FUNCIÓN MODIFICADA =====
 
 async function modificarItemAdmin(item, tipo) { 
     const valorActual = item.nombre; 
@@ -277,8 +295,25 @@ async function modificarItemAdmin(item, tipo) {
     const valorFormateado = (tipo === 'placas') ? nuevoValor.trim().toUpperCase() : nuevoValor.trim(); 
     const propiedad = { 
         placas: 'volqueta', choferes: 'chofer', empresas: 'empresa', proveedores: 'proveedor', 
-        proyectos: 'proyecto', detallesVolqueta: 'detallesVolqueta' 
+        proyectos: 'proyecto', detallesVolqueta: 'detallesVolqueta', maquinaria: null // Maquinaria no afecta registros de consumo
     }[tipo]; 
+    
+    // Si la propiedad es null (como en maquinaria), solo actualiza el item en su colección
+    if (propiedad === null) {
+         if (confirm(`¿Estás seguro de cambiar "${valorActual}" por "${valorFormateado}"?`)) { 
+            try { 
+                await updateDoc(doc(db, tipo, item.id), { nombre: valorFormateado }); 
+                await cargarDatosIniciales(); 
+                mostrarNotificacion("Elemento actualizado.", "exito"); 
+            } catch(e) { 
+                console.error("Error modificando:", e); 
+                mostrarNotificacion("Error al modificar.", "error"); 
+            }
+         }
+         return; // Termina aquí para maquinaria
+    }
+
+    // Lógica para actualizar masivamente si la propiedad existe
     if (!propiedad) { console.error("Tipo de item desconocido:", tipo); mostrarNotificacion("Error interno al modificar.", "error"); return; }
     if (confirm(`¿Estás seguro de cambiar "${valorActual}" por "${valorFormateado}"? Esto actualizará TODOS los registros.`)) { 
         try { 
@@ -291,7 +326,6 @@ async function modificarItemAdmin(item, tipo) {
     } 
 }
 
-// ===== INICIO DE FUNCIÓN MODIFICADA =====
 function cargarDatosParaModificar(id) {
     const consumo = todosLosConsumos.find(c => c.id === id); if (!consumo) return;
     document.getElementById('registroId').value = consumo.id; 
@@ -308,13 +342,9 @@ function cargarDatosParaModificar(id) {
     document.getElementById('selectProyecto').value = consumo.proyecto || "";
     document.getElementById('selectDetallesVolqueta').value = consumo.detallesVolqueta || "";
     document.getElementById('kilometraje').value = consumo.kilometraje || "";
-
-    // Llama a openMainTab SIN evento para cambiar a la pestaña Registrar
     openMainTab(null, 'tabRegistrar'); 
-    
-    abrirModal(); // Abre el modal después de cambiar de pestaña
+    abrirModal(); 
 }
-// ===== FIN DE FUNCIÓN MODIFICADA =====
 
 function calcularYMostrarTotalesPorCategoria(consumos, categoria, bodyId, footerId) {
     const resumenBody = document.getElementById(bodyId); const resumenFooter = document.getElementById(footerId);
@@ -336,7 +366,7 @@ const calcularYMostrarTotalesPorChofer = (consumos) => calcularYMostrarTotalesPo
 const calcularYMostrarTotales = (consumos) => { calcularYMostrarTotalesPorCategoria(consumos, 'volqueta', 'resumenBody', 'resumenFooter'); };
 
 async function borrarItemAdmin(item, tipo) { 
-    const coleccionesPermitidas = ["choferes", "placas", "detallesVolqueta", "empresas", "proveedores", "proyectos"];
+    const coleccionesPermitidas = ["choferes", "placas", "detallesVolqueta", "maquinaria", "empresas", "proveedores", "proyectos"];
     if (!coleccionesPermitidas.includes(tipo)) { console.error("Intento de borrar de una colección no permitida:", tipo); mostrarNotificacion("Error interno al borrar.", "error"); return; }
     if (confirm(`¿Seguro que quieres borrar "${item.nombre}"?`)) { 
         try { await deleteDoc(doc(db, tipo, item.id)); mostrarNotificacion("Elemento borrado.", "exito"); await cargarDatosIniciales(); } 
@@ -401,6 +431,7 @@ function asignarSincronizacionDeFiltros() {
 function handleLogin(e) { e.preventDefault(); const email = document.getElementById('login-email').value; const password = document.getElementById('login-password').value; signInWithEmailAndPassword(auth, email, password).then(userCredential => { mostrarNotificacion("Bienvenido de nuevo", "exito"); }).catch(error => { mostrarNotificacion("Credenciales incorrectas.", "error"); }); }
 function handleLogout() { signOut(auth).catch(error => { mostrarNotificacion("Error al cerrar sesión: " + error.message, "error"); }); }
 
+// ===== INICIO DE FUNCIÓN MODIFICADA =====
 function asignarEventosApp() {
     btnAbrirModal.addEventListener('click', abrirModal);
     btnCerrarModal.addEventListener('click', cerrarModal);
@@ -446,6 +477,8 @@ function asignarEventosApp() {
     document.getElementById('formAdminChofer').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('choferes', document.getElementById('nuevoChofer')); });
     document.getElementById('formAdminPlaca').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('placas', document.getElementById('nuevaPlaca')); });
     document.getElementById('formAdminDetallesVolqueta').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('detallesVolqueta', document.getElementById('nuevoDetalleVolqueta')); });
+    // Nuevo evento para Maquinaria
+    document.getElementById('formAdminMaquinaria').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('maquinaria', document.getElementById('nuevaMaquinaria')); });
     document.getElementById('formAdminEmpresa').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('empresas', document.getElementById('nuevaEmpresa')); });
     document.getElementById('formAdminProveedor').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('proveedores', document.getElementById('nuevoProveedor')); });
     document.getElementById('formAdminProyecto').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('proyectos', document.getElementById('nuevoProyecto')); });
@@ -460,6 +493,7 @@ function asignarEventosApp() {
     });
     asignarSincronizacionDeFiltros();
 }
+// ===== FIN DE FUNCIÓN MODIFICADA =====
 
 function iniciarAplicacion() {
     asignarEventosApp();
