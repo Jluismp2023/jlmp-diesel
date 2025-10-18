@@ -20,9 +20,7 @@ const vistaApp = document.getElementById('vista-app');
 const btnLogout = document.getElementById('btn-logout');
 
 let todosLosConsumos = [];
-// ===== INICIO DE CÓDIGO MODIFICADO =====
 let listasAdmin = { choferes: [], placas: [], detallesVolqueta: [], empresas: [], proveedores: [], proyectos: [] };
-// ===== FIN DE CÓDIGO MODIFICADO =====
 let appInicializada = false;
 let tabActivaParaImprimir = null;
 
@@ -66,10 +64,13 @@ function openMainTab(evt, tabName) {
     tablinks = document.getElementsByClassName("main-tab-link");
     for (i = 0; i < tablinks.length; i++) { tablinks[i].className = tablinks[i].className.replace(" active", ""); }
     document.getElementById(tabName).style.display = "block";
-    evt.currentTarget.className += " active";
+    // Si el evento existe (clic real), usa currentTarget. Si no (llamada programática), busca por ID.
+    const buttonToActivate = evt ? evt.currentTarget : document.getElementById(`btnTab${tabName.replace('tab','')}`);
+    if (buttonToActivate) {
+        buttonToActivate.className += " active";
+    }
 }
 
-// ===== INICIO DE FUNCIÓN MODIFICADA =====
 async function cargarDatosIniciales() {
     document.getElementById('loadingMessage').style.display = 'block';
     try {
@@ -80,7 +81,7 @@ async function cargarDatosIniciales() {
             getDocs(query(collection(db, "consumos"), orderBy("fecha", "desc"))), 
             getDocs(query(collection(db, "choferes"), orderBy("nombre"))), 
             getDocs(query(collection(db, "placas"), orderBy("nombre"))), 
-            getDocs(query(collection(db, "detallesVolqueta"), orderBy("nombre"))), // Cargar nuevos detalles
+            getDocs(query(collection(db, "detallesVolqueta"), orderBy("nombre"))), 
             getDocs(query(collection(db, "empresas"), orderBy("nombre"))), 
             getDocs(query(collection(db, "proveedores"), orderBy("nombre"))), 
             getDocs(query(collection(db, "proyectos"), orderBy("nombre")))
@@ -88,7 +89,7 @@ async function cargarDatosIniciales() {
         todosLosConsumos = consumosRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         listasAdmin.choferes = choferesRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         listasAdmin.placas = placasRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        listasAdmin.detallesVolqueta = detallesVolquetaRes.docs.map(doc => ({ id: doc.id, ...doc.data() })); // Guardar nuevos detalles
+        listasAdmin.detallesVolqueta = detallesVolquetaRes.docs.map(doc => ({ id: doc.id, ...doc.data() })); 
         listasAdmin.empresas = empresasRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         listasAdmin.proveedores = proveedoresRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         listasAdmin.proyectos = proyectosRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -100,7 +101,6 @@ async function cargarDatosIniciales() {
         if (document.getElementById('loaderContainer')) { document.getElementById('loaderContainer').style.display = 'none'; }
     }
 }
-// ===== FIN DE FUNCIÓN MODIFICADA =====
 
 function actualizarTodaLaUI() {
     poblarFiltroDeMes();
@@ -116,12 +116,11 @@ function actualizarTodaLaUI() {
     mostrarHistorialAgrupado(consumosFiltrados);
 }
 
-// ===== INICIO DE FUNCIÓN MODIFICADA =====
 function poblarSelectores() {
     const selectores = { 
         choferes: document.getElementById('selectChofer'), 
         placas: document.getElementById('selectVolqueta'), 
-        detallesVolqueta: document.getElementById('selectDetallesVolqueta'), // Nuevo selector
+        detallesVolqueta: document.getElementById('selectDetallesVolqueta'), 
         empresas: document.getElementById('selectEmpresa'), 
         proveedores: document.getElementById('selectProveedor'), 
         proyectos: document.getElementById('selectProyecto') 
@@ -129,7 +128,7 @@ function poblarSelectores() {
     const titulos = { 
         choferes: '--- Chofer ---', 
         placas: '--- Placa ---', 
-        detallesVolqueta: '--- Detalles Volqueta ---', // Nuevo título
+        detallesVolqueta: '--- Detalles Volqueta ---', 
         empresas: '--- Empresa ---', 
         proveedores: '--- Proveedor ---', 
         proyectos: '--- Proyecto ---' 
@@ -138,12 +137,11 @@ function poblarSelectores() {
         const select = selectores[tipo];
         if (!select) continue;
         const valorActual = select.value;
-        select.innerHTML = `<option value="">${titulos[tipo]}</option>`; // Cambiado a valor vacío por defecto
+        select.innerHTML = `<option value="">${titulos[tipo]}</option>`; 
         listasAdmin[tipo].forEach(item => { select.innerHTML += `<option value="${item.nombre}">${item.nombre}</option>`; });
         select.value = valorActual;
     }
 }
-// ===== FIN DE FUNCIÓN MODIFICADA =====
 
 function reiniciarFormulario() {
     document.getElementById('consumoForm').reset();
@@ -153,7 +151,6 @@ function reiniciarFormulario() {
     poblarSelectores();
 }
 
-// ===== INICIO DE FUNCIÓN MODIFICADA =====
 async function guardarOActualizar(e) {
     e.preventDefault();
     const btnGuardar = document.getElementById('btnGuardar');
@@ -174,9 +171,8 @@ async function guardarOActualizar(e) {
         empresa: document.getElementById('selectEmpresa').value,
         proveedor: document.getElementById('selectProveedor').value,
         proyecto: document.getElementById('selectProyecto').value,
-        // Nuevos campos
-        detallesVolqueta: document.getElementById('selectDetallesVolqueta').value || "", // Guarda vacío si no se selecciona
-        kilometraje: document.getElementById('kilometraje').value || null // Guarda null si está vacío
+        detallesVolqueta: document.getElementById('selectDetallesVolqueta').value || "", 
+        kilometraje: document.getElementById('kilometraje').value || null 
     };
 
     if (!datosConsumo.chofer || !datosConsumo.volqueta) {
@@ -205,7 +201,6 @@ async function guardarOActualizar(e) {
         btnGuardar.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Guardar Registro';
     }
 }
-// ===== FIN DE FUNCIÓN MODIFICADA =====
 
 async function agregarItemAdmin(tipo, inputElement) {
     const valor = (tipo === 'placas') ? inputElement.value.trim().toUpperCase() : inputElement.value.trim();
@@ -251,12 +246,11 @@ function obtenerConsumosFiltrados() {
     return consumosFiltrados;
 }
 
-// ===== INICIO DE FUNCIÓN MODIFICADA =====
 function mostrarListasAdmin() {
     const contenedores = { 
         choferes: 'listaChoferes', 
         placas: 'listaPlacas', 
-        detallesVolqueta: 'listaDetallesVolqueta', // Nuevo contenedor
+        detallesVolqueta: 'listaDetallesVolqueta', 
         empresas: 'listaEmpresas', 
         proveedores: 'listaProveedores', 
         proyectos: 'listaProyectos' 
@@ -275,47 +269,27 @@ function mostrarListasAdmin() {
         });
     }
 }
-// ===== FIN DE FUNCIÓN MODIFICADA =====
 
-// ===== INICIO DE FUNCIÓN MODIFICADA =====
 async function modificarItemAdmin(item, tipo) { 
     const valorActual = item.nombre; 
     const nuevoValor = prompt(`Modificar "${valorActual}":`, valorActual); 
     if (!nuevoValor || nuevoValor.trim() === '' || nuevoValor.trim() === valorActual) return; 
-    
-    // Ajuste para el nuevo tipo 'detallesVolqueta'
     const valorFormateado = (tipo === 'placas') ? nuevoValor.trim().toUpperCase() : nuevoValor.trim(); 
     const propiedad = { 
-        placas: 'volqueta', 
-        choferes: 'chofer', 
-        empresas: 'empresa', 
-        proveedores: 'proveedor', 
-        proyectos: 'proyecto',
-        detallesVolqueta: 'detallesVolqueta' // Nueva propiedad
+        placas: 'volqueta', choferes: 'chofer', empresas: 'empresa', proveedores: 'proveedor', 
+        proyectos: 'proyecto', detallesVolqueta: 'detallesVolqueta' 
     }[tipo]; 
-    
-    if (!propiedad) {
-        console.error("Tipo de item desconocido:", tipo);
-        mostrarNotificacion("Error interno al modificar.", "error");
-        return;
-    }
-
+    if (!propiedad) { console.error("Tipo de item desconocido:", tipo); mostrarNotificacion("Error interno al modificar.", "error"); return; }
     if (confirm(`¿Estás seguro de cambiar "${valorActual}" por "${valorFormateado}"? Esto actualizará TODOS los registros.`)) { 
         try { 
             await updateDoc(doc(db, tipo, item.id), { nombre: valorFormateado }); 
-            const updates = todosLosConsumos
-                .filter(consumo => consumo[propiedad] === valorActual)
-                .map(consumo => updateDoc(doc(db, "consumos", consumo.id), { [propiedad]: valorFormateado })); 
+            const updates = todosLosConsumos.filter(consumo => consumo[propiedad] === valorActual).map(consumo => updateDoc(doc(db, "consumos", consumo.id), { [propiedad]: valorFormateado })); 
             await Promise.all(updates); 
             await cargarDatosIniciales(); 
             mostrarNotificacion("Actualización masiva completada.", "exito"); 
-        } catch(e) { 
-            console.error("Error modificando:", e); 
-            mostrarNotificacion("Error al modificar.", "error"); 
-        } 
+        } catch(e) { console.error("Error modificando:", e); mostrarNotificacion("Error al modificar.", "error"); } 
     } 
 }
-// ===== FIN DE FUNCIÓN MODIFICADA =====
 
 // ===== INICIO DE FUNCIÓN MODIFICADA =====
 function cargarDatosParaModificar(id) {
@@ -332,10 +306,13 @@ function cargarDatosParaModificar(id) {
     document.getElementById('selectEmpresa').value = consumo.empresa || ""; 
     document.getElementById('selectProveedor').value = consumo.proveedor || ""; 
     document.getElementById('selectProyecto').value = consumo.proyecto || "";
-    // Nuevos campos
     document.getElementById('selectDetallesVolqueta').value = consumo.detallesVolqueta || "";
     document.getElementById('kilometraje').value = consumo.kilometraje || "";
-    abrirModal();
+
+    // Llama a openMainTab SIN evento para cambiar a la pestaña Registrar
+    openMainTab(null, 'tabRegistrar'); 
+    
+    abrirModal(); // Abre el modal después de cambiar de pestaña
 }
 // ===== FIN DE FUNCIÓN MODIFICADA =====
 
@@ -358,27 +335,14 @@ const calcularYMostrarTotalesPorProyecto = (consumos) => calcularYMostrarTotales
 const calcularYMostrarTotalesPorChofer = (consumos) => calcularYMostrarTotalesPorCategoria(consumos, 'chofer', 'resumenChoferBody', 'resumenChoferFooter');
 const calcularYMostrarTotales = (consumos) => { calcularYMostrarTotalesPorCategoria(consumos, 'volqueta', 'resumenBody', 'resumenFooter'); };
 
-// ===== INICIO DE FUNCIÓN MODIFICADA =====
 async function borrarItemAdmin(item, tipo) { 
-    // Añadir verificación para el nuevo tipo
     const coleccionesPermitidas = ["choferes", "placas", "detallesVolqueta", "empresas", "proveedores", "proyectos"];
-    if (!coleccionesPermitidas.includes(tipo)) {
-        console.error("Intento de borrar de una colección no permitida:", tipo);
-        mostrarNotificacion("Error interno al borrar.", "error");
-        return;
-    }
+    if (!coleccionesPermitidas.includes(tipo)) { console.error("Intento de borrar de una colección no permitida:", tipo); mostrarNotificacion("Error interno al borrar.", "error"); return; }
     if (confirm(`¿Seguro que quieres borrar "${item.nombre}"?`)) { 
-        try { 
-            await deleteDoc(doc(db, tipo, item.id)); 
-            mostrarNotificacion("Elemento borrado.", "exito"); 
-            await cargarDatosIniciales(); 
-        } catch(e) { 
-            console.error("Error borrando:", e); 
-            mostrarNotificacion("No se pudo borrar.", "error"); 
-        } 
+        try { await deleteDoc(doc(db, tipo, item.id)); mostrarNotificacion("Elemento borrado.", "exito"); await cargarDatosIniciales(); } 
+        catch(e) { console.error("Error borrando:", e); mostrarNotificacion("No se pudo borrar.", "error"); } 
     } 
 }
-// ===== FIN DE FUNCIÓN MODIFICADA =====
 
 async function borrarConsumoHistorial(id) {
     if (confirm('¿Seguro que quieres borrar este registro? Esta acción no se puede deshacer.')) {
@@ -396,11 +360,9 @@ async function borrarConsumoHistorial(id) {
 function poblarFiltroDeMes() { const filtros = document.querySelectorAll('.filtro-sincronizado[data-sync-id="filtroMes"]'); const mesesUnicos = [...new Set(todosLosConsumos.map(c => c.fecha.substring(0, 7)))]; mesesUnicos.sort().reverse(); filtros.forEach(filtroSelect => { const valorSeleccionado = filtroSelect.value; filtroSelect.innerHTML = '<option value="todos">Todos los Meses</option>'; mesesUnicos.forEach(mes => { const [year, month] = mes.split('-'); const fechaMes = new Date(year, month - 1); const nombreMes = fechaMes.toLocaleDateString('es-EC', { month: 'long', year: 'numeric' }); const opcion = document.createElement('option'); opcion.value = mes; opcion.textContent = nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1); filtroSelect.appendChild(opcion); }); if (filtroSelect.value) filtroSelect.value = valorSeleccionado || 'todos'; }); }
 function poblarFiltrosReportes() { const tipos = { choferes: 'filtroChofer', proveedores: 'filtroProveedor', empresas: 'filtroEmpresa', proyectos: 'filtroProyecto' }; const titulos = { choferes: 'Todos los Choferes', proveedores: 'Todos los Proveedores', empresas: 'Todas las Empresas', proyectos: 'Todos los Proyectos' }; for (const tipo in tipos) { const syncId = tipos[tipo]; const selects = document.querySelectorAll(`.filtro-sincronizado[data-sync-id="${syncId}"]`); selects.forEach(select => { const valorActual = select.value; select.innerHTML = `<option value="todos">${titulos[tipo]}</option>`; listasAdmin[tipo].forEach(item => { select.innerHTML += `<option value="${item.nombre}">${item.nombre}</option>`; }); select.value = valorActual || 'todos'; }); } }
 
-// ===== INICIO DE FUNCIÓN MODIFICADA =====
 function mostrarHistorialAgrupado(consumos) {
     const historialBody = document.getElementById('historialBody'); const historialFooter = document.getElementById('historialFooter');
     historialBody.innerHTML = ''; historialFooter.innerHTML = '';
-    // Ajustar colspan para el estado vacío
     if (consumos.length === 0) { historialBody.innerHTML = `<tr><td colspan="14" class="empty-state"><i class="fa-solid fa-folder-open"></i><p>No se encontraron registros.</p></td></tr>`; return; }
     let totalGalones = 0, totalCosto = 0;
     consumos.sort((a,b) => new Date(b.fecha) - new Date(a.fecha) || a.volqueta.localeCompare(b.volqueta));
@@ -411,22 +373,18 @@ function mostrarHistorialAgrupado(consumos) {
         if (mesAnio !== mesAnioActual && !(obtenerConsumosFiltrados.fechaInicio && obtenerConsumosFiltrados.fechaFin)) {
             mesAnioActual = mesAnio;
             const filaGrupo = document.createElement('tr'); filaGrupo.className = 'fila-grupo'; 
-            // Ajustar colspan para la fila de grupo
             filaGrupo.innerHTML = `<td colspan="14">${mesAnioActual.charAt(0).toUpperCase() + mesAnioActual.slice(1)}</td>`;
             historialBody.appendChild(filaGrupo);
         }
         const filaDato = document.createElement('tr');
-        // Añadir las nuevas celdas
         filaDato.innerHTML = `<td class="no-print"><button class="btn-accion btn-modificar button-warning" data-id="${consumo.id}" title="Modificar"><i class="fa-solid fa-pencil" style="margin: 0;"></i></button><button class="btn-accion btn-borrar" data-id="${consumo.id}" title="Borrar"><i class="fa-solid fa-trash-can" style="margin: 0;"></i></button></td>
             <td>${consumo.fecha}</td><td>${consumo.hora || ''}</td><td>${consumo.numeroFactura || ''}</td><td>${consumo.chofer}</td><td>${consumo.volqueta}</td>
             <td>${consumo.detallesVolqueta || ''}</td><td>${consumo.kilometraje || ''}</td>
             <td>${consumo.proveedor || ''}</td><td>${consumo.proyecto || ''}</td><td>${(parseFloat(consumo.galones) || 0).toFixed(2)}</td><td>$${(parseFloat(consumo.costo) || 0).toFixed(2)}</td><td>${consumo.empresa || ''}</td><td>${consumo.descripcion}</td>`;
         historialBody.appendChild(filaDato);
     });
-    // Ajustar colspan para el footer
     historialFooter.innerHTML = `<tr><td class="no-print"></td><td colspan="9" style="text-align: right;"><strong>TOTAL GALONES:</strong></td><td><strong>${totalGalones.toFixed(2)}</strong></td><td style="text-align: right;"><strong>VALOR TOTAL:</strong></td><td><strong>$${totalCosto.toFixed(2)}</strong></td><td></td></tr>`;
 }
-// ===== FIN DE FUNCIÓN MODIFICADA =====
 
 function asignarSincronizacionDeFiltros() {
     const filtros = document.querySelectorAll('.filtro-sincronizado');
@@ -443,7 +401,6 @@ function asignarSincronizacionDeFiltros() {
 function handleLogin(e) { e.preventDefault(); const email = document.getElementById('login-email').value; const password = document.getElementById('login-password').value; signInWithEmailAndPassword(auth, email, password).then(userCredential => { mostrarNotificacion("Bienvenido de nuevo", "exito"); }).catch(error => { mostrarNotificacion("Credenciales incorrectas.", "error"); }); }
 function handleLogout() { signOut(auth).catch(error => { mostrarNotificacion("Error al cerrar sesión: " + error.message, "error"); }); }
 
-// ===== INICIO DE FUNCIÓN MODIFICADA =====
 function asignarEventosApp() {
     btnAbrirModal.addEventListener('click', abrirModal);
     btnCerrarModal.addEventListener('click', cerrarModal);
@@ -488,7 +445,6 @@ function asignarEventosApp() {
     document.getElementById('historialBody').addEventListener('click', manejarAccionesHistorial);
     document.getElementById('formAdminChofer').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('choferes', document.getElementById('nuevoChofer')); });
     document.getElementById('formAdminPlaca').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('placas', document.getElementById('nuevaPlaca')); });
-    // Nuevo evento para Detalles Volqueta
     document.getElementById('formAdminDetallesVolqueta').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('detallesVolqueta', document.getElementById('nuevoDetalleVolqueta')); });
     document.getElementById('formAdminEmpresa').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('empresas', document.getElementById('nuevaEmpresa')); });
     document.getElementById('formAdminProveedor').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('proveedores', document.getElementById('nuevoProveedor')); });
@@ -504,7 +460,6 @@ function asignarEventosApp() {
     });
     asignarSincronizacionDeFiltros();
 }
-// ===== FIN DE FUNCIÓN MODIFICADA =====
 
 function iniciarAplicacion() {
     asignarEventosApp();
