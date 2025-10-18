@@ -118,13 +118,12 @@ function actualizarTodaLaUI() {
     mostrarHistorialAgrupado(consumosFiltrados);
 }
 
-// --- FUNCIÓN MODIFICADA ---
 function poblarSelectores() {
     const selectores = { 
         choferes: document.getElementById('selectChofer'), 
         placas: document.getElementById('selectVolqueta'), 
         detallesVolqueta: document.getElementById('selectDetallesVolqueta'), 
-        maquinaria: document.getElementById('selectMaquinariaDestino'), // <-- AÑADIDO
+        maquinaria: document.getElementById('selectMaquinariaDestino'), 
         empresas: document.getElementById('selectEmpresa'), 
         proveedores: document.getElementById('selectProveedor'), 
         proyectos: document.getElementById('selectProyecto') 
@@ -133,7 +132,7 @@ function poblarSelectores() {
         choferes: '--- Chofer ---', 
         placas: '--- Placa ---', 
         detallesVolqueta: '--- Detalles Volqueta ---', 
-        maquinaria: '--- Maquinaria ---', // <-- AÑADIDO
+        maquinaria: '--- Maquinaria ---', 
         empresas: '--- Empresa ---', 
         proveedores: '--- Proveedor ---', 
         proyectos: '--- Proyecto ---' 
@@ -148,7 +147,6 @@ function poblarSelectores() {
     }
 }
 
-// --- FUNCIÓN MODIFICADA ---
 function reiniciarFormulario() {
     document.getElementById('consumoForm').reset();
     document.getElementById('registroId').value = '';
@@ -156,19 +154,17 @@ function reiniciarFormulario() {
     document.getElementById('formularioTitulo').textContent = 'Nuevo Registro';
     poblarSelectores();
 
-    // --- NUEVO: Reiniciar visibilidad del formulario ---
+    // Reiniciar visibilidad del formulario
     document.getElementById('camposCompra').style.display = 'block';
     document.getElementById('camposTransferencia').style.display = 'none';
     document.getElementById('tipoRegistro').value = 'compra';
 
-    // --- NUEVO: Reiniciar campos 'required' ---
+    // Reiniciar campos 'required'
     document.getElementById('selectProveedor').required = true;
     document.getElementById('costo').required = true;
     document.getElementById('selectMaquinariaDestino').required = false;
-    // --- FIN DE LÓGICA NUEVA ---
 }
 
-// --- FUNCIÓN MODIFICADA ---
 async function guardarOActualizar(e) {
     e.preventDefault();
     const btnGuardar = document.getElementById('btnGuardar');
@@ -177,7 +173,6 @@ async function guardarOActualizar(e) {
 
     const id = document.getElementById('registroId').value;
     
-    // --- INICIO DE BLOQUE MODIFICADO ---
     const tipoRegistro = document.getElementById('tipoRegistro').value;
 
     // Objeto base con campos comunes
@@ -208,7 +203,6 @@ async function guardarOActualizar(e) {
         datosConsumo.costo = 0; // ¡Importante! No tiene costo de compra
         datosConsumo.maquinariaDestino = document.getElementById('selectMaquinariaDestino').value; 
     }
-    // --- FIN DE BLOQUE MODIFICADO ---
 
     if (!datosConsumo.chofer || !datosConsumo.volqueta || !datosConsumo.proyecto) {
         mostrarNotificacion("Por favor, complete Chofer, Placa y Proyecto.", "error");
@@ -240,6 +234,12 @@ async function guardarOActualizar(e) {
 async function agregarItemAdmin(tipo, inputElement) {
     const valor = (tipo === 'placas') ? inputElement.value.trim().toUpperCase() : inputElement.value.trim();
     if (valor) {
+        // Verificar si 'listasAdmin[tipo]' existe antes de usar 'map'
+        if (!listasAdmin[tipo]) {
+            console.error(`Error: listasAdmin['${tipo}'] no está definido.`);
+            mostrarNotificacion("Error interno al agregar.", "error");
+            return;
+        }
         const listaNombres = listasAdmin[tipo].map(item => item.nombre.toUpperCase());
         if (listaNombres.includes(valor.toUpperCase())) { mostrarNotificacion(`"${valor}" ya existe.`, "error"); return; }
         try {
@@ -273,7 +273,7 @@ function obtenerConsumosFiltrados() {
     const empresa = obtenerValorFiltro('filtroEmpresa');
     const proyecto = obtenerValorFiltro('filtroProyecto');
     let consumosFiltrados = todosLosConsumos;
-    if (fechaInicio && fechaFin) { if (fechaFin < fechaInicio) { mostrarNotificacion("La fecha de fin no puede ser anterior a la de inicio.", "error"); return []; } consumosFiltrados = consumosFiltrados.filter(c => c.fecha >= fechaInicio && c.fecha <= fechaFin); } else if (fechaInicio) { consumosFiltrados = consumosFiltrados.filter(c => c.fecha === fechaInicio); } else if (mes !== 'todos') { consumosFiltrados = consumosFiltrados.filter(c => c.fecha.startsWith(mes)); }
+    if (fechaInicio && fechaFin) { if (fechaFin < fechaInicio) { mostrarNotificacion("La fecha de fin no puede ser anterior a la de inicio.", "error"); return []; } consumosFiltrados = consumosFiltrados.filter(c => c.fecha >= fechaInicio && c.fecha <= fechaFin); } else if (fechaInicio) { consumosFiltrados = consumosFiltrados.filter(c => c.fecha === fechaInicio); } else if (mes !== 'todos') { consumosFiltrados = consumosFiltrados.filter(c => c.fecha && c.fecha.startsWith(mes)); }
     if (chofer !== 'todos') { consumosFiltrados = consumosFiltrados.filter(c => c.chofer === chofer); }
     if (proveedor !== 'todos') { consumosFiltrados = consumosFiltrados.filter(c => c.proveedor === proveedor); }
     if (empresa !== 'todos') { consumosFiltrados = consumosFiltrados.filter(c => c.empresa === empresa); }
@@ -296,7 +296,11 @@ function mostrarListasAdmin() {
         if (!ul) continue;
         ul.innerHTML = '';
         if (listasAdmin[tipo].length === 0) { ul.innerHTML = `<li class="empty-state">No hay elementos.</li>`; continue; }
-        listasAdmin[tipo].forEach(item => {
+        
+        // Ordenar alfabéticamente antes de mostrar
+        const listaOrdenada = [...listasAdmin[tipo]].sort((a, b) => a.nombre.localeCompare(b.nombre));
+
+        listaOrdenada.forEach(item => {
             const li = document.createElement('li');
             li.innerHTML = `<span>${item.nombre}</span><div><button class="btn-accion btn-modificar button-warning" title="Modificar"><i class="fa-solid fa-pencil" style="margin:0;"></i></button><button class="btn-accion btn-borrar" title="Borrar"><i class="fa-solid fa-trash-can" style="margin:0;"></i></button></div>`;
             li.querySelector('.btn-modificar').addEventListener('click', () => modificarItemAdmin(item, tipo));
@@ -328,11 +332,9 @@ async function modificarItemAdmin(item, tipo) {
     } 
 }
 
-// --- FUNCIÓN MODIFICADA ---
 function cargarDatosParaModificar(id) {
     const consumo = todosLosConsumos.find(c => c.id === id); if (!consumo) return;
 
-    // --- NUEVO: Detectar el tipo de registro ---
     const tipoRegistro = consumo.tipoRegistro || 'compra'; // Asumir 'compra' para datos antiguos
     const selectTipo = document.getElementById('tipoRegistro');
     selectTipo.value = tipoRegistro;
@@ -341,7 +343,6 @@ function cargarDatosParaModificar(id) {
     setTimeout(() => {
         selectTipo.dispatchEvent(new Event('change'));
     }, 0);
-    // --- FIN LÓGICA NUEVA ---
 
     document.getElementById('registroId').value = consumo.id; 
     document.getElementById('fecha').value = consumo.fecha; 
@@ -356,7 +357,6 @@ function cargarDatosParaModificar(id) {
     document.getElementById('selectDetallesVolqueta').value = consumo.detallesVolqueta || "";
     document.getElementById('kilometraje').value = consumo.kilometraje || "";
 
-    // --- NUEVO: Llenar campos dinámicos ---
     if (tipoRegistro === 'compra') {
         document.getElementById('numeroFactura').value = consumo.numeroFactura || ''; 
         document.getElementById('selectProveedor').value = consumo.proveedor || ""; 
@@ -364,7 +364,6 @@ function cargarDatosParaModificar(id) {
     } else {
         document.getElementById('maquinariaDestino').value = consumo.maquinariaDestino || '';
     }
-    // --- FIN LÓGICA NUEVA ---
 
     openMainTab(null, 'tabRegistrar'); 
     abrirModal(); 
@@ -411,7 +410,7 @@ async function borrarConsumoHistorial(id) {
     }
 }
 
-function poblarFiltroDeMes() { const filtros = document.querySelectorAll('.filtro-sincronizado[data-sync-id="filtroMes"]'); const mesesUnicos = [...new Set(todosLosConsumos.map(c => c.fecha.substring(0, 7)))]; mesesUnicos.sort().reverse(); filtros.forEach(filtroSelect => { const valorSeleccionado = filtroSelect.value; filtroSelect.innerHTML = '<option value="todos">Todos los Meses</option>'; mesesUnicos.forEach(mes => { const [year, month] = mes.split('-'); const fechaMes = new Date(year, month - 1); const nombreMes = fechaMes.toLocaleDateString('es-EC', { month: 'long', year: 'numeric' }); const opcion = document.createElement('option'); opcion.value = mes; opcion.textContent = nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1); filtroSelect.appendChild(opcion); }); if (filtroSelect.value) filtroSelect.value = valorSeleccionado || 'todos'; }); }
+function poblarFiltroDeMes() { const filtros = document.querySelectorAll('.filtro-sincronizado[data-sync-id="filtroMes"]'); const mesesUnicos = [...new Set(todosLosConsumos.map(c => c.fecha && c.fecha.substring(0, 7)))].filter(Boolean); mesesUnicos.sort().reverse(); filtros.forEach(filtroSelect => { const valorSeleccionado = filtroSelect.value; filtroSelect.innerHTML = '<option value="todos">Todos los Meses</option>'; mesesUnicos.forEach(mes => { const [year, month] = mes.split('-'); const fechaMes = new Date(year, month - 1); const nombreMes = fechaMes.toLocaleDateString('es-EC', { month: 'long', year: 'numeric' }); const opcion = document.createElement('option'); opcion.value = mes; opcion.textContent = nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1); filtroSelect.appendChild(opcion); }); if (filtroSelect.value) filtroSelect.value = valorSeleccionado || 'todos'; }); }
 function poblarFiltrosReportes() { const tipos = { choferes: 'filtroChofer', proveedores: 'filtroProveedor', empresas: 'filtroEmpresa', proyectos: 'filtroProyecto' }; const titulos = { choferes: 'Todos los Choferes', proveedores: 'Todos los Proveedores', empresas: 'Todas las Empresas', proyectos: 'Todos los Proyectos' }; for (const tipo in tipos) { const syncId = tipos[tipo]; const selects = document.querySelectorAll(`.filtro-sincronizado[data-sync-id="${syncId}"]`); selects.forEach(select => { const valorActual = select.value; select.innerHTML = `<option value="todos">${titulos[tipo]}</option>`; listasAdmin[tipo].forEach(item => { select.innerHTML += `<option value="${item.nombre}">${item.nombre}</option>`; }); select.value = valorActual || 'todos'; }); } }
 
 function mostrarHistorialAgrupado(consumos) {
@@ -423,8 +422,14 @@ function mostrarHistorialAgrupado(consumos) {
     let mesAnioActual = "";
     consumos.forEach(consumo => {
         totalGalones += parseFloat(consumo.galones) || 0; totalCosto += parseFloat(consumo.costo) || 0;
-        const fechaConsumo = new Date(consumo.fecha + 'T00:00:00'); const mesAnio = fechaConsumo.toLocaleDateString('es-EC', { month: 'long', year: 'numeric' });
-        if (mesAnio !== mesAnioActual && !(obtenerConsumosFiltrados.fechaInicio && obtenerConsumosFiltrados.fechaFin)) {
+        const fechaConsumo = new Date(consumo.fecha + 'T00:00:00'); const mesAnio = fechaConsumo.toLocaleDateString('es-EC', { month: 'long', year: 'numeric', timeZone: 'UTC' });
+        
+        // Determinar si hay un filtro de rango de fechas activo
+        const fechaInicioFiltro = document.querySelector('.filtro-sincronizado[data-sync-id="filtroFechaInicio"]')?.value;
+        const fechaFinFiltro = document.querySelector('.filtro-sincronizado[data-sync-id="filtroFechaFin"]')?.value;
+        const filtroRangoActivo = fechaInicioFiltro && fechaFinFiltro;
+
+        if (mesAnio !== mesAnioActual && !filtroRangoActivo) { // Solo agrupar por mes si NO hay un rango de fechas
             mesAnioActual = mesAnio;
             const filaGrupo = document.createElement('tr'); filaGrupo.className = 'fila-grupo'; 
             filaGrupo.innerHTML = `<td colspan="14">${mesAnioActual.charAt(0).toUpperCase() + mesAnioActual.slice(1)}</td>`;
@@ -448,6 +453,15 @@ function asignarSincronizacionDeFiltros() {
             const newValue = e.target.value;
             const filtrosASincronizar = document.querySelectorAll(`.filtro-sincronizado[data-sync-id="${syncId}"]`);
             filtrosASincronizar.forEach(f => { if (f !== e.target) { f.value = newValue; } });
+            
+            // Lógica para limpiar filtros opuestos
+            if (syncId === 'filtroMes' && newValue !== 'todos') {
+                document.querySelectorAll('.filtro-sincronizado[data-sync-id="filtroFechaInicio"]').forEach(el => el.value = '');
+                document.querySelectorAll('.filtro-sincronizado[data-sync-id="filtroFechaFin"]').forEach(el => el.value = '');
+            }
+            if ((syncId === 'filtroFechaInicio' || syncId === 'filtroFechaFin') && newValue !== '') {
+                document.querySelectorAll('.filtro-sincronizado[data-sync-id="filtroMes"]').forEach(el => el.value = 'todos');
+            }
         });
     });
 }
@@ -471,19 +485,33 @@ function asignarEventosApp() {
             const targetId = e.currentTarget.dataset.printTarget;
             const targetTab = document.getElementById(targetId);
             if (targetTab) {
-                tabActivaParaImprimir = targetTab;
+                // Preparar para impresión
+                document.querySelectorAll('.main-tab-content').forEach(tab => tab.classList.remove('printable-active'));
                 targetTab.classList.add('printable-active');
+                tabActivaParaImprimir = targetId; // Guardar la pestaña activa
+                
                 window.print();
             }
         });
     });
     
     window.onafterprint = () => {
-        if (tabActivaParaImprimir) {
-            tabActivaParaImprimir.classList.remove('printable-active');
-            tabActivaParaImprimir = null;
-        }
+        // Limpiar clases de impresión
+        document.querySelectorAll('.main-tab-content').forEach(tab => tab.classList.remove('printable-active'));
         document.getElementById('facturas-impresion').innerHTML = '';
+        
+        // Volver a la pestaña que estaba activa antes de imprimir
+        if (tabActivaParaImprimir) {
+            // Usamos el ID guardado para encontrar el botón correcto y simular un clic sin evento
+            const botonTabActiva = document.getElementById(`btnTab${tabActivaParaImprimir.replace('tab','')}`);
+            if (botonTabActiva) {
+                openMainTab(null, tabActivaParaImprimir);
+                // Asegurarse de que el botón quede marcado como activo
+                document.querySelectorAll('.main-tab-link').forEach(btn => btn.classList.remove('active'));
+                botonTabActiva.classList.add('active');
+            }
+            tabActivaParaImprimir = null; // Limpiar la variable
+        }
     };
     
     document.querySelectorAll('#btnAplicarFiltros').forEach(btn => btn.addEventListener('click', actualizarTodaLaUI));
@@ -491,6 +519,7 @@ function asignarEventosApp() {
         document.querySelectorAll('.filtro-sincronizado').forEach(filtro => {
             const valorOriginal = filtro.value;
             if(filtro.tagName === 'SELECT') filtro.value = 'todos'; else filtro.value = '';
+            // Disparar evento change para que los filtros sincronizados se limpien
             if (filtro.value !== valorOriginal) { filtro.dispatchEvent(new Event('change', { 'bubbles': true })); }
         });
         actualizarTodaLaUI();
@@ -505,7 +534,7 @@ function asignarEventosApp() {
     document.getElementById('formAdminProyecto').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('proyectos', document.getElementById('nuevoProyecto')); });
     document.getElementById('formAdminMaquinaria').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('maquinaria', document.getElementById('nuevaMaquinaria')); });
     
-    // --- NUEVO: Lógica para formulario dinámico ---
+    // Lógica para formulario dinámico
     const selectTipoRegistro = document.getElementById('tipoRegistro');
     if (selectTipoRegistro) {
         selectTipoRegistro.addEventListener('change', (e) => {
@@ -513,36 +542,28 @@ function asignarEventosApp() {
             const camposCompra = document.getElementById('camposCompra');
             const camposTransferencia = document.getElementById('camposTransferencia');
 
-            // Inputs que cambiaremos
             const inputProveedor = document.getElementById('selectProveedor');
             const inputCosto = document.getElementById('costo');
             const inputMaquinaria = document.getElementById('selectMaquinariaDestino');
 
             if (tipo === 'transferencia') {
-                // Ocultar Compra, Mostrar Transferencia
                 if (camposCompra) camposCompra.style.display = 'none';
                 if (camposTransferencia) camposTransferencia.style.display = 'block';
 
-                // Quitar 'required' de Compra
                 if (inputProveedor) inputProveedor.required = false;
                 if (inputCosto) inputCosto.required = false;
-                // Añadir 'required' a Transferencia
                 if (inputMaquinaria) inputMaquinaria.required = true;
 
             } else { // 'compra'
-                // Mostrar Compra, Ocultar Transferencia
                 if (camposCompra) camposCompra.style.display = 'block';
                 if (camposTransferencia) camposTransferencia.style.display = 'none';
 
-                // Restaurar 'required' a Compra
                 if (inputProveedor) inputProveedor.required = true;
                 if (inputCosto) inputCosto.required = true;
-                // Quitar 'required' de Transferencia
                 if (inputMaquinaria) inputMaquinaria.required = false;
             }
         });
     }
-    // --- FIN DE LÓGICA NUEVA ---
 
     const botonesAcordeon = document.querySelectorAll('.accordion-button');
     botonesAcordeon.forEach(boton => {
