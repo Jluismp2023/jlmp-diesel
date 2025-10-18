@@ -46,7 +46,7 @@ button:hover { opacity: 0.9; }
     background-color: var(--success-color);
     color: var(--white-color);
 }
-#resumenTabla tfoot tr, #resumenEmpresaTabla tfoot tr, #resumenProveedorTabla tfoot tr, #resumenChoferTabla tfoot tr, #resumenProyectoTabla tfoot tr, #historialTabla tfoot tr {
+#resumenTabla tfoot tr, #resumenEmpresaTabla tfoot tr, #resumenProveedorTabla tfoot tr, #resumenChoferTabla tfoot tr, #resumenProyectoTabla tfoot tr, #historialTabla tfoot tr, #historialFacturaTabla tfoot tr { /* Added historialFacturaTabla */
     font-weight: bold;
     background-color: #e9ecef;
     border-top: 2px solid var(--dark-text-color);
@@ -107,7 +107,7 @@ button:hover { opacity: 0.9; }
 .no-print { }
 .signature-block { display: none; }
 .credits { text-align: center; margin: 25px 0; font-weight: bold; color: var(--secondary-color); }
-#historialTabla, #historialFacturaTabla { table-layout: auto; width: 100%; } /* Aplicar a ambas tablas */
+#historialTabla, #historialFacturaTabla { table-layout: auto; width: 100%; }
 #facturas-impresion { display: none; }
 .print-suggestion { color: var(--secondary-color); font-style: italic; display: block; text-align: right; margin-top: 5px; }
 
@@ -124,15 +124,15 @@ button:hover { opacity: 0.9; }
 }
 
 @media print {
-    .no-print, #vista-login, .main-tabs, .sub-tabs { display: none !important; } /* Ocultar sub-tabs también */
+    .no-print, #vista-login, .main-tabs, .sub-tabs { display: none !important; }
     body, #vista-app { display: block !important; }
     .main-tab-content { display: none !important; }
     .main-tab-content.printable-active { display: block !important; }
-    .sub-tab-content { display: none !important; } /* Ocultar sub-contenidos por defecto */
-    .sub-tab-content.printable-active { display: block !important; } /* Mostrar el activo */
+    .sub-tab-content { display: none !important; }
+    .sub-tab-content.printable-active { display: block !important; }
     .accordion-button { display: none !important; }
     .accordion-panel { max-height: unset !important; overflow: visible !important; padding: 0 !important; border: none !important; }
-    body { margin: 0; padding: 5px; background-color: var(--white-color); color: black; font-size: 8pt; } 
+    body { margin: 0; padding: 5px; background-color: var(--white-color); color: black; font-size: 8pt; }
     .container { box-shadow: none; border: none; margin: 0 0 10px 0; padding: 0; width: 100%; }
     .header-container { justify-content: center; padding: 8px 0; border-bottom: 1px solid black; margin-bottom: 10px; box-shadow: none; border-radius: 0; }
     .header-logo { height: 40px; }
@@ -142,9 +142,9 @@ button:hover { opacity: 0.9; }
     .card-header .fa-solid { display: none; }
     .report-cards-container { display: block; }
     .report-card { display: block; box-shadow: none; border: none; page-break-inside: avoid; margin-bottom: 10px; }
-    table { width: 100%; border-collapse: collapse; page-break-inside: auto; font-size: 7pt; } /* Reducir fuente base de tabla */
+    table { width: 100%; border-collapse: collapse; page-break-inside: auto; font-size: 7pt; }
     tr { page-break-inside: avoid; page-break-after: auto; }
-    th, td { border: 1px solid #555 !important; padding: 2px 3px; word-break: break-word; white-space: normal; } 
+    th, td { border: 1px solid #555 !important; padding: 2px 3px; word-break: break-word; white-space: normal; }
     th { background-color: #eee !important; color: black !important; white-space: nowrap; }
     tfoot tr { background-color: #f5f5f5 !important; font-weight: bold; }
     .fila-grupo { background-color: #ddd !important; color: black !important; font-weight: bold; }
@@ -153,22 +153,23 @@ button:hover { opacity: 0.9; }
     #facturas-impresion { display: none; }
     .table-container { overflow: visible !important; }
     #historialTabla th:last-child, #historialTabla td:last-child,
-    #historialFacturaTabla th:last-child, #historialFacturaTabla td:last-child { min-width: 80px; } /* Ancho mínimo descripción impresión */
-    #historialFacturaTabla .fila-abastecimiento td { background-color: #f0f0f0 !important; padding-left: 10px !important; } /* Estilo impresión abastecimiento */
-    #historialFacturaTabla .fila-abastecimiento i { display: none; } /* Ocultar icono flecha */
+    #historialFacturaTabla th:last-child, #historialFacturaTabla td:last-child { min-width: 80px; }
+    #historialFacturaTabla .fila-abastecimiento td { background-color: #f0f0f0 !important; padding-left: 10px !important; }
+    #historialFacturaTabla .fila-abastecimiento i { display: none; }
 }
 
-/* Anchos específicos para pantalla (ajusta según necesidad) */
+/* Anchos específicos para pantalla */
 #historialTabla th:nth-child(1), #historialTabla td:nth-child(1),
 #historialFacturaTabla th:nth-child(1), #historialFacturaTabla td:nth-child(1) { width: 100px; } /* Acciones */
 #historialTabla th:nth-child(2), #historialTabla td:nth-child(2),
 #historialFacturaTabla th:nth-child(2), #historialFacturaTabla td:nth-child(2) { width: 90px; } /* Fecha */
-#historialTabla th:nth-child(9), #historialTabla td:nth-child(9),
-#historialFacturaTabla th:nth-child(9), #historialFacturaTabla td:nth-child(9) { min-width: 120px; } /* Maquinaria */
-#historialTabla th:nth-child(10), #historialTabla td:nth-child(10),
-#historialFacturaTabla th:nth-child(14), #historialFacturaTabla td:nth-child(14) { width: 90px; } /* Saldo Manual */
+#historialTabla th:nth-child(9), #historialTabla td:nth-child(9), /* Maquinaria Historial General */
+#historialFacturaTabla th:nth-child(9), #historialFacturaTabla td:nth-child(9) { min-width: 120px; } /* Maquinaria Historial Factura */
+#historialTabla th:nth-child(10), #historialTabla td:nth-child(10), /* Saldo Manual Historial General */
+#historialFacturaTabla th:nth-child(14), #historialFacturaTabla td:nth-child(14) { width: 90px; } /* Saldo Manual Historial Factura */
 #historialTabla th:last-child, #historialTabla td:last-child,
 #historialFacturaTabla th:last-child, #historialFacturaTabla td:last-child { min-width: 150px; } /* Descripción */
+
 
 .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 
@@ -183,7 +184,7 @@ button:hover { opacity: 0.9; }
 
 #historialTabla tbody tr:nth-child(even):not(.fila-grupo) { background-color: #f8f9fa; }
 #historialTabla tbody tr:not(.fila-grupo):hover { background-color: #e9ecef; }
-#historialFacturaTabla tbody tr:hover { background-color: #e9ecef; } /* Hover para tabla factura también */
+#historialFacturaTabla tbody tr:hover { background-color: #e9ecef; }
 
 .btn-modificar i { color: var(--dark-text-color) !important; }
 .admin-form .button-success i,
@@ -191,15 +192,15 @@ button:hover { opacity: 0.9; }
 .button-primary i,
 .button-info i,
 .button-success i,
-.button-secondary i { /* Añadido secondary */
+.button-secondary i {
     color: var(--white-color) !important;
 }
 
 /* --- ESTILOS PARA SUB-PESTAÑAS --- */
 .sub-tabs {
-    border-bottom: 2px solid var(--secondary-color); /* Color diferente al principal */
+    border-bottom: 2px solid var(--secondary-color);
     overflow: hidden;
-    margin-bottom: 20px; /* Separación del contenido */
+    margin-bottom: 20px;
 }
 
 .sub-tabs button {
@@ -209,9 +210,9 @@ button:hover { opacity: 0.9; }
     border-bottom: none;
     outline: none;
     cursor: pointer;
-    padding: 10px 15px; /* Ligeramente más pequeño */
+    padding: 10px 15px;
     transition: 0.3s;
-    font-size: 15px; /* Ligeramente más pequeño */
+    font-size: 15px;
     border-radius: 6px 6px 0 0;
     margin-right: 3px;
     color: var(--text-color);
@@ -222,7 +223,7 @@ button:hover { opacity: 0.9; }
 }
 
 .sub-tabs button.active {
-    background-color: var(--secondary-color); /* Color diferente */
+    background-color: var(--secondary-color);
     color: var(--white-color);
     border-color: var(--secondary-color);
 }
@@ -233,10 +234,10 @@ button:hover { opacity: 0.9; }
 
 /* Estilo para filas de abastecimiento en la tabla por factura */
 #historialFacturaTabla .fila-abastecimiento td {
-    background-color: #f8f9fa; /* Fondo ligero para diferenciar */
-    padding-left: 25px !important; /* Indentación para mostrar jerarquía - !important para sobreescribir padding general */
-    font-style: italic; /* Opcional: diferenciar estilo */
-    color: #555; /* Opcional: color de texto ligeramente diferente */
+    background-color: #f8f9fa;
+    padding-left: 25px !important; /* Indentación */
+    font-style: italic;
+    color: #555;
 }
 /* Estilo específico para la primera celda con el ícono */
 #historialFacturaTabla .fila-abastecimiento td:nth-child(2) { /* Ajusta el índice si cambias columnas */
@@ -249,4 +250,24 @@ button:hover { opacity: 0.9; }
     margin-right: 5px;
     color: var(--secondary-color);
     font-size: 0.8em; /* Hacer icono más pequeño */
+}
+
+/* Loader style */
+#loaderContainer {
+    display: flex; /* Changed back to flex for centering */
+    justify-content: center;
+    align-items: center;
+    padding: 40px;
+}
+.loader {
+  color: var(--primary-color);
+  font-size: 1.2em;
+}
+
+/* Estilo para los divs que se ocultan en transferencia */
+.campo-opcional-transferencia {
+    /* No necesita estilos específicos aquí, solo la clase para JS */
+    /* Asegúrate que el display inicial sea block o el que use tu formulario */
+    display: block; /* o flex si usas flexbox */
+    width: 100%; /* Para que ocupe el ancho como los otros campos */
 }
