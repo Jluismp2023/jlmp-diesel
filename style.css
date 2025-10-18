@@ -42,15 +42,20 @@ button:hover { opacity: 0.9; }
 .main-tabs button.active { background-color: var(--primary-color); color: var(--white-color); border-color: var(--primary-color); }
 .main-tab-content { display: none; }
 
-#resumenTabla th, #resumenEmpresaTabla th, #resumenProveedorTabla th, #resumenChoferTabla th, #resumenProyectoTabla th {
+/* ===== INICIO DE LÍNEA MODIFICADA (Añadir IDs nuevas tablas) ===== */
+#resumenTabla th, #resumenEmpresaTabla th, #resumenProveedorTabla th, #resumenChoferTabla th, #resumenProyectoTabla th, 
+#resumenSuministroVolquetaTabla th, #resumenSuministroMaquinariaTabla th {
     background-color: var(--success-color);
     color: var(--white-color);
 }
-#resumenTabla tfoot tr, #resumenEmpresaTabla tfoot tr, #resumenProveedorTabla tfoot tr, #resumenChoferTabla tfoot tr, #resumenProyectoTabla tfoot tr, #historialTabla tfoot tr {
+#resumenTabla tfoot tr, #resumenEmpresaTabla tfoot tr, #resumenProveedorTabla tfoot tr, #resumenChoferTabla tfoot tr, #resumenProyectoTabla tfoot tr, #historialTabla tfoot tr,
+#resumenSuministroVolquetaTabla tfoot tr, #resumenSuministroMaquinariaTabla tfoot tr, #historialSuministrosTabla tfoot tr {
     font-weight: bold;
     background-color: #e9ecef;
     border-top: 2px solid var(--dark-text-color);
 }
+/* ===== FIN DE LÍNEA MODIFICADA ===== */
+
 .fila-grupo td { background-color: var(--secondary-color); color: var(--white-color); font-weight: bold; text-align: center; font-size: 1.1em; }
 
 .filter-section { display: flex; flex-direction: column; gap: 15px; }
@@ -150,10 +155,12 @@ button:hover { opacity: 0.9; }
     .signature-block .line { width: 180px; border-top: 1px solid black; margin: 0 auto 5px auto; }
     #facturas-impresion { display: none; }
     .table-container { overflow: visible !important; }
-    #historialTabla { table-layout: auto; width: 100%; } 
-    #historialTabla th, #historialTabla td { font-size: 7pt; padding: 2px 3px; word-break: break-word; white-space: normal; }
-    #historialTabla th { white-space: nowrap; }
+    #historialTabla, #historialSuministrosTabla { table-layout: auto; width: 100%; } /* Aplicar a ambas tablas */
+    #historialTabla th, #historialTabla td, 
+    #historialSuministrosTabla th, #historialSuministrosTabla td { font-size: 7pt; padding: 2px 3px; word-break: break-word; white-space: normal; }
+    #historialTabla th, #historialSuministrosTabla th { white-space: nowrap; }
     #historialTabla th:last-child, #historialTabla td:last-child { min-width: 100px; } 
+    /* Ajustes específicos para la tabla de suministros si es necesario */
 }
 
 #historialTabla th:nth-child(1), #historialTabla td:nth-child(1) { width: 120px; } 
@@ -185,13 +192,5 @@ button:hover { opacity: 0.9; }
     color: var(--white-color) !important;
 }
 
-/* Estilos para la sección de suministro dentro del modal */
-#suministroForm {
-    display: flex; /* Cambiado a flex para que use los estilos de formulario */
-    flex-direction: column;
-    gap: 15px;
-}
-#suministrosGuardadosLista div {
-    padding: 2px 0;
-    border-bottom: 1px dotted #eee;
-}
+#suministroForm { display: flex; flex-direction: column; gap: 15px; }
+#suministrosGuardadosLista div { padding: 2px 0; border-bottom: 1px dotted #eee; }
