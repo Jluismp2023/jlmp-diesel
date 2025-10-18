@@ -46,7 +46,7 @@ button:hover { opacity: 0.9; }
     background-color: var(--success-color);
     color: var(--white-color);
 }
-#resumenTabla tfoot tr, #resumenEmpresaTabla tfoot tr, #resumenProveedorTabla tfoot tr, #resumenChoferTabla tfoot tr, #resumenProyectoTabla tfoot tr, #historialTabla tfoot tr, #historialFacturaTabla tfoot tr { /* Added historialFacturaTabla */
+#resumenTabla tfoot tr, #resumenEmpresaTabla tfoot tr, #resumenProveedorTabla tfoot tr, #resumenChoferTabla tfoot tr, #resumenProyectoTabla tfoot tr, #historialTabla tfoot tr {
     font-weight: bold;
     background-color: #e9ecef;
     border-top: 2px solid var(--dark-text-color);
@@ -107,14 +107,14 @@ button:hover { opacity: 0.9; }
 .no-print { }
 .signature-block { display: none; }
 .credits { text-align: center; margin: 25px 0; font-weight: bold; color: var(--secondary-color); }
-#historialTabla, #historialFacturaTabla { table-layout: auto; width: 100%; }
+#historialTabla { table-layout: auto; width: 100%; }
 #facturas-impresion { display: none; }
 .print-suggestion { color: var(--secondary-color); font-style: italic; display: block; text-align: right; margin-top: 5px; }
 
 @media screen and (max-width: 600px) {
     body { padding: 10px; }
     .filter-group { flex-direction: column; align-items: stretch; }
-    .main-tabs button, .sub-tabs button { font-size: 14px; padding: 12px 10px; }
+    .main-tabs button { font-size: 14px; padding: 12px 10px; }
     .modal-content { margin: 20% auto; }
     .header-container { flex-direction: column; gap: 15px; }
     .header-container .button-danger { width: 100%; }
@@ -123,16 +123,15 @@ button:hover { opacity: 0.9; }
     .admin-box { flex-basis: 100%; min-width: unset; }
 }
 
+/* ===== INICIO DE BLOQUE MODIFICADO ===== */
 @media print {
-    .no-print, #vista-login, .main-tabs, .sub-tabs { display: none !important; }
+    .no-print, #vista-login, .main-tabs { display: none !important; }
     body, #vista-app { display: block !important; }
     .main-tab-content { display: none !important; }
     .main-tab-content.printable-active { display: block !important; }
-    .sub-tab-content { display: none !important; }
-    .sub-tab-content.printable-active { display: block !important; }
     .accordion-button { display: none !important; }
     .accordion-panel { max-height: unset !important; overflow: visible !important; padding: 0 !important; border: none !important; }
-    body { margin: 0; padding: 5px; background-color: var(--white-color); color: black; font-size: 8pt; }
+    body { margin: 0; padding: 5px; background-color: var(--white-color); color: black; font-size: 8pt; } /* Tamaño base reducido */
     .container { box-shadow: none; border: none; margin: 0 0 10px 0; padding: 0; width: 100%; }
     .header-container { justify-content: center; padding: 8px 0; border-bottom: 1px solid black; margin-bottom: 10px; box-shadow: none; border-radius: 0; }
     .header-logo { height: 40px; }
@@ -142,34 +141,38 @@ button:hover { opacity: 0.9; }
     .card-header .fa-solid { display: none; }
     .report-cards-container { display: block; }
     .report-card { display: block; box-shadow: none; border: none; page-break-inside: avoid; margin-bottom: 10px; }
-    table { width: 100%; border-collapse: collapse; page-break-inside: auto; font-size: 7pt; }
+    table { width: 100%; border-collapse: collapse; page-break-inside: auto; }
     tr { page-break-inside: avoid; page-break-after: auto; }
-    th, td { border: 1px solid #555 !important; padding: 2px 3px; word-break: break-word; white-space: normal; }
-    th { background-color: #eee !important; color: black !important; white-space: nowrap; }
+    th, td { border: 1px solid #555 !important; padding: 2px 4px; } /* Padding muy reducido */
+    th { background-color: #eee !important; color: black !important; }
     tfoot tr { background-color: #f5f5f5 !important; font-weight: bold; }
-    .fila-grupo { background-color: #ddd !important; color: black !important; font-weight: bold; }
+    .fila-grupo { background-color: #ddd !important; color: black !important; }
     .signature-block { display: block; text-align: center; margin-top: 40px; page-break-inside: avoid; }
     .signature-block .line { width: 180px; border-top: 1px solid black; margin: 0 auto 5px auto; }
     #facturas-impresion { display: none; }
     .table-container { overflow: visible !important; }
-    #historialTabla th:last-child, #historialTabla td:last-child,
-    #historialFacturaTabla th:last-child, #historialFacturaTabla td:last-child { min-width: 80px; }
-    #historialFacturaTabla .fila-abastecimiento td { background-color: #f0f0f0 !important; padding-left: 10px !important; }
-    #historialFacturaTabla .fila-abastecimiento i { display: none; }
+
+    /* Ajustes específicos para la tabla del historial en impresión */
+    #historialTabla { table-layout: auto; width: 100%; } /* Volver a auto */
+    #historialTabla th, #historialTabla td {
+        font-size: 7pt; /* Tamaño de fuente muy reducido */
+        padding: 2px 3px; /* Espaciado mínimo */
+        word-break: break-word; 
+        white-space: normal; /* Permite que el texto se ajuste */
+    }
+    #historialTabla th {
+        white-space: nowrap; /* Evita que los títulos se rompan */
+    }
+     /* Definir un ancho mínimo solo para la descripción para que no desaparezca */
+     #historialTabla th:last-child, #historialTabla td:last-child { min-width: 100px; } 
 }
+/* ===== FIN DE BLOQUE MODIFICADO ===== */
 
-/* Anchos específicos para pantalla */
-#historialTabla th:nth-child(1), #historialTabla td:nth-child(1),
-#historialFacturaTabla th:nth-child(1), #historialFacturaTabla td:nth-child(1) { width: 100px; } /* Acciones */
-#historialTabla th:nth-child(2), #historialTabla td:nth-child(2),
-#historialFacturaTabla th:nth-child(2), #historialFacturaTabla td:nth-child(2) { width: 90px; } /* Fecha */
-#historialTabla th:nth-child(9), #historialTabla td:nth-child(9), /* Maquinaria Historial General */
-#historialFacturaTabla th:nth-child(9), #historialFacturaTabla td:nth-child(9) { min-width: 120px; } /* Maquinaria Historial Factura */
-#historialTabla th:nth-child(10), #historialTabla td:nth-child(10), /* Saldo Manual Historial General */
-#historialFacturaTabla th:nth-child(14), #historialFacturaTabla td:nth-child(14) { width: 90px; } /* Saldo Manual Historial Factura */
-#historialTabla th:last-child, #historialTabla td:last-child,
-#historialFacturaTabla th:last-child, #historialFacturaTabla td:last-child { min-width: 150px; } /* Descripción */
-
+#historialTabla th:nth-child(1), #historialTabla td:nth-child(1) { width: 120px; } /* Acciones (no impresión) */
+#historialTabla th:nth-child(2), #historialTabla td:nth-child(2) { width: 105px; } /* Fecha (no impresión) */
+#historialTabla th:nth-child(7), #historialTabla td:nth-child(7) { min-width: 130px; } /* Detalles Volqueta (no impresión) */
+#historialTabla th:nth-child(8), #historialTabla td:nth-child(8) { width: 110px; } /* Kilometraje (no impresión) */
+#historialTabla th:last-child, #historialTabla td:last-child { min-width: 200px; } /* Descripción (no impresión) */
 
 .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 
@@ -182,92 +185,14 @@ button:hover { opacity: 0.9; }
 .card-body table th { font-size: 0.9em; padding: 8px; }
 .card-body table td { font-size: 0.9em; padding: 8px; }
 
-#historialTabla tbody tr:nth-child(even):not(.fila-grupo) { background-color: #f8f9fa; }
-#historialTabla tbody tr:not(.fila-grupo):hover { background-color: #e9ecef; }
-#historialFacturaTabla tbody tr:hover { background-color: #e9ecef; }
+#historialTabla tbody tr:nth-child(even) { background-color: #f8f9fa; }
+#historialTabla tbody tr:not(.fila-grupo):hover { background-color: #e9ecef; cursor: pointer; }
 
 .btn-modificar i { color: var(--dark-text-color) !important; }
 .admin-form .button-success i,
 .button-danger i,
 .button-primary i,
 .button-info i,
-.button-success i,
-.button-secondary i {
+.button-success i {
     color: var(--white-color) !important;
-}
-
-/* --- ESTILOS PARA SUB-PESTAÑAS --- */
-.sub-tabs {
-    border-bottom: 2px solid var(--secondary-color);
-    overflow: hidden;
-    margin-bottom: 20px;
-}
-
-.sub-tabs button {
-    background-color: var(--light-gray);
-    float: left;
-    border: 1px solid var(--border-color);
-    border-bottom: none;
-    outline: none;
-    cursor: pointer;
-    padding: 10px 15px;
-    transition: 0.3s;
-    font-size: 15px;
-    border-radius: 6px 6px 0 0;
-    margin-right: 3px;
-    color: var(--text-color);
-}
-
-.sub-tabs button:hover {
-    background-color: #e9ecef;
-}
-
-.sub-tabs button.active {
-    background-color: var(--secondary-color);
-    color: var(--white-color);
-    border-color: var(--secondary-color);
-}
-
-.sub-tab-content {
-    display: none; /* Oculto por defecto */
-}
-
-/* Estilo para filas de abastecimiento en la tabla por factura */
-#historialFacturaTabla .fila-abastecimiento td {
-    background-color: #f8f9fa;
-    padding-left: 25px !important; /* Indentación */
-    font-style: italic;
-    color: #555;
-}
-/* Estilo específico para la primera celda con el ícono */
-#historialFacturaTabla .fila-abastecimiento td:nth-child(2) { /* Ajusta el índice si cambias columnas */
-    padding-left: 5px !important; /* Menos padding para la celda del icono */
-}
-
-
-#historialFacturaTabla .fila-abastecimiento i.fa-level-up-alt {
-    transform: rotate(90deg);
-    margin-right: 5px;
-    color: var(--secondary-color);
-    font-size: 0.8em; /* Hacer icono más pequeño */
-}
-
-/* Loader style */
-#loaderContainer {
-    display: flex; /* Changed back to flex for centering */
-    justify-content: center;
-    align-items: center;
-    padding: 40px;
-}
-.loader {
-  color: var(--primary-color);
-  font-size: 1.2em;
-}
-
-/* Estilo para los divs que se ocultan en transferencia */
-.campo-opcional-transferencia {
-    /* No necesita estilos específicos aquí, solo la clase para JS */
-    /* Asegúrate que el display inicial sea block o el que use tu formulario */
-    display: block; /* o flex si usas flexbox */
-    width: 100%; /* Para que ocupe el ancho como los otros campos */
 }
