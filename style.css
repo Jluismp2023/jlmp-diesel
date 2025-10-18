@@ -42,15 +42,18 @@ button:hover { opacity: 0.9; }
 .main-tabs button.active { background-color: var(--primary-color); color: var(--white-color); border-color: var(--primary-color); }
 .main-tab-content { display: none; }
 
-#resumenTabla th, #resumenEmpresaTabla th, #resumenProveedorTabla th, #resumenChoferTabla th, #resumenProyectoTabla th {
+/* ===== INICIO DE BLOQUE MODIFICADO (HECHO EN PASO ANTERIOR) ===== */
+#resumenTabla th, #resumenEmpresaTabla th, #resumenProveedorTabla th, #resumenChoferTabla th, #resumenProyectoTabla th, #resumenDetallesVolquetaTabla th {
     background-color: var(--success-color);
     color: var(--white-color);
 }
-#resumenTabla tfoot tr, #resumenEmpresaTabla tfoot tr, #resumenProveedorTabla tfoot tr, #resumenChoferTabla tfoot tr, #resumenProyectoTabla tfoot tr, #historialTabla tfoot tr {
+#resumenTabla tfoot tr, #resumenEmpresaTabla tfoot tr, #resumenProveedorTabla tfoot tr, #resumenChoferTabla tfoot tr, #resumenProyectoTabla tfoot tr, #resumenDetallesVolquetaTabla tfoot tr, #historialTabla tfoot tr {
     font-weight: bold;
     background-color: #e9ecef;
     border-top: 2px solid var(--dark-text-color);
 }
+/* ===== FIN DE BLOQUE MODIFICADO ===== */
+
 .fila-grupo td { background-color: var(--secondary-color); color: var(--white-color); font-weight: bold; text-align: center; font-size: 1.1em; }
 
 .filter-section { display: flex; flex-direction: column; gap: 15px; }
@@ -123,7 +126,6 @@ button:hover { opacity: 0.9; }
     .admin-box { flex-basis: 100%; min-width: unset; }
 }
 
-/* ===== INICIO DE BLOQUE MODIFICADO ===== */
 @media print {
     .no-print, #vista-login, .main-tabs { display: none !important; }
     body, #vista-app { display: block !important; }
@@ -166,7 +168,6 @@ button:hover { opacity: 0.9; }
      /* Definir un ancho mínimo solo para la descripción para que no desaparezca */
      #historialTabla th:last-child, #historialTabla td:last-child { min-width: 100px; } 
 }
-/* ===== FIN DE BLOQUE MODIFICADO ===== */
 
 #historialTabla th:nth-child(1), #historialTabla td:nth-child(1) { width: 120px; } /* Acciones (no impresión) */
 #historialTabla th:nth-child(2), #historialTabla td:nth-child(2) { width: 105px; } /* Fecha (no impresión) */
