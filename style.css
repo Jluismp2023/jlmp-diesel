@@ -36,20 +36,17 @@ button:hover { opacity: 0.9; }
 .button-secondary { background-color: var(--secondary-color); }
 .button-info { background-color: var(--info-color); }
 .button-danger { background-color: var(--danger-color); }
-.button-warning { background-color: var(--warning-color); color: var(--dark-text-color); } /* Para botones amarillos */
 
 .main-tabs { border-bottom: 2px solid var(--primary-color); overflow: hidden; }
 .main-tabs button { background-color: var(--light-gray); float: left; border: 1px solid var(--border-color); border-bottom: none; outline: none; padding: 14px 16px; transition: 0.3s; font-size: 17px; border-radius: 8px 8px 0 0; margin-right: 5px; color: var(--text-color); }
 .main-tabs button.active { background-color: var(--primary-color); color: var(--white-color); border-color: var(--primary-color); }
 .main-tab-content { display: none; }
 
-#resumenTabla th, #resumenEmpresaTabla th, #resumenProveedorTabla th, #resumenChoferTabla th, #resumenProyectoTabla th,
-#resumenSuministroVolquetaTabla th, #resumenSuministroMaquinariaTabla th { /* Añadido */
+#resumenTabla th, #resumenEmpresaTabla th, #resumenProveedorTabla th, #resumenChoferTabla th, #resumenProyectoTabla th {
     background-color: var(--success-color);
     color: var(--white-color);
 }
-#resumenTabla tfoot tr, #resumenEmpresaTabla tfoot tr, #resumenProveedorTabla tfoot tr, #resumenChoferTabla tfoot tr, #resumenProyectoTabla tfoot tr, #historialTabla tfoot tr,
-#resumenSuministroVolquetaTabla tfoot tr, #resumenSuministroMaquinariaTabla tfoot tr, #historialSuministrosTabla tfoot tr { /* Añadido */
+#resumenTabla tfoot tr, #resumenEmpresaTabla tfoot tr, #resumenProveedorTabla tfoot tr, #resumenChoferTabla tfoot tr, #resumenProyectoTabla tfoot tr, #historialTabla tfoot tr {
     font-weight: bold;
     background-color: #e9ecef;
     border-top: 2px solid var(--dark-text-color);
@@ -93,9 +90,9 @@ button:hover { opacity: 0.9; }
 .lista-gestion li small { color: var(--secondary-color); }
 
 .btn-accion { padding: 5px 10px; font-size: 12px; margin-left: 5px; }
+.button-warning { background-color: var(--warning-color); color: var(--dark-text-color); }
 .btn-modificar { background-color: var(--warning-color); color: black; }
 .btn-borrar { background-color: var(--danger-color); color: white; }
-.btn-distribuir { background-color: var(--info-color); color: white; }
 
 .accordion-button { background-color: var(--light-gray); color: var(--text-color); cursor: pointer; padding: 18px; width: 100%; border: none; text-align: left; outline: none; font-size: 16px; font-weight: bold; transition: background-color 0.4s ease; border-bottom: 1px solid var(--border-color); }
 .accordion-button:first-of-type { border-top-left-radius: 8px; border-top-right-radius: 8px; }
@@ -126,15 +123,15 @@ button:hover { opacity: 0.9; }
     .admin-box { flex-basis: 100%; min-width: unset; }
 }
 
+/* ===== INICIO DE BLOQUE MODIFICADO ===== */
 @media print {
-    .no-print { display: none !important; }
-    #vista-login, .main-tabs { display: none !important; }
+    .no-print, #vista-login, .main-tabs { display: none !important; }
     body, #vista-app { display: block !important; }
     .main-tab-content { display: none !important; }
     .main-tab-content.printable-active { display: block !important; }
     .accordion-button { display: none !important; }
     .accordion-panel { max-height: unset !important; overflow: visible !important; padding: 0 !important; border: none !important; }
-    body { margin: 0; padding: 5px; background-color: var(--white-color); color: black; font-size: 8pt; }
+    body { margin: 0; padding: 5px; background-color: var(--white-color); color: black; font-size: 8pt; } /* Tamaño base reducido */
     .container { box-shadow: none; border: none; margin: 0 0 10px 0; padding: 0; width: 100%; }
     .header-container { justify-content: center; padding: 8px 0; border-bottom: 1px solid black; margin-bottom: 10px; box-shadow: none; border-radius: 0; }
     .header-logo { height: 40px; }
@@ -146,7 +143,7 @@ button:hover { opacity: 0.9; }
     .report-card { display: block; box-shadow: none; border: none; page-break-inside: avoid; margin-bottom: 10px; }
     table { width: 100%; border-collapse: collapse; page-break-inside: auto; }
     tr { page-break-inside: avoid; page-break-after: auto; }
-    th, td { border: 1px solid #555 !important; padding: 2px 4px; }
+    th, td { border: 1px solid #555 !important; padding: 2px 4px; } /* Padding muy reducido */
     th { background-color: #eee !important; color: black !important; }
     tfoot tr { background-color: #f5f5f5 !important; font-weight: bold; }
     .fila-grupo { background-color: #ddd !important; color: black !important; }
@@ -154,21 +151,28 @@ button:hover { opacity: 0.9; }
     .signature-block .line { width: 180px; border-top: 1px solid black; margin: 0 auto 5px auto; }
     #facturas-impresion { display: none; }
     .table-container { overflow: visible !important; }
-    #historialTabla, #historialSuministrosTabla { table-layout: auto; width: 100%; }
-    #historialTabla th, #historialTabla td,
-    #historialSuministrosTabla th, #historialSuministrosTabla td { font-size: 7pt; padding: 2px 3px; word-break: break-word; white-space: normal; }
-    #historialTabla th, #historialSuministrosTabla th { white-space: nowrap; }
-    #historialTabla th:nth-child(2), #historialTabla td:nth-child(2) { display: none; } /* Ocultar columna Distribuir */
-    #historialTabla th:last-child, #historialTabla td:last-child { min-width: 100px; }
-}
 
-/* Ajustes de Ancho para Vista Normal */
-#historialTabla th:nth-child(1), #historialTabla td:nth-child(1) { width: 120px; } /* Acciones */
-#historialTabla th:nth-child(2), #historialTabla td:nth-child(2) { width: 70px; text-align: center; } /* Distribuir */
-#historialTabla th:nth-child(3), #historialTabla td:nth-child(3) { width: 105px; } /* Fecha */
-#historialTabla th:nth-child(8), #historialTabla td:nth-child(8) { min-width: 130px; } /* Detalles Volqueta */
-#historialTabla th:nth-child(9), #historialTabla td:nth-child(9) { width: 110px; } /* Kilometraje */
-#historialTabla th:last-child, #historialTabla td:last-child { min-width: 180px; } /* Descripción */
+    /* Ajustes específicos para la tabla del historial en impresión */
+    #historialTabla { table-layout: auto; width: 100%; } /* Volver a auto */
+    #historialTabla th, #historialTabla td {
+        font-size: 7pt; /* Tamaño de fuente muy reducido */
+        padding: 2px 3px; /* Espaciado mínimo */
+        word-break: break-word; 
+        white-space: normal; /* Permite que el texto se ajuste */
+    }
+    #historialTabla th {
+        white-space: nowrap; /* Evita que los títulos se rompan */
+    }
+     /* Definir un ancho mínimo solo para la descripción para que no desaparezca */
+     #historialTabla th:last-child, #historialTabla td:last-child { min-width: 100px; } 
+}
+/* ===== FIN DE BLOQUE MODIFICADO ===== */
+
+#historialTabla th:nth-child(1), #historialTabla td:nth-child(1) { width: 120px; } /* Acciones (no impresión) */
+#historialTabla th:nth-child(2), #historialTabla td:nth-child(2) { width: 105px; } /* Fecha (no impresión) */
+#historialTabla th:nth-child(7), #historialTabla td:nth-child(7) { min-width: 130px; } /* Detalles Volqueta (no impresión) */
+#historialTabla th:nth-child(8), #historialTabla td:nth-child(8) { width: 110px; } /* Kilometraje (no impresión) */
+#historialTabla th:last-child, #historialTabla td:last-child { min-width: 200px; } /* Descripción (no impresión) */
 
 .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 
@@ -191,13 +195,4 @@ button:hover { opacity: 0.9; }
 .button-info i,
 .button-success i {
     color: var(--white-color) !important;
-}
-
-/* Estilos para la lista de distribuciones en el modal */
-#distribucionesAnterioresLista li {
-    padding: 4px 0;
-    border-bottom: 1px dotted #eee;
-}
-#distribucionesAnterioresLista li:last-child {
-    border-bottom: none;
 }
