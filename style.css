@@ -123,7 +123,6 @@ button:hover { opacity: 0.9; }
     .admin-box { flex-basis: 100%; min-width: unset; }
 }
 
-/* ===== INICIO DE BLOQUE MODIFICADO ===== */
 @media print {
     .no-print, #vista-login, .main-tabs { display: none !important; }
     body, #vista-app { display: block !important; }
@@ -131,7 +130,7 @@ button:hover { opacity: 0.9; }
     .main-tab-content.printable-active { display: block !important; }
     .accordion-button { display: none !important; }
     .accordion-panel { max-height: unset !important; overflow: visible !important; padding: 0 !important; border: none !important; }
-    body { margin: 0; padding: 5px; background-color: var(--white-color); color: black; font-size: 8pt; } /* Tamaño base reducido */
+    body { margin: 0; padding: 5px; background-color: var(--white-color); color: black; font-size: 8pt; } 
     .container { box-shadow: none; border: none; margin: 0 0 10px 0; padding: 0; width: 100%; }
     .header-container { justify-content: center; padding: 8px 0; border-bottom: 1px solid black; margin-bottom: 10px; box-shadow: none; border-radius: 0; }
     .header-logo { height: 40px; }
@@ -143,7 +142,7 @@ button:hover { opacity: 0.9; }
     .report-card { display: block; box-shadow: none; border: none; page-break-inside: avoid; margin-bottom: 10px; }
     table { width: 100%; border-collapse: collapse; page-break-inside: auto; }
     tr { page-break-inside: avoid; page-break-after: auto; }
-    th, td { border: 1px solid #555 !important; padding: 2px 4px; } /* Padding muy reducido */
+    th, td { border: 1px solid #555 !important; padding: 2px 4px; } 
     th { background-color: #eee !important; color: black !important; }
     tfoot tr { background-color: #f5f5f5 !important; font-weight: bold; }
     .fila-grupo { background-color: #ddd !important; color: black !important; }
@@ -152,27 +151,17 @@ button:hover { opacity: 0.9; }
     #facturas-impresion { display: none; }
     .table-container { overflow: visible !important; }
 
-    /* Ajustes específicos para la tabla del historial en impresión */
-    #historialTabla { table-layout: auto; width: 100%; } /* Volver a auto */
-    #historialTabla th, #historialTabla td {
-        font-size: 7pt; /* Tamaño de fuente muy reducido */
-        padding: 2px 3px; /* Espaciado mínimo */
-        word-break: break-word; 
-        white-space: normal; /* Permite que el texto se ajuste */
-    }
-    #historialTabla th {
-        white-space: nowrap; /* Evita que los títulos se rompan */
-    }
-     /* Definir un ancho mínimo solo para la descripción para que no desaparezca */
-     #historialTabla th:last-child, #historialTabla td:last-child { min-width: 100px; } 
+    #historialTabla { table-layout: auto; width: 100%; } 
+    #historialTabla th, #historialTabla td { font-size: 7pt; padding: 2px 3px; word-break: break-word; white-space: normal; }
+    #historialTabla th { white-space: nowrap; }
+    #historialTabla th:last-child, #historialTabla td:last-child { min-width: 100px; } 
 }
-/* ===== FIN DE BLOQUE MODIFICADO ===== */
 
-#historialTabla th:nth-child(1), #historialTabla td:nth-child(1) { width: 120px; } /* Acciones (no impresión) */
-#historialTabla th:nth-child(2), #historialTabla td:nth-child(2) { width: 105px; } /* Fecha (no impresión) */
-#historialTabla th:nth-child(7), #historialTabla td:nth-child(7) { min-width: 130px; } /* Detalles Volqueta (no impresión) */
-#historialTabla th:nth-child(8), #historialTabla td:nth-child(8) { width: 110px; } /* Kilometraje (no impresión) */
-#historialTabla th:last-child, #historialTabla td:last-child { min-width: 200px; } /* Descripción (no impresión) */
+#historialTabla th:nth-child(1), #historialTabla td:nth-child(1) { width: 120px; } 
+#historialTabla th:nth-child(2), #historialTabla td:nth-child(2) { width: 105px; } 
+#historialTabla th:nth-child(7), #historialTabla td:nth-child(7) { min-width: 130px; } 
+#historialTabla th:nth-child(8), #historialTabla td:nth-child(8) { width: 110px; } 
+#historialTabla th:last-child, #historialTabla td:last-child { min-width: 200px; } 
 
 .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 
@@ -195,4 +184,15 @@ button:hover { opacity: 0.9; }
 .button-info i,
 .button-success i {
     color: var(--white-color) !important;
+}
+
+/* Estilos para la sección de suministro dentro del modal */
+#suministroForm {
+    display: flex; /* Cambiado a flex para que se vea como los otros forms */
+    flex-direction: column;
+    gap: 15px;
+}
+#suministrosGuardadosLista div {
+    padding: 2px 0;
+    border-bottom: 1px dotted #eee;
 }
