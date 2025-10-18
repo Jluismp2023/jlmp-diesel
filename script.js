@@ -3,7 +3,7 @@ import { getFirestore, collection, getDocs, doc, addDoc, updateDoc, deleteDoc, q
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyCElg_et8_Z8ERTWo5tAwZJk2tb2ztUwlc", // Reemplaza con tu clave API real
+    apiKey: "AIzaSyCElg_et8_Z8ERTWo5tAwZJk2tb2ztUwlc", // Replace with your actual API key
     authDomain: "jlmp-diesel.firebaseapp.com",
     projectId: "jlmp-diesel",
     storageBucket: "jlmp-diesel.appspot.com",
@@ -24,14 +24,14 @@ let listasAdmin = { choferes: [], placas: [], detallesVolqueta: [], maquinaria: 
 let appInicializada = false;
 let tabActivaParaImprimir = null;
 
-// ## Autenticación y Configuración Inicial
+// ## Authentication and Initial Setup
 // ---
 
 onAuthStateChanged(auth, (user) => {
     if (user) {
         vistaLogin.style.display = 'none';
         vistaApp.style.display = 'block';
-        if(btnLogout) btnLogout.style.display = 'block'; // Verificar si existe
+        if(btnLogout) btnLogout.style.display = 'block'; // Check if btnLogout exists
         if (!appInicializada) {
             iniciarAplicacion();
             appInicializada = true;
@@ -39,7 +39,7 @@ onAuthStateChanged(auth, (user) => {
     } else {
         vistaLogin.style.display = 'block';
         vistaApp.style.display = 'none';
-        if(btnLogout) btnLogout.style.display = 'none'; // Verificar si existe
+        if(btnLogout) btnLogout.style.display = 'none'; // Check if btnLogout exists
         appInicializada = false;
     }
 });
@@ -54,7 +54,7 @@ function mostrarNotificacion(texto, tipo = 'info', duracion = 3500) {
     Toastify({ text: texto, duration: duracion, close: true, gravity: "top", position: "right", stopOnFocus: true, style: { background: backgroundColor, } }).showToast();
 }
 
-// ## Manejo del Modal
+// ## Modal Handling
 // ---
 
 const modal = document.getElementById('modalRegistro');
@@ -63,7 +63,7 @@ const btnCerrarModal = modal.querySelector('.close-button');
 function abrirModal() { modal.style.display = 'block'; }
 function cerrarModal() { modal.style.display = 'none'; reiniciarFormulario(); }
 
-// ## Navegación por Pestañas
+// ## Tab Navigation
 // ---
 
 function openMainTab(evt, tabName) {
@@ -81,13 +81,13 @@ function openMainTab(evt, tabName) {
         buttonToActivate.className += " active";
     }
 
-    // Preparar para impresión y manejar sub-pestañas
+    // Prepare for printing and handle sub-tabs
     document.querySelectorAll('.main-tab-content').forEach(tab => tab.classList.remove('printable-active'));
     if (tabElement) {
         tabElement.classList.add('printable-active');
-        // Resetear sub-pestaña de Historial si se navega a ella
+        // Reset sub-tab of Historial if navigating to it
         if (tabName === 'tabHistorial') {
-            openHistorialSubTab(null, 'subTabHistorialGeneral'); // Abrir la general por defecto
+            openHistorialSubTab(null, 'subTabHistorialGeneral'); // Open the general one by default
         }
     }
 }
@@ -113,7 +113,7 @@ function openHistorialSubTab(evt, subTabId) {
     }
 }
 
-// ## Carga de Datos y Actualizaciones de UI
+// ## Data Loading and UI Updates
 // ---
 
 async function cargarDatosIniciales() {
@@ -159,22 +159,22 @@ function actualizarTodaLaUI() {
     try {
         poblarFiltroDeMes();
         poblarFiltrosReportes();
-        const consumosFiltrados = obtenerConsumosFiltrados();
+        const consumosFiltrados = obtenerConsumosFiltrados(); // Ensure this is called AFTER the function is defined
 
-        // Actualizar reportes
+        // Update reports
         calcularYMostrarTotalesPorEmpresa(consumosFiltrados);
         calcularYMostrarTotalesPorProveedor(consumosFiltrados);
         calcularYMostrarTotalesPorProyecto(consumosFiltrados);
         calcularYMostrarTotalesPorChofer(consumosFiltrados);
         calcularYMostrarTotales(consumosFiltrados); // Totales por Placa (Volqueta)
 
-        // Actualizar selectores del formulario
+        // Update form selectors
         poblarSelectores();
 
-        // Actualizar listas de admin
+        // Update admin lists
         mostrarListasAdmin();
 
-        // Actualizar vistas de historial
+        // Update history views
         mostrarHistorialAgrupado(consumosFiltrados);
         mostrarHistorialPorFactura(consumosFiltrados);
 
@@ -183,6 +183,7 @@ function actualizarTodaLaUI() {
         mostrarNotificacion("Error al actualizar la interfaz.", "error");
     }
 }
+
 
 function poblarSelectores() {
     const selectores = {
@@ -205,7 +206,7 @@ function poblarSelectores() {
     };
     for (const tipo in selectores) {
         const select = selectores[tipo];
-        if (!select || !listasAdmin[tipo]) continue; // Verificar si existe la lista
+        if (!select || !listasAdmin[tipo]) continue; // Check if list exists
 
         const valorActual = select.value;
         select.innerHTML = `<option value="">${titulos[tipo]}</option>`;
@@ -213,7 +214,7 @@ function poblarSelectores() {
         const listaOrdenada = [...listasAdmin[tipo]].sort((a, b) => a.nombre.localeCompare(b.nombre));
         listaOrdenada.forEach(item => { select.innerHTML += `<option value="${item.nombre}">${item.nombre}</option>`; });
 
-        select.value = valorActual; // Restaurar valor previo si existe
+        select.value = valorActual; // Restore previous value if exists
     }
 }
 
@@ -224,9 +225,9 @@ function reiniciarFormulario() {
     document.getElementById('registroId').value = '';
     document.getElementById('fecha').valueAsDate = new Date();
     document.getElementById('formularioTitulo').textContent = 'Nuevo Registro';
-    poblarSelectores(); // Repoblar selectores
+    poblarSelectores(); // Repopulate selectors
 
-    // Resetear visibilidad y estado del formulario dinámico
+    // Reset dynamic form visibility and state
     document.getElementById('camposCompra').style.display = 'block';
     document.getElementById('camposTransferencia').style.display = 'none';
     document.getElementById('tipoRegistro').value = 'compra';
@@ -235,12 +236,12 @@ function reiniciarFormulario() {
     document.getElementById('errorFacturaCargada').style.display = 'none';
     document.getElementById('saldoManualVolqueta').value = '';
 
-    // Resetear atributos 'required' manejados por JS
+    // Reset required attributes handled by JS
     document.getElementById('selectProveedor').required = true;
     document.getElementById('costo').required = true;
     document.getElementById('selectMaquinariaDestino').required = false;
 
-    // Reactivar campos potencialmente deshabilitados
+    // Re-enable potentially disabled fields
     document.getElementById('selectVolqueta').disabled = false;
     document.getElementById('selectChofer').disabled = false;
 }
@@ -323,7 +324,7 @@ async function guardarOActualizar(e) {
     }
 }
 
-// *** DEFINICIÓN DE LA FUNCIÓN QUE FALTABA ***
+// *** DEFINICIÓN DE manejarAccionesHistorial ***
 function manejarAccionesHistorial(e) {
     const target = e.target.closest('button'); // Busca el botón más cercano al clic
     if (!target) return; // Si no se hizo clic en un botón, salir
@@ -336,7 +337,46 @@ function manejarAccionesHistorial(e) {
         borrarConsumoHistorial(id); // Llamar a la función para borrar
     }
 }
-// *** FIN DE LA DEFINICIÓN ***
+
+// *** DEFINICIÓN DE obtenerConsumosFiltrados ***
+function obtenerConsumosFiltrados() {
+    const obtenerValorFiltro = (syncId) => document.querySelector(`.filtro-sincronizado[data-sync-id="${syncId}"]`)?.value || (syncId.startsWith('filtroFecha') ? '' : 'todos'); // Added ?. for safety
+    const mes = obtenerValorFiltro('filtroMes');
+    const fechaInicio = obtenerValorFiltro('filtroFechaInicio');
+    const fechaFin = obtenerValorFiltro('filtroFechaFin');
+    const chofer = obtenerValorFiltro('filtroChofer');
+    const proveedor = obtenerValorFiltro('filtroProveedor');
+    const empresa = obtenerValorFiltro('filtroEmpresa');
+    const proyecto = obtenerValorFiltro('filtroProyecto');
+    let consumosFiltrados = todosLosConsumos;
+
+    try { // Added try-catch for robustness
+        if (fechaInicio && fechaFin) {
+            if (fechaFin < fechaInicio) {
+                mostrarNotificacion("La fecha de fin no puede ser anterior a la de inicio.", "error");
+                return []; // Return empty array on error
+            }
+            consumosFiltrados = consumosFiltrados.filter(c => c.fecha >= fechaInicio && c.fecha <= fechaFin);
+        } else if (fechaInicio) { // Filter by single date if only start date is provided
+            consumosFiltrados = consumosFiltrados.filter(c => c.fecha === fechaInicio);
+        } else if (mes !== 'todos') {
+            consumosFiltrados = consumosFiltrados.filter(c => c.fecha && c.fecha.startsWith(mes));
+        }
+
+        // Apply other filters
+        if (chofer !== 'todos') { consumosFiltrados = consumosFiltrados.filter(c => c.chofer === chofer); }
+        if (proveedor !== 'todos') { consumosFiltrados = consumosFiltrados.filter(c => c.proveedor === proveedor); }
+        if (empresa !== 'todos') { consumosFiltrados = consumosFiltrados.filter(c => c.empresa === empresa); }
+        if (proyecto !== 'todos') { consumosFiltrados = consumosFiltrados.filter(c => c.proyecto === proyecto); }
+
+    } catch (error) {
+        console.error("Error applying filters:", error);
+        mostrarNotificacion("Error al aplicar filtros.", "error");
+        return todosLosConsumos; // Return unfiltered list on error
+    }
+    return consumosFiltrados;
+}
+
 
 function cargarDatosParaModificar(id) {
     const consumo = todosLosConsumos.find(c => c.id === id);
