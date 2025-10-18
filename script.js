@@ -20,7 +20,8 @@ const vistaApp = document.getElementById('vista-app');
 const btnLogout = document.getElementById('btn-logout');
 
 let todosLosConsumos = [];
-let listasAdmin = { choferes: [], placas: [], detallesVolqueta: [], empresas: [], proveedores: [], proyectos: [] };
+// --- LÍNEA MODIFICADA (se añadió 'maquinaria') ---
+let listasAdmin = { choferes: [], placas: [], detallesVolqueta: [], maquinaria: [], empresas: [], proveedores: [], proyectos: [] };
 let appInicializada = false;
 let tabActivaParaImprimir = null;
 
@@ -76,7 +77,8 @@ async function cargarDatosIniciales() {
     try {
         const [
             consumosRes, choferesRes, placasRes, detallesVolquetaRes, 
-            empresasRes, proveedoresRes, proyectosRes
+            empresasRes, proveedoresRes, proyectosRes,
+            maquinariaRes // <-- LÍNEA AÑADIDA
         ] = await Promise.all([
             getDocs(query(collection(db, "consumos"), orderBy("fecha", "desc"))), 
             getDocs(query(collection(db, "choferes"), orderBy("nombre"))), 
@@ -84,7 +86,8 @@ async function cargarDatosIniciales() {
             getDocs(query(collection(db, "detallesVolqueta"), orderBy("nombre"))), 
             getDocs(query(collection(db, "empresas"), orderBy("nombre"))), 
             getDocs(query(collection(db, "proveedores"), orderBy("nombre"))), 
-            getDocs(query(collection(db, "proyectos"), orderBy("nombre")))
+            getDocs(query(collection(db, "proyectos"), orderBy("nombre"))),
+            getDocs(query(collection(db, "maquinaria"), orderBy("nombre"))) // <-- LÍNEA AÑADIDA
         ]);
         todosLosConsumos = consumosRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         listasAdmin.choferes = choferesRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -93,6 +96,7 @@ async function cargarDatosIniciales() {
         listasAdmin.empresas = empresasRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         listasAdmin.proveedores = proveedoresRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         listasAdmin.proyectos = proyectosRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        listasAdmin.maquinaria = maquinariaRes.docs.map(doc => ({ id: doc.id, ...doc.data() })); // <-- LÍNEA AÑADIDA
         actualizarTodaLaUI();
     } catch (error) {
         console.error("Error cargando datos:", error);
@@ -247,14 +251,17 @@ function obtenerConsumosFiltrados() {
 }
 
 function mostrarListasAdmin() {
+    // --- BLOQUE MODIFICADO (se añadió 'maquinaria') ---
     const contenedores = { 
         choferes: 'listaChoferes', 
         placas: 'listaPlacas', 
         detallesVolqueta: 'listaDetallesVolqueta', 
+        maquinaria: 'listaMaquinaria', // <-- LÍNEA AÑADIDA
         empresas: 'listaEmpresas', 
         proveedores: 'listaProveedores', 
         proyectos: 'listaProyectos' 
     };
+    // --- FIN DE BLOQUE MODIFICADO ---
     for (const tipo in contenedores) {
         const ul = document.getElementById(contenedores[tipo]);
         if (!ul) continue;
@@ -275,10 +282,13 @@ async function modificarItemAdmin(item, tipo) {
     const nuevoValor = prompt(`Modificar "${valorActual}":`, valorActual); 
     if (!nuevoValor || nuevoValor.trim() === '' || nuevoValor.trim() === valorActual) return; 
     const valorFormateado = (tipo === 'placas') ? nuevoValor.trim().toUpperCase() : nuevoValor.trim(); 
+    // --- BLOQUE MODIFICADO (se añadió 'maquinaria') ---
     const propiedad = { 
         placas: 'volqueta', choferes: 'chofer', empresas: 'empresa', proveedores: 'proveedor', 
-        proyectos: 'proyecto', detallesVolqueta: 'detallesVolqueta' 
+        proyectos: 'proyecto', detallesVolqueta: 'detallesVolqueta',
+        maquinaria: 'maquinariaDestino' // <-- LÍNEA AÑADIDA
     }[tipo]; 
+    // --- FIN DE BLOQUE MODIFICADO ---
     if (!propiedad) { console.error("Tipo de item desconocido:", tipo); mostrarNotificacion("Error interno al modificar.", "error"); return; }
     if (confirm(`¿Estás seguro de cambiar "${valorActual}" por "${valorFormateado}"? Esto actualizará TODOS los registros.`)) { 
         try { 
@@ -291,7 +301,6 @@ async function modificarItemAdmin(item, tipo) {
     } 
 }
 
-// ===== INICIO DE FUNCIÓN MODIFICADA =====
 function cargarDatosParaModificar(id) {
     const consumo = todosLosConsumos.find(c => c.id === id); if (!consumo) return;
     document.getElementById('registroId').value = consumo.id; 
@@ -309,12 +318,9 @@ function cargarDatosParaModificar(id) {
     document.getElementById('selectDetallesVolqueta').value = consumo.detallesVolqueta || "";
     document.getElementById('kilometraje').value = consumo.kilometraje || "";
 
-    // Llama a openMainTab SIN evento para cambiar a la pestaña Registrar
     openMainTab(null, 'tabRegistrar'); 
-    
-    abrirModal(); // Abre el modal después de cambiar de pestaña
+    abrirModal(); 
 }
-// ===== FIN DE FUNCIÓN MODIFICADA =====
 
 function calcularYMostrarTotalesPorCategoria(consumos, categoria, bodyId, footerId) {
     const resumenBody = document.getElementById(bodyId); const resumenFooter = document.getElementById(footerId);
@@ -336,7 +342,8 @@ const calcularYMostrarTotalesPorChofer = (consumos) => calcularYMostrarTotalesPo
 const calcularYMostrarTotales = (consumos) => { calcularYMostrarTotalesPorCategoria(consumos, 'volqueta', 'resumenBody', 'resumenFooter'); };
 
 async function borrarItemAdmin(item, tipo) { 
-    const coleccionesPermitidas = ["choferes", "placas", "detallesVolqueta", "empresas", "proveedores", "proyectos"];
+    // --- LÍNEA MODIFICADA (se añadió 'maquinaria') ---
+    const coleccionesPermitidas = ["choferes", "placas", "detallesVolqueta", "maquinaria", "empresas", "proveedores", "proyectos"];
     if (!coleccionesPermitidas.includes(tipo)) { console.error("Intento de borrar de una colección no permitida:", tipo); mostrarNotificacion("Error interno al borrar.", "error"); return; }
     if (confirm(`¿Seguro que quieres borrar "${item.nombre}"?`)) { 
         try { await deleteDoc(doc(db, tipo, item.id)); mostrarNotificacion("Elemento borrado.", "exito"); await cargarDatosIniciales(); } 
@@ -449,6 +456,8 @@ function asignarEventosApp() {
     document.getElementById('formAdminEmpresa').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('empresas', document.getElementById('nuevaEmpresa')); });
     document.getElementById('formAdminProveedor').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('proveedores', document.getElementById('nuevoProveedor')); });
     document.getElementById('formAdminProyecto').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('proyectos', document.getElementById('nuevoProyecto')); });
+    // --- LÍNEA AÑADIDA ---
+    document.getElementById('formAdminMaquinaria').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('maquinaria', document.getElementById('nuevaMaquinaria')); });
     
     const botonesAcordeon = document.querySelectorAll('.accordion-button');
     botonesAcordeon.forEach(boton => {
@@ -468,3 +477,5 @@ function iniciarAplicacion() {
 
 document.getElementById('login-form').addEventListener('submit', handleLogin);
 btnLogout.addEventListener('click', handleLogout);
+
+// (Se eliminó la llave '}' extra que estaba aquí en el archivo original)
