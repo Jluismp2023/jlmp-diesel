@@ -109,6 +109,7 @@ button:hover { opacity: 0.9; }
 .credits { text-align: center; margin: 25px 0; font-weight: bold; color: var(--secondary-color); }
 #historialTabla { table-layout: auto; width: 100%; }
 #facturas-impresion { display: none; }
+.print-suggestion { color: var(--secondary-color); font-style: italic; display: block; text-align: right; margin-top: 5px; }
 
 @media screen and (max-width: 600px) {
     body { padding: 10px; }
@@ -122,6 +123,7 @@ button:hover { opacity: 0.9; }
     .admin-box { flex-basis: 100%; min-width: unset; }
 }
 
+/* ===== INICIO DE BLOQUE MODIFICADO ===== */
 @media print {
     .no-print, #vista-login, .main-tabs { display: none !important; }
     body, #vista-app { display: block !important; }
@@ -129,61 +131,45 @@ button:hover { opacity: 0.9; }
     .main-tab-content.printable-active { display: block !important; }
     .accordion-button { display: none !important; }
     .accordion-panel { max-height: unset !important; overflow: visible !important; padding: 0 !important; border: none !important; }
-    body { margin: 0; padding: 10px; background-color: var(--white-color); color: black; font-size: 10pt; } /* Tamaño base para impresión */
-    .container { box-shadow: none; border: none; margin: 0 0 20px 0; padding: 0; width: 100%; }
-    .header-container { justify-content: center; padding: 10px 0; border-bottom: 2px solid black; margin-bottom: 20px; box-shadow: none; border-radius: 0; }
-    .header-logo { height: 50px; }
-    .header-titles h1 { font-size: 16pt; color: black !important; }
-    .header-titles h2 { font-size: 12pt; color: #555 !important; }
-    h2, .card-header h3 { color: black !important; text-align: left; font-size: 14pt; border-bottom: 2px solid black; padding-bottom: 5px; margin-top: 25px; }
+    body { margin: 0; padding: 10px; background-color: var(--white-color); color: black; font-size: 9pt; } /* Tamaño base 9pt */
+    .container { box-shadow: none; border: none; margin: 0 0 15px 0; padding: 0; width: 100%; }
+    .header-container { justify-content: center; padding: 10px 0; border-bottom: 2px solid black; margin-bottom: 15px; box-shadow: none; border-radius: 0; }
+    .header-logo { height: 45px; }
+    .header-titles h1 { font-size: 14pt; color: black !important; }
+    .header-titles h2 { font-size: 11pt; color: #555 !important; }
+    h2, .card-header h3 { color: black !important; text-align: left; font-size: 12pt; border-bottom: 1px solid black; padding-bottom: 3px; margin-top: 20px; }
     .card-header .fa-solid { display: none; }
     .report-cards-container { display: block; }
-    .report-card { display: block; box-shadow: none; border: none; page-break-inside: avoid; margin-bottom: 20px; }
+    .report-card { display: block; box-shadow: none; border: none; page-break-inside: avoid; margin-bottom: 15px; }
     table { width: 100%; border-collapse: collapse; page-break-inside: auto; }
     tr { page-break-inside: avoid; page-break-after: auto; }
-    th, td { border: 1px solid #333 !important; padding: 5px; }
+    th, td { border: 1px solid #333 !important; padding: 4px; } /* Padding reducido */
     th { background-color: #e0e0e0 !important; color: black !important; }
     tfoot tr { background-color: #f0f0f0 !important; font-weight: bold; }
     .fila-grupo { background-color: #ccc !important; color: black !important; }
-    .signature-block { display: block; text-align: center; margin-top: 80px; page-break-inside: avoid; }
-    .signature-block .line { width: 250px; border-top: 1px solid black; margin: 0 auto 10px auto; }
+    .signature-block { display: block; text-align: center; margin-top: 60px; page-break-inside: avoid; }
+    .signature-block .line { width: 200px; border-top: 1px solid black; margin: 0 auto 8px auto; }
     #facturas-impresion { display: none; }
-    .table-container { overflow: visible !important; } /* Asegura que no haya scroll en impresión */
+    .table-container { overflow: visible !important; }
 
-    /* ===== INICIO DE CÓDIGO NUEVO ===== */
     /* Ajustes específicos para la tabla del historial en impresión */
+    #historialTabla { table-layout: auto; width: 100%; } /* Volver a auto */
     #historialTabla th, #historialTabla td {
-        font-size: 8pt; /* Reduce el tamaño de la fuente */
-        padding: 3px; /* Reduce el espaciado interno */
-        word-break: break-word; /* Permite que el texto largo se rompa si es necesario */
+        font-size: 9pt; /* Un poco más grande que antes */
+        padding: 4px;
+        word-break: break-word; 
+        white-space: normal; /* Permite que el texto se ajuste */
     }
-    #historialTabla {
-        table-layout: fixed; /* Intenta forzar anchos */
-        width: 100%; /* Asegura que ocupe todo el ancho posible */
-    }
-    /* Puedes ajustar porcentajes si es necesario, pero table-layout fixed ayuda */
-     #historialTabla th:nth-child(1), #historialTabla td:nth-child(1) { width: 5%; } /* Acciones */
-     #historialTabla th:nth-child(2), #historialTabla td:nth-child(2) { width: 7%; } /* Fecha */
-     #historialTabla th:nth-child(3), #historialTabla td:nth-child(3) { width: 5%; } /* Hora */
-     #historialTabla th:nth-child(4), #historialTabla td:nth-child(4) { width: 8%; } /* Factura # */
-     #historialTabla th:nth-child(5), #historialTabla td:nth-child(5) { width: 9%; } /* Chofer */
-     #historialTabla th:nth-child(6), #historialTabla td:nth-child(6) { width: 7%; } /* Placa */
-     #historialTabla th:nth-child(7), #historialTabla td:nth-child(7) { width: 8%; } /* Detalles Volqueta */
-     #historialTabla th:nth-child(8), #historialTabla td:nth-child(8) { width: 7%; } /* Kilometraje */
-     #historialTabla th:nth-child(9), #historialTabla td:nth-child(9) { width: 8%; } /* Proveedor */
-     #historialTabla th:nth-child(10), #historialTabla td:nth-child(10) { width: 8%; } /* Proyecto */
-     #historialTabla th:nth-child(11), #historialTabla td:nth-child(11) { width: 5%; } /* Galones */
-     #historialTabla th:nth-child(12), #historialTabla td:nth-child(12) { width: 6%; } /* Costo ($) */
-     #historialTabla th:nth-child(13), #historialTabla td:nth-child(13) { width: 8%; } /* Empresa */
-     #historialTabla th:last-child, #historialTabla td:last-child { width: auto; } /* Descripción (usa el espacio restante) */
-    /* ===== FIN DE CÓDIGO NUEVO ===== */
+     /* Quitar anchos fijos, excepto para descripción */
+     #historialTabla th:last-child, #historialTabla td:last-child { min-width: 150px; } /* Descripción */
 }
+/* ===== FIN DE BLOQUE MODIFICADO ===== */
 
-#historialTabla th:nth-child(1), #historialTabla td:nth-child(1) { width: 120px; } /* Acciones */
-#historialTabla th:nth-child(2), #historialTabla td:nth-child(2) { width: 105px; } /* Fecha */
-#historialTabla th:nth-child(7), #historialTabla td:nth-child(7) { min-width: 130px; } /* Detalles Volqueta */
-#historialTabla th:nth-child(8), #historialTabla td:nth-child(8) { width: 110px; } /* Kilometraje */
-#historialTabla th:last-child, #historialTabla td:last-child { min-width: 200px; } /* Descripción */
+#historialTabla th:nth-child(1), #historialTabla td:nth-child(1) { width: 120px; } /* Acciones (no impresión) */
+#historialTabla th:nth-child(2), #historialTabla td:nth-child(2) { width: 105px; } /* Fecha (no impresión) */
+#historialTabla th:nth-child(7), #historialTabla td:nth-child(7) { min-width: 130px; } /* Detalles Volqueta (no impresión) */
+#historialTabla th:nth-child(8), #historialTabla td:nth-child(8) { width: 110px; } /* Kilometraje (no impresión) */
+#historialTabla th:last-child, #historialTabla td:last-child { min-width: 200px; } /* Descripción (no impresión) */
 
 .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 
