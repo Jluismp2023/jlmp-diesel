@@ -36,6 +36,7 @@ button:hover { opacity: 0.9; }
 .button-secondary { background-color: var(--secondary-color); }
 .button-info { background-color: var(--info-color); }
 .button-danger { background-color: var(--danger-color); }
+.button-warning { background-color: var(--warning-color); color: var(--dark-text-color); } /* Para botones amarillos */
 
 .main-tabs { border-bottom: 2px solid var(--primary-color); overflow: hidden; }
 .main-tabs button { background-color: var(--light-gray); float: left; border: 1px solid var(--border-color); border-bottom: none; outline: none; padding: 14px 16px; transition: 0.3s; font-size: 17px; border-radius: 8px 8px 0 0; margin-right: 5px; color: var(--text-color); }
@@ -90,12 +91,9 @@ button:hover { opacity: 0.9; }
 .lista-gestion li small { color: var(--secondary-color); }
 
 .btn-accion { padding: 5px 10px; font-size: 12px; margin-left: 5px; }
-.button-warning { background-color: var(--warning-color); color: var(--dark-text-color); }
 .btn-modificar { background-color: var(--warning-color); color: black; }
 .btn-borrar { background-color: var(--danger-color); color: white; }
-/* ===== INICIO DE CÓDIGO NUEVO ===== */
 .btn-distribuir { background-color: var(--info-color); color: white; } 
-/* ===== FIN DE CÓDIGO NUEVO ===== */
 
 .accordion-button { background-color: var(--light-gray); color: var(--text-color); cursor: pointer; padding: 18px; width: 100%; border: none; text-align: left; outline: none; font-size: 16px; font-weight: bold; transition: background-color 0.4s ease; border-bottom: 1px solid var(--border-color); }
 .accordion-button:first-of-type { border-top-left-radius: 8px; border-top-right-radius: 8px; }
@@ -107,7 +105,7 @@ button:hover { opacity: 0.9; }
 .accordion-panel table { margin: 15px 0; }
 
 .fa-solid { margin-right: 8px; }
-.no-print { }
+.no-print { } /* Clase para elementos que no se imprimen */
 .signature-block { display: none; }
 .credits { text-align: center; margin: 25px 0; font-weight: bold; color: var(--secondary-color); }
 #historialTabla { table-layout: auto; width: 100%; }
@@ -127,7 +125,8 @@ button:hover { opacity: 0.9; }
 }
 
 @media print {
-    .no-print, #vista-login, .main-tabs { display: none !important; }
+    .no-print { display: none !important; } /* Ocultar elementos marcados como no imprimibles */
+    #vista-login, .main-tabs { display: none !important; }
     body, #vista-app { display: block !important; }
     .main-tab-content { display: none !important; }
     .main-tab-content.printable-active { display: block !important; }
@@ -156,14 +155,8 @@ button:hover { opacity: 0.9; }
     #historialTabla { table-layout: auto; width: 100%; } 
     #historialTabla th, #historialTabla td { font-size: 7pt; padding: 2px 3px; word-break: break-word; white-space: normal; }
     #historialTabla th { white-space: nowrap; }
+    #historialTabla th:nth-child(2), #historialTabla td:nth-child(2) { /* Distribuir column */ display: none; } /* Ocultar columna Distribuir en impresión */
     #historialTabla th:last-child, #historialTabla td:last-child { min-width: 100px; } 
-    /* ===== INICIO DE CÓDIGO MODIFICADO (Ajustar ancho para nueva columna) ===== */
-    #historialTabla th:nth-child(1), #historialTabla td:nth-child(1), /* Acciones */
-    #historialTabla th:nth-child(2), #historialTabla td:nth-child(2) /* Distribuir */ {
-         width: auto; /* Dejar que se ajusten */
-         min-width: 30px; /* Ancho mínimo pequeño */
-    }
-    /* ===== FIN DE CÓDIGO MODIFICADO ===== */
 }
 
 /* Ajustes de Ancho para Vista Normal */
