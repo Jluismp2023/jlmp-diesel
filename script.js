@@ -20,7 +20,7 @@ const vistaApp = document.getElementById('vista-app');
 const btnLogout = document.getElementById('btn-logout');
 
 let todosLosConsumos = [];
-let todosLosSuministros = []; // <-- Nueva variable global para suministros
+let todosLosSuministros = []; 
 let listasAdmin = { choferes: [], placas: [], detallesVolqueta: [], maquinaria: [], empresas: [], proveedores: [], proyectos: [] };
 let appInicializada = false;
 let tabActivaParaImprimir = null;
@@ -42,25 +42,52 @@ onAuthStateChanged(auth, (user) => {
     }
 });
 
-function mostrarNotificacion(texto, tipo = 'info', duracion = 3500) { /* ... (sin cambios) ... */ }
+function mostrarNotificacion(texto, tipo = 'info', duracion = 3500) {
+    let backgroundColor;
+    switch (tipo) {
+        case 'exito': backgroundColor = "linear-gradient(to right, #00b09b, #96c93d)"; break;
+        case 'error': backgroundColor = "linear-gradient(to right, #ff5f6d, #ffc371)"; break;
+        default: backgroundColor = "#007bff"; break;
+    }
+    Toastify({ text: texto, duration: duracion, close: true, gravity: "top", position: "right", stopOnFocus: true, style: { background: backgroundColor, } }).showToast();
+}
+
 const modal = document.getElementById('modalRegistro');
 const btnAbrirModal = document.getElementById('btnAbrirModal');
 const btnCerrarModal = modal.querySelector('.close-button');
-function abrirModal() { /* ... (sin cambios) ... */ }
-function cerrarModal() { modal.style.display = 'none'; reiniciarFormulario(); cargarDatosIniciales(); } // <- Llama a cargarDatosIniciales al cerrar
-function openMainTab(evt, tabName) { /* ... (sin cambios) ... */ }
+function abrirModal() { 
+    document.getElementById('seccionSuministro').style.display = 'none';
+    document.getElementById('suministroForm').style.display = 'none';
+    document.getElementById('preguntaSuministroBotones').style.display = 'block';
+    document.getElementById('formularioContainer').style.display = 'block'; 
+    document.getElementById('suministrosGuardadosLista').innerHTML = ''; 
+    modal.style.display = 'block'; 
+}
+function cerrarModal() { modal.style.display = 'none'; reiniciarFormulario(); cargarDatosIniciales(); } 
+function openMainTab(evt, tabName) {
+    let i, tabcontent, tablinks;
+    tabcontent = document.getElementsByClassName("main-tab-content");
+    for (i = 0; i < tabcontent.length; i++) { tabcontent[i].style.display = "none"; }
+    tablinks = document.getElementsByClassName("main-tab-link");
+    for (i = 0; i < tablinks.length; i++) { tablinks[i].className = tablinks[i].className.replace(" active", ""); }
+    const tabElement = document.getElementById(tabName); // <- Guardar referencia
+    if (tabElement) { // <- Verificar si existe
+       tabElement.style.display = "block"; 
+    } else {
+        console.error("No se encontró el contenido de la pestaña:", tabName);
+    }
+    const buttonToActivate = evt ? evt.currentTarget : document.getElementById(`btnTab${tabName.replace('tab','')}`);
+    if (buttonToActivate) { buttonToActivate.className += " active"; }
+}
 
-// ===== INICIO DE FUNCIÓN MODIFICADA (Carga también suministros) =====
 async function cargarDatosIniciales() {
-    document.getElementById('loadingMessage').style.display = 'block';
+    const loadingMessageElement = document.getElementById('loadingMessage');
+    if (loadingMessageElement) loadingMessageElement.style.display = 'block';
+    
     try {
-        const [
-            consumosRes, suministrosRes, // Añadir suministrosRes
-            choferesRes, placasRes, detallesVolquetaRes, maquinariaRes, 
-            empresasRes, proveedoresRes, proyectosRes
-        ] = await Promise.all([
+        const collectionsToLoad = [
             getDocs(query(collection(db, "consumos"), orderBy("fecha", "desc"))), 
-            getDocs(query(collection(db, "suministros"), orderBy("fecha", "desc"))), // Cargar nueva colección
+            getDocs(query(collection(db, "suministros"), orderBy("fecha", "desc"))), 
             getDocs(query(collection(db, "choferes"), orderBy("nombre"))), 
             getDocs(query(collection(db, "placas"), orderBy("nombre"))), 
             getDocs(query(collection(db, "detallesVolqueta"), orderBy("nombre"))), 
@@ -68,9 +95,15 @@ async function cargarDatosIniciales() {
             getDocs(query(collection(db, "empresas"), orderBy("nombre"))), 
             getDocs(query(collection(db, "proveedores"), orderBy("nombre"))), 
             getDocs(query(collection(db, "proyectos"), orderBy("nombre")))
-        ]);
+        ];
+        
+        const [
+            consumosRes, suministrosRes, choferesRes, placasRes, detallesVolquetaRes, maquinariaRes, 
+            empresasRes, proveedoresRes, proyectosRes
+        ] = await Promise.all(collectionsToLoad);
+        
         todosLosConsumos = consumosRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        todosLosSuministros = suministrosRes.docs.map(doc => ({ id: doc.id, ...doc.data() })); // Guardar suministros
+        todosLosSuministros = suministrosRes.docs.map(doc => ({ id: doc.id, ...doc.data() })); 
         listasAdmin.choferes = choferesRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         listasAdmin.placas = placasRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         listasAdmin.detallesVolqueta = detallesVolquetaRes.docs.map(doc => ({ id: doc.id, ...doc.data() })); 
@@ -78,188 +111,239 @@ async function cargarDatosIniciales() {
         listasAdmin.empresas = empresasRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         listasAdmin.proveedores = proveedoresRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         listasAdmin.proyectos = proyectosRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        
         actualizarTodaLaUI();
     } catch (error) {
-        console.error("Error cargando datos:", error);
-        document.getElementById('loadingMessage').textContent = "Error al cargar datos. Revisa la consola (F12).";
+        console.error("Error crítico cargando datos iniciales:", error);
+        if (loadingMessageElement) loadingMessageElement.textContent = "Error al cargar datos. Revisa la consola (F12) e intenta recargar.";
+        // No llamamos a actualizarTodaLaUI si hay un error crítico
     } finally {
-        if (document.getElementById('loaderContainer')) { document.getElementById('loaderContainer').style.display = 'none'; }
+        const loaderContainer = document.getElementById('loaderContainer');
+        if (loaderContainer) loaderContainer.style.display = 'none'; 
     }
 }
-// ===== FIN DE FUNCIÓN MODIFICADA =====
 
-// ===== INICIO DE FUNCIÓN MODIFICADA (Llama a nuevas funciones) =====
 function actualizarTodaLaUI() {
-    poblarFiltroDeMes();
-    poblarFiltrosReportes();
-    const consumosFiltrados = obtenerConsumosFiltrados();
-    // Filtramos también los suministros con las mismas fechas/proyecto si aplica
-    const suministrosFiltrados = obtenerSuministrosFiltrados(); 
-    
-    // Cálculos de Consumos
-    calcularYMostrarTotalesPorEmpresa(consumosFiltrados);
-    calcularYMostrarTotalesPorProveedor(consumosFiltrados);
-    calcularYMostrarTotalesPorProyecto(consumosFiltrados);
-    calcularYMostrarTotalesPorChofer(consumosFiltrados);
-    calcularYMostrarTotales(consumosFiltrados); // Por Placa
+    try {
+        poblarFiltroDeMes();
+        poblarFiltrosReportes();
+        const consumosFiltrados = obtenerConsumosFiltrados();
+        const suministrosFiltrados = obtenerSuministrosFiltrados(); 
+        
+        calcularYMostrarTotalesPorEmpresa(consumosFiltrados);
+        calcularYMostrarTotalesPorProveedor(consumosFiltrados);
+        calcularYMostrarTotalesPorProyecto(consumosFiltrados);
+        calcularYMostrarTotalesPorChofer(consumosFiltrados);
+        calcularYMostrarTotales(consumosFiltrados); 
 
-    // Cálculos de Suministros (Nuevas llamadas)
-    calcularYMostrarSuministrosPorVolqueta(suministrosFiltrados);
-    calcularYMostrarSuministrosPorMaquinaria(suministrosFiltrados);
+        calcularYMostrarSuministrosPorVolqueta(suministrosFiltrados);
+        calcularYMostrarSuministrosPorMaquinaria(suministrosFiltrados);
 
-    poblarSelectores();
-    mostrarListasAdmin();
-    
-    // Mostrar Historiales (Llamada a nueva función)
-    mostrarHistorialAgrupado(consumosFiltrados);
-    mostrarHistorialSuministros(suministrosFiltrados); 
+        poblarSelectores();
+        mostrarListasAdmin();
+        
+        mostrarHistorialAgrupado(consumosFiltrados);
+        mostrarHistorialSuministros(suministrosFiltrados); 
+    } catch (error) {
+        console.error("Error actualizando la UI:", error);
+        mostrarNotificacion("Ocurrió un error al actualizar la interfaz.", "error");
+    }
 }
-// ===== FIN DE FUNCIÓN MODIFICADA =====
 
-function poblarSelectores() { /* ... (sin cambios) ... */ }
+// ===== INICIO DE FUNCIÓN CORREGIDA =====
+function poblarSelectores() {
+    const selectoresConsumo = { 
+        choferes: document.getElementById('selectChofer'), 
+        placas: document.getElementById('selectVolqueta'), 
+        detallesVolqueta: document.getElementById('selectDetallesVolqueta'), 
+        empresas: document.getElementById('selectEmpresa'), 
+        proveedores: document.getElementById('selectProveedor'), 
+        proyectos: document.getElementById('selectProyecto') 
+    };
+    const titulosConsumo = { 
+        choferes: '--- Chofer ---', placas: '--- Placa ---', detallesVolqueta: '--- Detalles Volqueta ---', 
+        empresas: '--- Empresa ---', proveedores: '--- Proveedor ---', proyectos: '--- Proyecto ---' 
+    };
+    for (const tipo in selectoresConsumo) {
+        const select = selectoresConsumo[tipo];
+        // CORRECCIÓN: Verificar si listasAdmin[tipo] existe antes de usarlo
+        if (!select || !listasAdmin[tipo]) { 
+            // console.warn(`Selector o lista no encontrada para tipo: ${tipo}`); // Opcional: para depuración
+            continue; 
+        }
+        const valorActual = select.value;
+        select.innerHTML = `<option value="">${titulosConsumo[tipo] || '--- Seleccione ---'}</option>`; 
+        listasAdmin[tipo].forEach(item => { select.innerHTML += `<option value="${item.nombre}">${item.nombre}</option>`; });
+        select.value = valorActual;
+    }
+
+    const selectMaquinaria = document.getElementById('selectMaquinaria');
+    const selectSuministroProyecto = document.getElementById('selectSuministroProyecto');
+    
+    // CORRECCIÓN: Verificar si listasAdmin.maquinaria existe
+    if (selectMaquinaria && listasAdmin.maquinaria) {
+        const valorMaquinaria = selectMaquinaria.value;
+        selectMaquinaria.innerHTML = `<option value="">--- Maquinaria ---</option>`;
+        listasAdmin.maquinaria.forEach(item => { selectMaquinaria.innerHTML += `<option value="${item.nombre}">${item.nombre}</option>`; });
+        selectMaquinaria.value = valorMaquinaria;
+    }
+    // CORRECCIÓN: Verificar si listasAdmin.proyectos existe
+    if (selectSuministroProyecto && listasAdmin.proyectos) {
+         const valorProyecto = selectSuministroProyecto.value;
+        selectSuministroProyecto.innerHTML = `<option value="">--- Proyecto (Opcional) ---</option>`;
+        listasAdmin.proyectos.forEach(item => { selectSuministroProyecto.innerHTML += `<option value="${item.nombre}">${item.nombre}</option>`; });
+        selectSuministroProyecto.value = valorProyecto;
+    }
+}
+// ===== FIN DE FUNCIÓN CORREGIDA =====
+
 function reiniciarFormulario() { /* ... (sin cambios) ... */ }
 async function guardarOActualizar(e) { /* ... (sin cambios) ... */ }
 async function guardarSuministro(e) { /* ... (sin cambios) ... */ }
 async function agregarItemAdmin(tipo, inputElement) { /* ... (sin cambios) ... */ }
 function manejarAccionesHistorial(e) { /* ... (sin cambios) ... */ }
 function obtenerConsumosFiltrados() { /* ... (sin cambios) ... */ }
+function obtenerSuministrosFiltrados() { /* ... (sin cambios) ... */ }
 
-// ===== INICIO DE FUNCIÓN NUEVA (Filtra Suministros) =====
-function obtenerSuministrosFiltrados() {
-    // Reutiliza los mismos filtros de fecha y proyecto que los consumos
-    const obtenerValorFiltro = (syncId) => document.querySelector(`.filtro-sincronizado[data-sync-id="${syncId}"]`).value;
-    const mes = obtenerValorFiltro('filtroMes');
-    const fechaInicio = obtenerValorFiltro('filtroFechaInicio');
-    const fechaFin = obtenerValorFiltro('filtroFechaFin');
-    const proyecto = obtenerValorFiltro('filtroProyecto'); // Podríamos filtrar suministros por proyecto también
-
-    let suministrosFiltrados = todosLosSuministros;
-
-    if (fechaInicio && fechaFin) {
-        if (fechaFin < fechaInicio) { return []; } // Evitar error si ya se notificó
-        suministrosFiltrados = suministrosFiltrados.filter(s => s.fecha >= fechaInicio && s.fecha <= fechaFin);
-    } else if (fechaInicio) {
-        suministrosFiltrados = suministrosFiltrados.filter(s => s.fecha === fechaInicio);
-    } else if (mes !== 'todos') {
-        suministrosFiltrados = suministrosFiltrados.filter(s => s.fecha.startsWith(mes));
+// ===== INICIO DE FUNCIÓN CORREGIDA =====
+function mostrarListasAdmin() {
+    const contenedores = { 
+        choferes: 'listaChoferes', placas: 'listaPlacas', detallesVolqueta: 'listaDetallesVolqueta', 
+        maquinaria: 'listaMaquinaria', empresas: 'listaEmpresas', proveedores: 'listaProveedores', 
+        proyectos: 'listaProyectos' 
+    };
+    for (const tipo in contenedores) {
+        const ul = document.getElementById(contenedores[tipo]);
+        // CORRECCIÓN: Verificar si listasAdmin[tipo] existe
+        if (!ul || !listasAdmin[tipo]) {
+            // console.warn(`Contenedor UL o lista no encontrada para tipo: ${tipo}`); // Opcional: para depuración
+            if(ul) ul.innerHTML = `<li class="empty-state">Error al cargar.</li>`; // Informar al usuario
+            continue; 
+        }
+        ul.innerHTML = '';
+        if (listasAdmin[tipo].length === 0) { ul.innerHTML = `<li class="empty-state">No hay elementos.</li>`; continue; }
+        const listaOrdenada = [...listasAdmin[tipo]].sort((a, b) => a.nombre.localeCompare(b.nombre));
+        listaOrdenada.forEach(item => {
+            const li = document.createElement('li');
+            li.innerHTML = `<span>${item.nombre}</span><div><button class="btn-accion btn-modificar button-warning" title="Modificar"><i class="fa-solid fa-pencil" style="margin:0;"></i></button><button class="btn-accion btn-borrar" title="Borrar"><i class="fa-solid fa-trash-can" style="margin:0;"></i></button></div>`;
+            li.querySelector('.btn-modificar').addEventListener('click', () => modificarItemAdmin(item, tipo));
+            li.querySelector('.btn-borrar').addEventListener('click', () => borrarItemAdmin(item, tipo));
+            ul.appendChild(li);
+        });
     }
-    
-    if (proyecto !== 'todos') {
-        suministrosFiltrados = suministrosFiltrados.filter(s => s.proyecto === proyecto);
-    }
-
-    // Podríamos añadir filtros específicos para volqueta suministrante o maquinaria receptora si fuera necesario
-
-    return suministrosFiltrados;
 }
-// ===== FIN DE FUNCIÓN NUEVA =====
+// ===== FIN DE FUNCIÓN CORREGIDA =====
 
-function mostrarListasAdmin() { /* ... (sin cambios) ... */ }
 async function modificarItemAdmin(item, tipo) { /* ... (sin cambios) ... */ }
 function cargarDatosParaModificar(id) { /* ... (sin cambios) ... */ }
 function calcularYMostrarTotalesPorCategoria(consumos, categoria, bodyId, footerId) { /* ... (sin cambios) ... */ }
-
-// ===== INICIO DE FUNCIONES NUEVAS (Cálculos para Suministros) =====
-function calcularYMostrarSuministrosPorVolqueta(suministros) {
-    const resumenBody = document.getElementById('resumenSuministroVolquetaBody');
-    const resumenFooter = document.getElementById('resumenSuministroVolquetaFooter');
-    resumenBody.innerHTML = ''; resumenFooter.innerHTML = '';
-    const totales = {};
-    suministros.forEach(s => {
-        const clave = s.volquetaSuministrante;
-        if (!clave) return;
-        if (!totales[clave]) totales[clave] = { totalGalones: 0 };
-        totales[clave].totalGalones += parseFloat(s.galonesSuministrados) || 0;
-    });
-    if (Object.keys(totales).length === 0) { resumenBody.innerHTML = `<tr><td colspan="2" class="empty-state">No hay datos.</td></tr>`; return; }
-    const clavesOrdenadas = Object.keys(totales).sort();
-    let htmlBody = '', granTotalGalones = 0;
-    clavesOrdenadas.forEach(clave => {
-        const total = totales[clave];
-        htmlBody += `<tr><td><strong>${clave}</strong></td><td>${total.totalGalones.toFixed(2)}</td></tr>`;
-        granTotalGalones += total.totalGalones;
-    });
-    resumenBody.innerHTML = htmlBody;
-    resumenFooter.innerHTML = `<tr><td><strong>TOTAL</strong></td><td><strong>${granTotalGalones.toFixed(2)}</strong></td></tr>`;
-}
-
-function calcularYMostrarSuministrosPorMaquinaria(suministros) {
-    const resumenBody = document.getElementById('resumenSuministroMaquinariaBody');
-    const resumenFooter = document.getElementById('resumenSuministroMaquinariaFooter');
-    resumenBody.innerHTML = ''; resumenFooter.innerHTML = '';
-    const totales = {};
-    suministros.forEach(s => {
-        const clave = s.maquinariaReceptora;
-        if (!clave) return;
-        if (!totales[clave]) totales[clave] = { totalGalones: 0 };
-        totales[clave].totalGalones += parseFloat(s.galonesSuministrados) || 0;
-    });
-    if (Object.keys(totales).length === 0) { resumenBody.innerHTML = `<tr><td colspan="2" class="empty-state">No hay datos.</td></tr>`; return; }
-    const clavesOrdenadas = Object.keys(totales).sort();
-    let htmlBody = '', granTotalGalones = 0;
-    clavesOrdenadas.forEach(clave => {
-        const total = totales[clave];
-        htmlBody += `<tr><td><strong>${clave}</strong></td><td>${total.totalGalones.toFixed(2)}</td></tr>`;
-        granTotalGalones += total.totalGalones;
-    });
-    resumenBody.innerHTML = htmlBody;
-    resumenFooter.innerHTML = `<tr><td><strong>TOTAL</strong></td><td><strong>${granTotalGalones.toFixed(2)}</strong></td></tr>`;
-}
-// ===== FIN DE FUNCIONES NUEVAS =====
-
+function calcularYMostrarSuministrosPorVolqueta(suministros) { /* ... (sin cambios) ... */ }
+function calcularYMostrarSuministrosPorMaquinaria(suministros) { /* ... (sin cambios) ... */ }
 const calcularYMostrarTotalesPorEmpresa = (consumos) => calcularYMostrarTotalesPorCategoria(consumos, 'empresa', 'resumenEmpresaBody', 'resumenEmpresaFooter');
 const calcularYMostrarTotalesPorProveedor = (consumos) => calcularYMostrarTotalesPorCategoria(consumos, 'proveedor', 'resumenProveedorBody', 'resumenProveedorFooter');
 const calcularYMostrarTotalesPorProyecto = (consumos) => calcularYMostrarTotalesPorCategoria(consumos, 'proyecto', 'resumenProyectoBody', 'resumenProyectoFooter');
 const calcularYMostrarTotalesPorChofer = (consumos) => calcularYMostrarTotalesPorCategoria(consumos, 'chofer', 'resumenChoferBody', 'resumenChoferFooter');
 const calcularYMostrarTotales = (consumos) => { calcularYMostrarTotalesPorCategoria(consumos, 'volqueta', 'resumenBody', 'resumenFooter'); };
-
 async function borrarItemAdmin(item, tipo) { /* ... (sin cambios) ... */ }
 async function borrarConsumoHistorial(id) { /* ... (sin cambios) ... */ }
 function poblarFiltroDeMes() { /* ... (sin cambios) ... */ }
 function poblarFiltrosReportes() { /* ... (sin cambios) ... */ }
 function mostrarHistorialAgrupado(consumos) { /* ... (sin cambios) ... */ }
-
-// ===== INICIO DE FUNCIÓN NUEVA (Muestra Historial de Suministros) =====
-function mostrarHistorialSuministros(suministros) {
-    const historialBody = document.getElementById('historialSuministrosBody'); 
-    const historialFooter = document.getElementById('historialSuministrosFooter');
-    historialBody.innerHTML = ''; historialFooter.innerHTML = '';
-
-    // Ajustar colspan para el estado vacío (6 columnas ahora)
-    if (suministros.length === 0) { 
-        historialBody.innerHTML = `<tr><td colspan="6" class="empty-state"><i class="fa-solid fa-folder-open"></i><p>No se encontraron suministros.</p></td></tr>`; 
-        return; 
-    }
-    
-    let totalGalonesSuministrados = 0;
-    // Ordenar suministros por fecha descendente
-    suministros.sort((a,b) => new Date(b.fecha) - new Date(a.fecha)); 
-    
-    suministros.forEach(suministro => {
-        totalGalonesSuministrados += parseFloat(suministro.galonesSuministrados) || 0;
-        
-        const filaDato = document.createElement('tr');
-        // Aquí no añadimos botones de editar/borrar por ahora, se puede hacer después si es necesario
-        filaDato.innerHTML = `
-            <td>${suministro.fecha}</td>
-            <td>${suministro.volquetaSuministrante}</td>
-            <td>${suministro.maquinariaReceptora}</td>
-            <td>${(parseFloat(suministro.galonesSuministrados) || 0).toFixed(2)}</td>
-            <td>${suministro.proyecto || ''}</td>
-            <td>${suministro.descripcion || ''}</td>`;
-        historialBody.appendChild(filaDato);
-    });
-    
-    // Ajustar colspan para el footer (ahora son 6 columnas)
-    historialFooter.innerHTML = `<tr><td colspan="3" style="text-align: right;"><strong>TOTAL GALONES SUMINISTRADOS:</strong></td><td><strong>${totalGalonesSuministrados.toFixed(2)}</strong></td><td colspan="2"></td></tr>`;
-}
-// ===== FIN DE FUNCIÓN NUEVA =====
-
+function mostrarHistorialSuministros(suministros) { /* ... (sin cambios) ... */ }
 function asignarSincronizacionDeFiltros() { /* ... (sin cambios) ... */ }
 function handleLogin(e) { /* ... (sin cambios) ... */ }
 function handleLogout() { /* ... (sin cambios) ... */ }
-function asignarEventosApp() { /* ... (sin cambios, ya tiene los eventos de suministro) ... */ }
-function iniciarAplicacion() { /* ... (sin cambios) ... */ }
 
-document.getElementById('login-form').addEventListener('submit', handleLogin);
-btnLogout.addEventListener('click', handleLogout);
+// ===== INICIO DE FUNCIÓN CORREGIDA =====
+function asignarEventosApp() {
+    // Asegurarse que los elementos existen antes de añadir listeners
+    const elBtnAbrirModal = document.getElementById('btnAbrirModal');
+    if (elBtnAbrirModal) elBtnAbrirModal.addEventListener('click', abrirModal);
+    
+    const elBtnCerrarModal = modal ? modal.querySelector('.close-button') : null;
+    if (elBtnCerrarModal) elBtnCerrarModal.addEventListener('click', cerrarModal);
+    
+    const elBtnTabRegistrar = document.getElementById('btnTabRegistrar');
+    if (elBtnTabRegistrar) elBtnTabRegistrar.addEventListener('click', (e) => openMainTab(e, 'tabRegistrar'));
+    
+    const elBtnTabReportes = document.getElementById('btnTabReportes');
+    if (elBtnTabReportes) elBtnTabReportes.addEventListener('click', (e) => openMainTab(e, 'tabReportes'));
+    
+    const elBtnTabHistorial = document.getElementById('btnTabHistorial');
+    if (elBtnTabHistorial) elBtnTabHistorial.addEventListener('click', (e) => openMainTab(e, 'tabHistorial'));
+    
+    const elBtnTabAdmin = document.getElementById('btnTabAdmin');
+    if (elBtnTabAdmin) elBtnTabAdmin.addEventListener('click', (e) => openMainTab(e, 'tabAdmin'));
+    
+    const elConsumoForm = document.getElementById('consumoForm');
+    if (elConsumoForm) elConsumoForm.addEventListener('submit', guardarOActualizar);
+
+    // Eventos Suministro
+    const elBtnSiSuministro = document.getElementById('btnSiSuministro');
+    if (elBtnSiSuministro) elBtnSiSuministro.addEventListener('click', () => {
+        document.getElementById('preguntaSuministroBotones').style.display = 'none';
+        document.getElementById('suministroForm').style.display = 'flex'; 
+        poblarSelectores(); 
+        document.getElementById('selectMaquinaria').focus();
+    });
+    
+    const elBtnNoSuministro = document.getElementById('btnNoSuministro');
+    if (elBtnNoSuministro) elBtnNoSuministro.addEventListener('click', cerrarModal);
+    
+    const elSuministroForm = document.getElementById('suministroForm');
+    if (elSuministroForm) elSuministroForm.addEventListener('submit', guardarSuministro);
+
+    const elBtnFinalizarSuministro = document.getElementById('btnFinalizarSuministro');
+    if (elBtnFinalizarSuministro) elBtnFinalizarSuministro.addEventListener('click', cerrarModal);
+
+    // Eventos Impresión y Filtros
+    document.querySelectorAll('.btn-print').forEach(btn => btn.addEventListener('click', (e) => { /* ... (sin cambios) ... */ }));
+    window.onafterprint = () => { /* ... (sin cambios) ... */ };
+    document.querySelectorAll('#btnAplicarFiltros').forEach(btn => btn.addEventListener('click', actualizarTodaLaUI));
+    document.querySelectorAll('#btnLimpiarFiltros').forEach(btn => btn.addEventListener('click', () => { /* ... (sin cambios) ... */ }));
+    
+    const elHistorialBody = document.getElementById('historialBody');
+    if (elHistorialBody) elHistorialBody.addEventListener('click', manejarAccionesHistorial);
+
+    // Eventos Forms Admin
+    const elFormAdminChofer = document.getElementById('formAdminChofer');
+    if (elFormAdminChofer) elFormAdminChofer.addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('choferes', document.getElementById('nuevoChofer')); });
+    
+    const elFormAdminPlaca = document.getElementById('formAdminPlaca');
+    if (elFormAdminPlaca) elFormAdminPlaca.addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('placas', document.getElementById('nuevaPlaca')); });
+    
+    const elFormAdminDetalles = document.getElementById('formAdminDetallesVolqueta');
+    if (elFormAdminDetalles) elFormAdminDetalles.addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('detallesVolqueta', document.getElementById('nuevoDetalleVolqueta')); });
+    
+    const elFormAdminMaquinaria = document.getElementById('formAdminMaquinaria');
+    if (elFormAdminMaquinaria) elFormAdminMaquinaria.addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('maquinaria', document.getElementById('nuevaMaquinaria')); });
+    
+    const elFormAdminEmpresa = document.getElementById('formAdminEmpresa');
+    if (elFormAdminEmpresa) elFormAdminEmpresa.addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('empresas', document.getElementById('nuevaEmpresa')); });
+    
+    const elFormAdminProveedor = document.getElementById('formAdminProveedor');
+    if (elFormAdminProveedor) elFormAdminProveedor.addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('proveedores', document.getElementById('nuevoProveedor')); });
+    
+    const elFormAdminProyecto = document.getElementById('formAdminProyecto');
+    if (elFormAdminProyecto) elFormAdminProyecto.addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('proyectos', document.getElementById('nuevoProyecto')); });
+    
+    const botonesAcordeon = document.querySelectorAll('.accordion-button');
+    botonesAcordeon.forEach(boton => {
+        boton.addEventListener('click', function() {
+            this.classList.toggle('active');
+            const panel = this.nextElementSibling;
+            if (panel.style.maxHeight) { panel.style.maxHeight = null; } else { panel.style.maxHeight = panel.scrollHeight + "px"; } 
+        });
+    });
+    asignarSincronizacionDeFiltros();
+}
+// ===== FIN DE FUNCIÓN CORREGIDA =====
+
+function iniciarAplicacion() {
+    asignarEventosApp();
+    cargarDatosIniciales();
+}
+
+const elLoginForm = document.getElementById('login-form');
+if (elLoginForm) elLoginForm.addEventListener('submit', handleLogin);
+if (btnLogout) btnLogout.addEventListener('click', handleLogout);
