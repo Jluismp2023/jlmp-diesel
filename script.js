@@ -142,7 +142,9 @@ function poblarSelectores() {
         if (!select) continue;
         const valorActual = select.value;
         select.innerHTML = `<option value="">${titulos[tipo]}</option>`; 
-        listasAdmin[tipo].forEach(item => { select.innerHTML += `<option value="${item.nombre}">${item.nombre}</option>`; });
+        // Ordenar la lista alfabéticamente antes de poblarla
+        const listaOrdenada = [...listasAdmin[tipo]].sort((a, b) => a.nombre.localeCompare(b.nombre));
+        listaOrdenada.forEach(item => { select.innerHTML += `<option value="${item.nombre}">${item.nombre}</option>`; });
         select.value = valorActual;
     }
 }
@@ -165,6 +167,7 @@ function reiniciarFormulario() {
     document.getElementById('selectMaquinariaDestino').required = false;
 }
 
+// --- FUNCIÓN MODIFICADA ---
 async function guardarOActualizar(e) {
     e.preventDefault();
     const btnGuardar = document.getElementById('btnGuardar');
@@ -177,11 +180,11 @@ async function guardarOActualizar(e) {
 
     // Objeto base con campos comunes
     const datosConsumo = {
-        tipoRegistro: tipoRegistro, // Guardamos el tipo
-        volqueta: document.getElementById('selectVolqueta').value, // En transf: volqueta QUE DA
+        tipoRegistro: tipoRegistro, 
+        volqueta: document.getElementById('selectVolqueta').value, 
         fecha: document.getElementById('fecha').value,
         hora: document.getElementById('hora').value,
-        galones: document.getElementById('galones').value,
+        galones: parseFloat(document.getElementById('galones').value) || 0, // <-- Parsear a número
         chofer: document.getElementById('selectChofer').value,
         proyecto: document.getElementById('selectProyecto').value,
         empresa: document.getElementById('selectEmpresa').value,
@@ -191,17 +194,20 @@ async function guardarOActualizar(e) {
     };
 
     if (tipoRegistro === 'compra') {
-        // Es una COMPRA (como antes)
+        // Es una COMPRA
         datosConsumo.numeroFactura = document.getElementById('numeroFactura').value;
         datosConsumo.proveedor = document.getElementById('selectProveedor').value;
-        datosConsumo.costo = document.getElementById('costo').value;
-        datosConsumo.maquinariaDestino = null; // No aplica
+        datosConsumo.costo = parseFloat(document.getElementById('costo').value) || 0; // <-- Parsear a número
+        datosConsumo.maquinariaDestino = null; 
     } else {
-        // Es una TRANSFERENCIA (Abastecimiento)
+        // Es una TRANSFERENCIA
         datosConsumo.numeroFactura = null;
-        datosConsumo.proveedor = "Transferencia Interna"; // Valor para identificarlo
-        datosConsumo.costo = 0; // ¡Importante! No tiene costo de compra
+        datosConsumo.proveedor = "Transferencia Interna"; 
+        datosConsumo.costo = 0; 
         datosConsumo.maquinariaDestino = document.getElementById('selectMaquinariaDestino').value; 
+        // --- LÍNEA MODIFICADA (¡Importante!) ---
+        // Guardar galones como negativo
+        datosConsumo.galones = -Math.abs(datosConsumo.galones);
     }
 
     if (!datosConsumo.chofer || !datosConsumo.volqueta || !datosConsumo.proyecto) {
@@ -234,7 +240,6 @@ async function guardarOActualizar(e) {
 async function agregarItemAdmin(tipo, inputElement) {
     const valor = (tipo === 'placas') ? inputElement.value.trim().toUpperCase() : inputElement.value.trim();
     if (valor) {
-        // Verificar si 'listasAdmin[tipo]' existe antes de usar 'map'
         if (!listasAdmin[tipo]) {
             console.error(`Error: listasAdmin['${tipo}'] no está definido.`);
             mostrarNotificacion("Error interno al agregar.", "error");
@@ -297,7 +302,6 @@ function mostrarListasAdmin() {
         ul.innerHTML = '';
         if (listasAdmin[tipo].length === 0) { ul.innerHTML = `<li class="empty-state">No hay elementos.</li>`; continue; }
         
-        // Ordenar alfabéticamente antes de mostrar
         const listaOrdenada = [...listasAdmin[tipo]].sort((a, b) => a.nombre.localeCompare(b.nombre));
 
         listaOrdenada.forEach(item => {
@@ -332,14 +336,14 @@ async function modificarItemAdmin(item, tipo) {
     } 
 }
 
+// --- FUNCIÓN MODIFICADA ---
 function cargarDatosParaModificar(id) {
     const consumo = todosLosConsumos.find(c => c.id === id); if (!consumo) return;
 
-    const tipoRegistro = consumo.tipoRegistro || 'compra'; // Asumir 'compra' para datos antiguos
+    const tipoRegistro = consumo.tipoRegistro || 'compra'; 
     const selectTipo = document.getElementById('tipoRegistro');
     selectTipo.value = tipoRegistro;
     
-    // Disparamos el evento 'change' para que el formulario se adapte
     setTimeout(() => {
         selectTipo.dispatchEvent(new Event('change'));
     }, 0);
@@ -350,7 +354,11 @@ function cargarDatosParaModificar(id) {
     
     document.getElementById('selectChofer').value = consumo.chofer; 
     document.getElementById('selectVolqueta').value = consumo.volqueta; 
-    document.getElementById('galones').value = consumo.galones; 
+    
+    // --- LÍNEA MODIFICADA ---
+    // Mostrar siempre galones como positivo en el formulario
+    document.getElementById('galones').value = Math.abs(consumo.galones || 0); 
+
     document.getElementById('descripcion').value = consumo.descripcion; 
     document.getElementById('selectEmpresa').value = consumo.empresa || ""; 
     document.getElementById('selectProyecto').value = consumo.proyecto || "";
@@ -371,13 +379,35 @@ function cargarDatosParaModificar(id) {
 
 function calcularYMostrarTotalesPorCategoria(consumos, categoria, bodyId, footerId) {
     const resumenBody = document.getElementById(bodyId); const resumenFooter = document.getElementById(footerId);
+    if (!resumenBody || !resumenFooter) return; // Añadido chequeo de seguridad
+    
     resumenBody.innerHTML = ''; resumenFooter.innerHTML = '';
     const totales = {};
-    consumos.forEach(c => { const clave = c[categoria]; if (!clave) return; if (!totales[clave]) totales[clave] = { totalGalones: 0, totalCosto: 0 }; totales[clave].totalGalones += parseFloat(c.galones) || 0; totales[clave].totalCosto += parseFloat(c.costo) || 0; });
+    
+    consumos.forEach(c => { 
+        const clave = c[categoria]; 
+        if (!clave) return; 
+        if (!totales[clave]) totales[clave] = { totalGalones: 0, totalCosto: 0 }; 
+        
+        const galones = parseFloat(c.galones) || 0;
+        const costo = parseFloat(c.costo) || 0;
+
+        totales[clave].totalGalones += galones; // Esto sumará positivos (compras) y restará negativos (transferencias)
+        totales[clave].totalCosto += costo; 
+    });
+    
     if (Object.keys(totales).length === 0) { resumenBody.innerHTML = `<tr><td colspan="3" class="empty-state">No hay datos.</td></tr>`; return; }
+    
     const clavesOrdenadas = Object.keys(totales).sort();
     let htmlBody = '', granTotalGalones = 0, granTotalCosto = 0;
-    clavesOrdenadas.forEach(clave => { const total = totales[clave]; htmlBody += `<tr><td><strong>${clave}</strong></td><td>${total.totalGalones.toFixed(2)}</td><td>$${total.totalCosto.toFixed(2)}</td></tr>`; granTotalGalones += total.totalGalones; granTotalCosto += total.totalCosto; });
+    
+    clavesOrdenadas.forEach(clave => { 
+        const total = totales[clave]; 
+        htmlBody += `<tr><td><strong>${clave}</strong></td><td>${total.totalGalones.toFixed(2)}</td><td>$${total.totalCosto.toFixed(2)}</td></tr>`; 
+        granTotalGalones += total.totalGalones; 
+        granTotalCosto += total.totalCosto; 
+    });
+    
     resumenBody.innerHTML = htmlBody;
     resumenFooter.innerHTML = `<tr><td><strong>TOTAL</strong></td><td><strong>${granTotalGalones.toFixed(2)}</strong></td><td><strong>$${granTotalCosto.toFixed(2)}</strong></td></tr>`;
 }
@@ -413,36 +443,61 @@ async function borrarConsumoHistorial(id) {
 function poblarFiltroDeMes() { const filtros = document.querySelectorAll('.filtro-sincronizado[data-sync-id="filtroMes"]'); const mesesUnicos = [...new Set(todosLosConsumos.map(c => c.fecha && c.fecha.substring(0, 7)))].filter(Boolean); mesesUnicos.sort().reverse(); filtros.forEach(filtroSelect => { const valorSeleccionado = filtroSelect.value; filtroSelect.innerHTML = '<option value="todos">Todos los Meses</option>'; mesesUnicos.forEach(mes => { const [year, month] = mes.split('-'); const fechaMes = new Date(year, month - 1); const nombreMes = fechaMes.toLocaleDateString('es-EC', { month: 'long', year: 'numeric' }); const opcion = document.createElement('option'); opcion.value = mes; opcion.textContent = nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1); filtroSelect.appendChild(opcion); }); if (filtroSelect.value) filtroSelect.value = valorSeleccionado || 'todos'; }); }
 function poblarFiltrosReportes() { const tipos = { choferes: 'filtroChofer', proveedores: 'filtroProveedor', empresas: 'filtroEmpresa', proyectos: 'filtroProyecto' }; const titulos = { choferes: 'Todos los Choferes', proveedores: 'Todos los Proveedores', empresas: 'Todas las Empresas', proyectos: 'Todos los Proyectos' }; for (const tipo in tipos) { const syncId = tipos[tipo]; const selects = document.querySelectorAll(`.filtro-sincronizado[data-sync-id="${syncId}"]`); selects.forEach(select => { const valorActual = select.value; select.innerHTML = `<option value="todos">${titulos[tipo]}</option>`; listasAdmin[tipo].forEach(item => { select.innerHTML += `<option value="${item.nombre}">${item.nombre}</option>`; }); select.value = valorActual || 'todos'; }); } }
 
+// --- FUNCIÓN MODIFICADA ---
 function mostrarHistorialAgrupado(consumos) {
     const historialBody = document.getElementById('historialBody'); const historialFooter = document.getElementById('historialFooter');
     historialBody.innerHTML = ''; historialFooter.innerHTML = '';
-    if (consumos.length === 0) { historialBody.innerHTML = `<tr><td colspan="14" class="empty-state"><i class="fa-solid fa-folder-open"></i><p>No se encontraron registros.</p></td></tr>`; return; }
-    let totalGalones = 0, totalCosto = 0;
+    
+    // --- Colspan actualizado a 15 ---
+    if (consumos.length === 0) { historialBody.innerHTML = `<tr><td colspan="15" class="empty-state"><i class="fa-solid fa-folder-open"></i><p>No se encontraron registros.</p></td></tr>`; return; }
+    
+    let totalGalonesNetos = 0, totalCostoCompras = 0;
     consumos.sort((a,b) => new Date(b.fecha) - new Date(a.fecha) || a.volqueta.localeCompare(b.volqueta));
     let mesAnioActual = "";
+    
     consumos.forEach(consumo => {
-        totalGalones += parseFloat(consumo.galones) || 0; totalCosto += parseFloat(consumo.costo) || 0;
+        const galones = parseFloat(consumo.galones) || 0;
+        const costo = parseFloat(consumo.costo) || 0;
+
+        totalGalonesNetos += galones; // Sumará positivos y restará negativos
+        totalCostoCompras += costo; // Solo las compras tienen costo, las transferencias son $0
+        
         const fechaConsumo = new Date(consumo.fecha + 'T00:00:00'); const mesAnio = fechaConsumo.toLocaleDateString('es-EC', { month: 'long', year: 'numeric', timeZone: 'UTC' });
         
-        // Determinar si hay un filtro de rango de fechas activo
         const fechaInicioFiltro = document.querySelector('.filtro-sincronizado[data-sync-id="filtroFechaInicio"]')?.value;
         const fechaFinFiltro = document.querySelector('.filtro-sincronizado[data-sync-id="filtroFechaFin"]')?.value;
         const filtroRangoActivo = fechaInicioFiltro && fechaFinFiltro;
 
-        if (mesAnio !== mesAnioActual && !filtroRangoActivo) { // Solo agrupar por mes si NO hay un rango de fechas
+        if (mesAnio !== mesAnioActual && !filtroRangoActivo) { 
             mesAnioActual = mesAnio;
             const filaGrupo = document.createElement('tr'); filaGrupo.className = 'fila-grupo'; 
-            filaGrupo.innerHTML = `<td colspan="14">${mesAnioActual.charAt(0).toUpperCase() + mesAnioActual.slice(1)}</td>`;
+            // --- Colspan actualizado a 15 ---
+            filaGrupo.innerHTML = `<td colspan="15">${mesAnioActual.charAt(0).toUpperCase() + mesAnioActual.slice(1)}</td>`;
             historialBody.appendChild(filaGrupo);
         }
+        
         const filaDato = document.createElement('tr');
+        
+        // --- Nueva celda <td> añadida ---
         filaDato.innerHTML = `<td class="no-print"><button class="btn-accion btn-modificar button-warning" data-id="${consumo.id}" title="Modificar"><i class="fa-solid fa-pencil" style="margin: 0;"></i></button><button class="btn-accion btn-borrar" data-id="${consumo.id}" title="Borrar"><i class="fa-solid fa-trash-can" style="margin: 0;"></i></button></td>
-            <td>${consumo.fecha}</td><td>${consumo.hora || ''}</td><td>${consumo.numeroFactura || ''}</td><td>${consumo.chofer}</td><td>${consumo.volqueta}</td>
-            <td>${consumo.detallesVolqueta || ''}</td><td>${consumo.kilometraje || ''}</td>
-            <td>${consumo.proveedor || ''}</td><td>${consumo.proyecto || ''}</td><td>${(parseFloat(consumo.galones) || 0).toFixed(2)}</td><td>$${(parseFloat(consumo.costo) || 0).toFixed(2)}</td><td>${consumo.empresa || ''}</td><td>${consumo.descripcion}</td>`;
+            <td>${consumo.fecha}</td>
+            <td>${consumo.hora || ''}</td>
+            <td>${consumo.numeroFactura || ''}</td>
+            <td>${consumo.chofer}</td>
+            <td>${consumo.volqueta}</td>
+            <td>${consumo.detallesVolqueta || ''}</td>
+            <td>${consumo.kilometraje || ''}</td>
+            <td>${consumo.maquinariaDestino || ''}</td> <td>${consumo.proveedor || ''}</td>
+            <td>${consumo.proyecto || ''}</td>
+            <td>${galones.toFixed(2)}</td>
+            <td>$${costo.toFixed(2)}</td>
+            <td>${consumo.empresa || ''}</td>
+            <td>${consumo.descripcion}</td>`;
         historialBody.appendChild(filaDato);
     });
-    historialFooter.innerHTML = `<tr><td class="no-print"></td><td colspan="9" style="text-align: right;"><strong>TOTAL GALONES:</strong></td><td><strong>${totalGalones.toFixed(2)}</strong></td><td style="text-align: right;"><strong>VALOR TOTAL:</strong></td><td><strong>$${totalCosto.toFixed(2)}</strong></td><td></td></tr>`;
+    
+    // --- Colspan actualizado a 10 ---
+    historialFooter.innerHTML = `<tr><td class="no-print"></td><td colspan="10" style="text-align: right;"><strong>TOTAL GALONES (NETO):</strong></td><td><strong>${totalGalonesNetos.toFixed(2)}</strong></td><td style="text-align: right;"><strong>VALOR TOTAL (COMPRAS):</strong></td><td><strong>$${totalCostoCompras.toFixed(2)}</strong></td><td></td></tr>`;
 }
 
 function asignarSincronizacionDeFiltros() {
@@ -454,7 +509,6 @@ function asignarSincronizacionDeFiltros() {
             const filtrosASincronizar = document.querySelectorAll(`.filtro-sincronizado[data-sync-id="${syncId}"]`);
             filtrosASincronizar.forEach(f => { if (f !== e.target) { f.value = newValue; } });
             
-            // Lógica para limpiar filtros opuestos
             if (syncId === 'filtroMes' && newValue !== 'todos') {
                 document.querySelectorAll('.filtro-sincronizado[data-sync-id="filtroFechaInicio"]').forEach(el => el.value = '');
                 document.querySelectorAll('.filtro-sincronizado[data-sync-id="filtroFechaFin"]').forEach(el => el.value = '');
@@ -485,32 +539,26 @@ function asignarEventosApp() {
             const targetId = e.currentTarget.dataset.printTarget;
             const targetTab = document.getElementById(targetId);
             if (targetTab) {
-                // Preparar para impresión
                 document.querySelectorAll('.main-tab-content').forEach(tab => tab.classList.remove('printable-active'));
                 targetTab.classList.add('printable-active');
-                tabActivaParaImprimir = targetId; // Guardar la pestaña activa
-                
+                tabActivaParaImprimir = targetId; 
                 window.print();
             }
         });
     });
     
     window.onafterprint = () => {
-        // Limpiar clases de impresión
         document.querySelectorAll('.main-tab-content').forEach(tab => tab.classList.remove('printable-active'));
         document.getElementById('facturas-impresion').innerHTML = '';
         
-        // Volver a la pestaña que estaba activa antes de imprimir
         if (tabActivaParaImprimir) {
-            // Usamos el ID guardado para encontrar el botón correcto y simular un clic sin evento
             const botonTabActiva = document.getElementById(`btnTab${tabActivaParaImprimir.replace('tab','')}`);
             if (botonTabActiva) {
                 openMainTab(null, tabActivaParaImprimir);
-                // Asegurarse de que el botón quede marcado como activo
                 document.querySelectorAll('.main-tab-link').forEach(btn => btn.classList.remove('active'));
                 botonTabActiva.classList.add('active');
             }
-            tabActivaParaImprimir = null; // Limpiar la variable
+            tabActivaParaImprimir = null; 
         }
     };
     
@@ -519,7 +567,6 @@ function asignarEventosApp() {
         document.querySelectorAll('.filtro-sincronizado').forEach(filtro => {
             const valorOriginal = filtro.value;
             if(filtro.tagName === 'SELECT') filtro.value = 'todos'; else filtro.value = '';
-            // Disparar evento change para que los filtros sincronizados se limpien
             if (filtro.value !== valorOriginal) { filtro.dispatchEvent(new Event('change', { 'bubbles': true })); }
         });
         actualizarTodaLaUI();
