@@ -147,12 +147,19 @@ button:hover { opacity: 0.9; }
     .fila-grupo { background-color: #ccc !important; color: black !important; }
     .signature-block { display: block; text-align: center; margin-top: 80px; page-break-inside: avoid; }
     .signature-block .line { width: 250px; border-top: 1px solid black; margin: 0 auto 10px auto; }
-    #facturas-impresion { display: none; } /* Nos aseguramos que no aparezca */
+    #facturas-impresion { display: none; }
 }
 
-#historialTabla th:nth-child(1), #historialTabla td:nth-child(1) { width: 120px; }
-#historialTabla th:nth-child(2), #historialTabla td:nth-child(2) { width: 105px; }
-#historialTabla th:last-child, #historialTabla td:last-child { min-width: 250px; }
+/* Ajustes de ancho para tabla de historial con nuevas columnas */
+#historialTabla { table-layout: auto; width: 100%; }
+#historialTabla th:nth-child(1), #historialTabla td:nth-child(1) { width: 120px; } /* Acciones */
+#historialTabla th:nth-child(2), #historialTabla td:nth-child(2) { width: 105px; } /* Fecha */
+/* Las columnas Hora, Factura #, Chofer, Placa tomarán ancho automático */
+#historialTabla th:nth-child(7), #historialTabla td:nth-child(7) { min-width: 130px; } /* Detalles Volqueta */
+#historialTabla th:nth-child(8), #historialTabla td:nth-child(8) { width: 110px; } /* Kilometraje */
+/* Las columnas Proveedor, Proyecto, Galones, Costo, Empresa tomarán ancho automático */
+#historialTabla th:last-child, #historialTabla td:last-child { min-width: 200px; } /* Descripción */
+
 .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 
 .report-cards-container { display: flex; flex-wrap: wrap; gap: 20px; }
