@@ -1,5 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+// ===== INICIO DE LÍNEA CORREGIDA (se añadió 'where') =====
 import { getFirestore, collection, getDocs, doc, addDoc, updateDoc, deleteDoc, query, orderBy, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+// ===== FIN DE LÍNEA CORREGIDA =====
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const firebaseConfig = {
@@ -136,7 +138,6 @@ async function cargarDatosIniciales() {
     }
 }
 
-// ===== INICIO DE FUNCIÓN MODIFICADA (AÑADIDA NUEVA LLAMADA) =====
 function actualizarTodaLaUI() {
     try {
         poblarFiltroDeMes();
@@ -148,7 +149,7 @@ function actualizarTodaLaUI() {
         calcularYMostrarTotalesPorProveedor(consumosFiltrados);
         calcularYMostrarTotalesPorProyecto(consumosFiltrados);
         calcularYMostrarTotalesPorChofer(consumosFiltrados);
-        calcularYMostrarTotalesPorDetallesVolqueta(consumosFiltrados); // <-- NUEVA LLAMADA
+        calcularYMostrarTotalesPorDetallesVolqueta(consumosFiltrados); 
         calcularYMostrarTotales(consumosFiltrados);
         poblarSelectores();
         mostrarListasAdmin();
@@ -158,7 +159,6 @@ function actualizarTodaLaUI() {
         mostrarNotificacion("Error al actualizar la interfaz.", "error");
     }
 }
-// ===== FIN DE FUNCIÓN MODIFICADA =====
 
 function poblarSelectores() {
     const selectores = { 
@@ -495,14 +495,12 @@ function calcularYMostrarTotalesPorCategoria(consumos, categoria, bodyId, footer
     </tr>`;
 }
 
-// ===== INICIO DE DEFINICIONES DE CÁLCULO (NUEVA FUNCIÓN AÑADIDA) =====
 const calcularYMostrarTotalesPorEmpresa = (consumos) => calcularYMostrarTotalesPorCategoria(consumos, 'empresa', 'resumenEmpresaBody', 'resumenEmpresaFooter');
 const calcularYMostrarTotalesPorProveedor = (consumos) => calcularYMostrarTotalesPorCategoria(consumos, 'proveedor', 'resumenProveedorBody', 'resumenProveedorFooter');
 const calcularYMostrarTotalesPorProyecto = (consumos) => calcularYMostrarTotalesPorCategoria(consumos, 'proyecto', 'resumenProyectoBody', 'resumenProyectoFooter');
 const calcularYMostrarTotalesPorChofer = (consumos) => calcularYMostrarTotalesPorCategoria(consumos, 'chofer', 'resumenChoferBody', 'resumenChoferFooter');
-const calcularYMostrarTotalesPorDetallesVolqueta = (consumos) => calcularYMostrarTotalesPorCategoria(consumos, 'detallesVolqueta', 'resumenDetallesVolquetaBody', 'resumenDetallesVolquetaFooter'); // <-- NUEVA FUNCIÓN
+const calcularYMostrarTotalesPorDetallesVolqueta = (consumos) => calcularYMostrarTotalesPorCategoria(consumos, 'detallesVolqueta', 'resumenDetallesVolquetaBody', 'resumenDetallesVolquetaFooter');
 const calcularYMostrarTotales = (consumos) => { calcularYMostrarTotalesPorCategoria(consumos, 'volqueta', 'resumenBody', 'resumenFooter'); };
-// ===== FIN DE DEFINICIONES DE CÁLCULO =====
 
 async function borrarItemAdmin(item, tipo) { 
     const coleccionesPermitidas = ["choferes", "placas", "detallesVolqueta", "empresas", "proveedores", "proyectos"];
