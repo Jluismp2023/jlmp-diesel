@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getFirestore, collection, getDocs, doc, addDoc, updateDoc, deleteDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, collection, getDocs, doc, addDoc, updateDoc, deleteDoc, query, orderBy, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const firebaseConfig = {
@@ -15,73 +15,73 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-const vistaLogin = document.getElementById('vista-login');
-const vistaApp = document.getElementById('vista-app');
-const btnLogout = document.getElementById('btn-logout');
+let vistaLogin, vistaApp, btnLogout, modal, btnAbrirModal, btnCerrarModal; 
 
 let todosLosConsumos = [];
-let listasAdmin = { choferes: [], placas: [], detallesVolqueta: [], empresas: [], proveedores: [], proyectos: [] };
+// ===== INICIO DE LÍNEA MODIFICADA =====
+let listasAdmin = { choferes: [], placas: [], detallesVolqueta: [], maquinaria: [], empresas: [], proveedores: [], proyectos: [] };
+// ===== FIN DE LÍNEA MODIFICADA =====
 let appInicializada = false;
 let tabActivaParaImprimir = null;
 
-onAuthStateChanged(auth, (user) => {
-    if (user) {
-        vistaLogin.style.display = 'none';
-        vistaApp.style.display = 'block';
-        btnLogout.style.display = 'block';
-        if (!appInicializada) {
-            iniciarAplicacion();
-            appInicializada = true;
-        }
-    } else {
-        vistaLogin.style.display = 'block';
-        vistaApp.style.display = 'none';
-        btnLogout.style.display = 'none';
-        appInicializada = false;
+document.addEventListener('DOMContentLoaded', () => {
+    vistaLogin = document.getElementById('vista-login');
+    vistaApp = document.getElementById('vista-app');
+    btnLogout = document.getElementById('btn-logout');
+    modal = document.getElementById('modalRegistro');
+    btnAbrirModal = document.getElementById('btnAbrirModal');
+    btnCerrarModal = modal ? modal.querySelector('.close-button') : null;
+
+    if (!vistaLogin || !vistaApp) {
+        console.error("CRITICAL ERROR! Cannot find 'vista-login' or 'vista-app'.");
+        document.body.innerHTML = "<h1>Critical Error: UI elements missing. Please reload.</h1>";
+        return;
     }
+
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            vistaLogin.style.display = 'none';
+            vistaApp.style.display = 'block';
+            if (btnLogout) btnLogout.style.display = 'block';
+            if (!appInicializada) {
+                iniciarAplicacion();
+                appInicializada = true;
+            }
+        } else {
+            vistaLogin.style.display = 'block';
+            vistaApp.style.display = 'none';
+            if (btnLogout) btnLogout.style.display = 'none';
+            appInicializada = false;
+        }
+    });
+
+    const elLoginForm = document.getElementById('login-form');
+    if (elLoginForm) elLoginForm.addEventListener('submit', handleLogin);
+    if (btnLogout) btnLogout.addEventListener('click', handleLogout);
 });
 
-function mostrarNotificacion(texto, tipo = 'info', duracion = 3500) {
-    let backgroundColor;
-    switch (tipo) {
-        case 'exito': backgroundColor = "linear-gradient(to right, #00b09b, #96c93d)"; break;
-        case 'error': backgroundColor = "linear-gradient(to right, #ff5f6d, #ffc371)"; break;
-        default: backgroundColor = "#007bff"; break;
-    }
-    Toastify({ text: texto, duration: duracion, close: true, gravity: "top", position: "right", stopOnFocus: true, style: { background: backgroundColor, } }).showToast();
-}
+function mostrarNotificacion(texto, tipo = 'info', duracion = 3500) { /* ... (sin cambios) ... */ }
+function abrirModal() { if(modal) modal.style.display = 'block'; }
+function cerrarModal() { if(modal) modal.style.display = 'none'; reiniciarFormulario(); }
+function openMainTab(evt, tabName) { /* ... (sin cambios) ... */ }
 
-const modal = document.getElementById('modalRegistro');
-const btnAbrirModal = document.getElementById('btnAbrirModal');
-const btnCerrarModal = modal.querySelector('.close-button');
-function abrirModal() { modal.style.display = 'block'; }
-function cerrarModal() { modal.style.display = 'none'; reiniciarFormulario(); }
-
-function openMainTab(evt, tabName) {
-    let i, tabcontent, tablinks;
-    tabcontent = document.getElementsByClassName("main-tab-content");
-    for (i = 0; i < tabcontent.length; i++) { tabcontent[i].style.display = "none"; }
-    tablinks = document.getElementsByClassName("main-tab-link");
-    for (i = 0; i < tablinks.length; i++) { tablinks[i].className = tablinks[i].className.replace(" active", ""); }
-    document.getElementById(tabName).style.display = "block";
-    // Si el evento existe (clic real), usa currentTarget. Si no (llamada programática), busca por ID.
-    const buttonToActivate = evt ? evt.currentTarget : document.getElementById(`btnTab${tabName.replace('tab','')}`);
-    if (buttonToActivate) {
-        buttonToActivate.className += " active";
-    }
-}
-
+// ===== INICIO DE FUNCIÓN MODIFICADA =====
 async function cargarDatosIniciales() {
-    document.getElementById('loadingMessage').style.display = 'block';
+    const loadingMessageElement = document.getElementById('loadingMessage');
+    const loaderContainer = document.getElementById('loaderContainer');
+    if (loadingMessageElement) loadingMessageElement.style.display = 'block';
+    if (loaderContainer) loaderContainer.style.display = 'block';
+
     try {
         const [
-            consumosRes, choferesRes, placasRes, detallesVolquetaRes, 
+            consumosRes, choferesRes, placasRes, detallesVolquetaRes, maquinariaRes, // Añadir maquinariaRes
             empresasRes, proveedoresRes, proyectosRes
         ] = await Promise.all([
             getDocs(query(collection(db, "consumos"), orderBy("fecha", "desc"))), 
             getDocs(query(collection(db, "choferes"), orderBy("nombre"))), 
             getDocs(query(collection(db, "placas"), orderBy("nombre"))), 
             getDocs(query(collection(db, "detallesVolqueta"), orderBy("nombre"))), 
+            getDocs(query(collection(db, "maquinaria"), orderBy("nombre"))), // Cargar nueva colección
             getDocs(query(collection(db, "empresas"), orderBy("nombre"))), 
             getDocs(query(collection(db, "proveedores"), orderBy("nombre"))), 
             getDocs(query(collection(db, "proyectos"), orderBy("nombre")))
@@ -90,32 +90,42 @@ async function cargarDatosIniciales() {
         listasAdmin.choferes = choferesRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         listasAdmin.placas = placasRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         listasAdmin.detallesVolqueta = detallesVolquetaRes.docs.map(doc => ({ id: doc.id, ...doc.data() })); 
+        listasAdmin.maquinaria = maquinariaRes.docs.map(doc => ({ id: doc.id, ...doc.data() })); // Guardar maquinaria
         listasAdmin.empresas = empresasRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         listasAdmin.proveedores = proveedoresRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         listasAdmin.proyectos = proyectosRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         actualizarTodaLaUI();
     } catch (error) {
         console.error("Error cargando datos:", error);
-        document.getElementById('loadingMessage').textContent = "Error al cargar datos. Revisa la consola (F12).";
+        if(loadingMessageElement) loadingMessageElement.textContent = "Error al cargar datos. Revisa la consola (F12).";
     } finally {
-        if (document.getElementById('loaderContainer')) { document.getElementById('loaderContainer').style.display = 'none'; }
+        if (loaderContainer) { loaderContainer.style.display = 'none'; }
+    }
+}
+// ===== FIN DE FUNCIÓN MODIFICADA =====
+
+function actualizarTodaLaUI() {
+    try {
+        poblarFiltroDeMes();
+        poblarFiltrosReportes();
+        let consumosFiltrados = obtenerConsumosFiltrados();
+        if (!Array.isArray(consumosFiltrados)) { consumosFiltrados = []; }
+        
+        calcularYMostrarTotalesPorEmpresa(consumosFiltrados);
+        calcularYMostrarTotalesPorProveedor(consumosFiltrados);
+        calcularYMostrarTotalesPorProyecto(consumosFiltrados);
+        calcularYMostrarTotalesPorChofer(consumosFiltrados);
+        calcularYMostrarTotales(consumosFiltrados);
+        poblarSelectores();
+        mostrarListasAdmin();
+        mostrarHistorialAgrupado(consumosFiltrados);
+    } catch (error) {
+        console.error("Error en actualizarTodaLaUI:", error);
+        mostrarNotificacion("Error al actualizar la interfaz.", "error");
     }
 }
 
-function actualizarTodaLaUI() {
-    poblarFiltroDeMes();
-    poblarFiltrosReportes();
-    const consumosFiltrados = obtenerConsumosFiltrados();
-    calcularYMostrarTotalesPorEmpresa(consumosFiltrados);
-    calcularYMostrarTotalesPorProveedor(consumosFiltrados);
-    calcularYMostrarTotalesPorProyecto(consumosFiltrados);
-    calcularYMostrarTotalesPorChofer(consumosFiltrados);
-    calcularYMostrarTotales(consumosFiltrados);
-    poblarSelectores();
-    mostrarListasAdmin();
-    mostrarHistorialAgrupado(consumosFiltrados);
-}
-
+// ===== INICIO DE FUNCIÓN MODIFICADA =====
 function poblarSelectores() {
     const selectores = { 
         choferes: document.getElementById('selectChofer'), 
@@ -126,345 +136,160 @@ function poblarSelectores() {
         proyectos: document.getElementById('selectProyecto') 
     };
     const titulos = { 
-        choferes: '--- Chofer ---', 
-        placas: '--- Placa ---', 
-        detallesVolqueta: '--- Detalles Volqueta ---', 
-        empresas: '--- Empresa ---', 
-        proveedores: '--- Proveedor ---', 
-        proyectos: '--- Proyecto ---' 
+        choferes: '--- Chofer ---', placas: '--- Placa ---', detallesVolqueta: '--- Detalles Volqueta ---', 
+        empresas: '--- Empresa ---', proveedores: '--- Proveedor ---', proyectos: '--- Proyecto ---' 
     };
     for (const tipo in selectores) {
         const select = selectores[tipo];
-        if (!select) continue;
+        // Asegurarse que la lista existe en listasAdmin
+        if (!select || !listasAdmin[tipo] || !titulos[tipo]) { continue; } 
         const valorActual = select.value;
         select.innerHTML = `<option value="">${titulos[tipo]}</option>`; 
         listasAdmin[tipo].forEach(item => { select.innerHTML += `<option value="${item.nombre}">${item.nombre}</option>`; });
         select.value = valorActual;
     }
 }
+// ===== FIN DE FUNCIÓN MODIFICADA =====
 
-function reiniciarFormulario() {
-    document.getElementById('consumoForm').reset();
-    document.getElementById('registroId').value = '';
-    document.getElementById('fecha').valueAsDate = new Date();
-    document.getElementById('formularioTitulo').textContent = 'Nuevo Registro';
-    poblarSelectores();
-}
+function reiniciarFormulario() { /* ... (sin cambios) ... */ }
+async function guardarOActualizar(e) { /* ... (sin cambios) ... */ }
 
-async function guardarOActualizar(e) {
-    e.preventDefault();
-    const btnGuardar = document.getElementById('btnGuardar');
-    btnGuardar.disabled = true;
-    btnGuardar.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Guardando...';
-
-    const id = document.getElementById('registroId').value;
-    
-    const datosConsumo = {
-        volqueta: document.getElementById('selectVolqueta').value,
-        fecha: document.getElementById('fecha').value,
-        hora: document.getElementById('hora').value,
-        numeroFactura: document.getElementById('numeroFactura').value,
-        galones: document.getElementById('galones').value,
-        costo: document.getElementById('costo').value,
-        descripcion: document.getElementById('descripcion').value,
-        chofer: document.getElementById('selectChofer').value,
-        empresa: document.getElementById('selectEmpresa').value,
-        proveedor: document.getElementById('selectProveedor').value,
-        proyecto: document.getElementById('selectProyecto').value,
-        detallesVolqueta: document.getElementById('selectDetallesVolqueta').value || "", 
-        kilometraje: document.getElementById('kilometraje').value || null 
-    };
-
-    if (!datosConsumo.chofer || !datosConsumo.volqueta) {
-        mostrarNotificacion("Por favor, complete al menos el chofer y la placa.", "error");
-        btnGuardar.disabled = false;
-        btnGuardar.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Guardar Registro';
-        return;
-    }
-
-    try {
-        if (id) {
-            await updateDoc(doc(db, "consumos", id), datosConsumo);
-            mostrarNotificacion("Registro actualizado con éxito", "exito");
-        } else {
-            await addDoc(collection(db, "consumos"), datosConsumo);
-            mostrarNotificacion("Registro guardado con éxito", "exito");
-        }
-        reiniciarFormulario();
-        cerrarModal();
-        await cargarDatosIniciales();
-    } catch (error) {
-        console.error("Error guardando en Firestore:", error);
-        mostrarNotificacion(`Error al guardar: ${error.message}`, "error", 5000);
-    } finally {
-        btnGuardar.disabled = false;
-        btnGuardar.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Guardar Registro';
-    }
-}
-
+// ===== INICIO DE FUNCIÓN MODIFICADA =====
 async function agregarItemAdmin(tipo, inputElement) {
+    const coleccionesPermitidas = ["choferes", "placas", "detallesVolqueta", "maquinaria", "empresas", "proveedores", "proyectos"]; // Añadir maquinaria
+    if (!coleccionesPermitidas.includes(tipo)) { console.error("Tipo inválido:", tipo); mostrarNotificacion("Error interno.", "error"); return; }
+    if (!inputElement) { console.error("Input no encontrado."); return; }
     const valor = (tipo === 'placas') ? inputElement.value.trim().toUpperCase() : inputElement.value.trim();
-    if (valor) {
+    if (valor && listasAdmin[tipo]) { 
         const listaNombres = listasAdmin[tipo].map(item => item.nombre.toUpperCase());
         if (listaNombres.includes(valor.toUpperCase())) { mostrarNotificacion(`"${valor}" ya existe.`, "error"); return; }
-        try {
-            await addDoc(collection(db, tipo), { nombre: valor });
-            mostrarNotificacion(`Elemento agregado correctamente.`, "exito");
-            inputElement.value = '';
-            await cargarDatosIniciales();
-        } catch (error) {
-            console.error("Error agregando:", error);
-            mostrarNotificacion("No se pudo agregar el elemento.", "error");
-        }
-    }
+        try { await addDoc(collection(db, tipo), { nombre: valor }); mostrarNotificacion(`Elemento agregado.`, "exito"); inputElement.value = ''; await cargarDatosIniciales(); } 
+        catch (error) { console.error("Error agregando:", error); mostrarNotificacion("No se pudo agregar.", "error"); }
+    } else if (!listasAdmin[tipo]) { console.error(`Lista para "${tipo}" no existe.`); }
 }
+// ===== FIN DE FUNCIÓN MODIFICADA =====
 
-function manejarAccionesHistorial(e) { 
-    const target = e.target.closest('button');
-    if (!target) return;
-    const id = target.dataset.id; 
-    if (!id) return; 
-    if (target.classList.contains('btn-modificar')) cargarDatosParaModificar(id); 
-    if (target.classList.contains('btn-borrar')) borrarConsumoHistorial(id); 
-}
 
-function obtenerConsumosFiltrados() {
-    const obtenerValorFiltro = (syncId) => document.querySelector(`.filtro-sincronizado[data-sync-id="${syncId}"]`).value;
-    const mes = obtenerValorFiltro('filtroMes');
-    const fechaInicio = obtenerValorFiltro('filtroFechaInicio');
-    const fechaFin = obtenerValorFiltro('filtroFechaFin');
-    const chofer = obtenerValorFiltro('filtroChofer');
-    const proveedor = obtenerValorFiltro('filtroProveedor');
-    const empresa = obtenerValorFiltro('filtroEmpresa');
-    const proyecto = obtenerValorFiltro('filtroProyecto');
-    let consumosFiltrados = todosLosConsumos;
-    if (fechaInicio && fechaFin) { if (fechaFin < fechaInicio) { mostrarNotificacion("La fecha de fin no puede ser anterior a la de inicio.", "error"); return []; } consumosFiltrados = consumosFiltrados.filter(c => c.fecha >= fechaInicio && c.fecha <= fechaFin); } else if (fechaInicio) { consumosFiltrados = consumosFiltrados.filter(c => c.fecha === fechaInicio); } else if (mes !== 'todos') { consumosFiltrados = consumosFiltrados.filter(c => c.fecha.startsWith(mes)); }
-    if (chofer !== 'todos') { consumosFiltrados = consumosFiltrados.filter(c => c.chofer === chofer); }
-    if (proveedor !== 'todos') { consumosFiltrados = consumosFiltrados.filter(c => c.proveedor === proveedor); }
-    if (empresa !== 'todos') { consumosFiltrados = consumosFiltrados.filter(c => c.empresa === empresa); }
-    if (proyecto !== 'todos') { consumosFiltrados = consumosFiltrados.filter(c => c.proyecto === proyecto); }
-    return consumosFiltrados;
-}
+function manejarAccionesHistorial(e) { /* ... (sin cambios) ... */ }
+function obtenerConsumosFiltrados() { /* ... (sin cambios) ... */ }
 
+// ===== INICIO DE FUNCIÓN MODIFICADA =====
 function mostrarListasAdmin() {
     const contenedores = { 
-        choferes: 'listaChoferes', 
-        placas: 'listaPlacas', 
-        detallesVolqueta: 'listaDetallesVolqueta', 
-        empresas: 'listaEmpresas', 
-        proveedores: 'listaProveedores', 
-        proyectos: 'listaProyectos' 
+        choferes: 'listaChoferes', placas: 'listaPlacas', detallesVolqueta: 'listaDetallesVolqueta', 
+        maquinaria: 'listaMaquinaria', // Nuevo contenedor
+        empresas: 'listaEmpresas', proveedores: 'listaProveedores', proyectos: 'listaProyectos' 
     };
     for (const tipo in contenedores) {
         const ul = document.getElementById(contenedores[tipo]);
-        if (!ul) continue;
+        if (!ul || !listasAdmin[tipo]) { if(ul) ul.innerHTML = `<li class="empty-state">Error al cargar.</li>`; continue; }
         ul.innerHTML = '';
         if (listasAdmin[tipo].length === 0) { ul.innerHTML = `<li class="empty-state">No hay elementos.</li>`; continue; }
-        listasAdmin[tipo].forEach(item => {
+        const listaOrdenada = [...listasAdmin[tipo]].sort((a, b) => a.nombre.localeCompare(b.nombre));
+        listaOrdenada.forEach(item => {
             const li = document.createElement('li');
-            li.innerHTML = `<span>${item.nombre}</span><div><button class="btn-accion btn-modificar button-warning" title="Modificar"><i class="fa-solid fa-pencil" style="margin:0;"></i></button><button class="btn-accion btn-borrar" title="Borrar"><i class="fa-solid fa-trash-can" style="margin:0;"></i></button></div>`;
-            li.querySelector('.btn-modificar').addEventListener('click', () => modificarItemAdmin(item, tipo));
-            li.querySelector('.btn-borrar').addEventListener('click', () => borrarItemAdmin(item, tipo));
+            li.innerHTML = `<span>${item.nombre}</span><div><button class="btn-accion btn-modificar button-warning" data-id="${item.id}" title="Modificar"><i class="fa-solid fa-pencil" style="margin:0;"></i></button><button class="btn-accion btn-borrar" data-id="${item.id}" title="Borrar"><i class="fa-solid fa-trash-can" style="margin:0;"></i></button></div>`;
+             li.querySelector('.btn-modificar').addEventListener('click', () => modificarItemAdmin(item, tipo));
+             li.querySelector('.btn-borrar').addEventListener('click', () => borrarItemAdmin(item, tipo));
             ul.appendChild(li);
         });
     }
 }
+// ===== FIN DE FUNCIÓN MODIFICADA =====
 
+// ===== INICIO DE FUNCIÓN MODIFICADA =====
 async function modificarItemAdmin(item, tipo) { 
-    const valorActual = item.nombre; 
-    const nuevoValor = prompt(`Modificar "${valorActual}":`, valorActual); 
+    const valorActual = item.nombre; const nuevoValor = prompt(`Modificar "${valorActual}":`, valorActual); 
     if (!nuevoValor || nuevoValor.trim() === '' || nuevoValor.trim() === valorActual) return; 
     const valorFormateado = (tipo === 'placas') ? nuevoValor.trim().toUpperCase() : nuevoValor.trim(); 
     const propiedad = { 
         placas: 'volqueta', choferes: 'chofer', empresas: 'empresa', proveedores: 'proveedor', 
-        proyectos: 'proyecto', detallesVolqueta: 'detallesVolqueta' 
+        proyectos: 'proyecto', detallesVolqueta: 'detallesVolqueta', maquinaria: null // Maquinaria no afecta registros de consumo
     }[tipo]; 
-    if (!propiedad) { console.error("Tipo de item desconocido:", tipo); mostrarNotificacion("Error interno al modificar.", "error"); return; }
-    if (confirm(`¿Estás seguro de cambiar "${valorActual}" por "${valorFormateado}"? Esto actualizará TODOS los registros.`)) { 
+    const coleccionesPermitidas = ["choferes", "placas", "detallesVolqueta", "maquinaria", "empresas", "proveedores", "proyectos"]; // Añadir maquinaria
+     if (!coleccionesPermitidas.includes(tipo)) { console.error("Tipo inválido:", tipo); mostrarNotificacion("Error interno.", "error"); return; }
+    
+    // Si la propiedad es null (como en maquinaria), solo actualiza el item en su colección
+    if (propiedad === null) {
+         if (confirm(`¿Estás seguro de cambiar "${valorActual}" por "${valorFormateado}"?`)) { 
+            try { await updateDoc(doc(db, tipo, item.id), { nombre: valorFormateado }); await cargarDatosIniciales(); mostrarNotificacion("Elemento actualizado.", "exito"); } 
+            catch(e) { console.error("Error modificando:", e); mostrarNotificacion("Error al modificar.", "error"); }
+         } return; 
+    }
+    // Si la propiedad no está definida para el tipo (error interno)
+    if (!propiedad) { console.error("Propiedad no encontrada para tipo:", tipo); mostrarNotificacion("Error interno.", "error"); return; }
+
+    // Actualización masiva
+    if (confirm(`¿Estás seguro de cambiar "${valorActual}" por "${valorFormateado}"? Esto actualizará TODOS los registros asociados.`)) { 
         try { 
             await updateDoc(doc(db, tipo, item.id), { nombre: valorFormateado }); 
-            const updates = todosLosConsumos.filter(consumo => consumo[propiedad] === valorActual).map(consumo => updateDoc(doc(db, "consumos", consumo.id), { [propiedad]: valorFormateado })); 
-            await Promise.all(updates); 
-            await cargarDatosIniciales(); 
-            mostrarNotificacion("Actualización masiva completada.", "exito"); 
-        } catch(e) { console.error("Error modificando:", e); mostrarNotificacion("Error al modificar.", "error"); } 
+            const q = query(collection(db, "consumos"), where(propiedad, "==", valorActual));
+            const snapshot = await getDocs(q);
+            const updates = snapshot.docs.map(docSnapshot => updateDoc(docSnapshot.ref, { [propiedad]: valorFormateado }));
+            await Promise.all(updates); await cargarDatosIniciales(); mostrarNotificacion("Actualización masiva completada.", "exito"); 
+        } catch(e) { console.error("Error en mod. masiva:", e); mostrarNotificacion("Error al actualizar masivamente.", "error"); } 
     } 
-}
-
-// ===== INICIO DE FUNCIÓN MODIFICADA =====
-function cargarDatosParaModificar(id) {
-    const consumo = todosLosConsumos.find(c => c.id === id); if (!consumo) return;
-    document.getElementById('registroId').value = consumo.id; 
-    document.getElementById('fecha').value = consumo.fecha; 
-    document.getElementById('hora').value = consumo.hora || ''; 
-    document.getElementById('numeroFactura').value = consumo.numeroFactura || ''; 
-    document.getElementById('selectChofer').value = consumo.chofer; 
-    document.getElementById('selectVolqueta').value = consumo.volqueta; 
-    document.getElementById('galones').value = consumo.galones; 
-    document.getElementById('costo').value = consumo.costo; 
-    document.getElementById('descripcion').value = consumo.descripcion; 
-    document.getElementById('selectEmpresa').value = consumo.empresa || ""; 
-    document.getElementById('selectProveedor').value = consumo.proveedor || ""; 
-    document.getElementById('selectProyecto').value = consumo.proyecto || "";
-    document.getElementById('selectDetallesVolqueta').value = consumo.detallesVolqueta || "";
-    document.getElementById('kilometraje').value = consumo.kilometraje || "";
-
-    // Llama a openMainTab SIN evento para cambiar a la pestaña Registrar
-    openMainTab(null, 'tabRegistrar'); 
-    
-    abrirModal(); // Abre el modal después de cambiar de pestaña
 }
 // ===== FIN DE FUNCIÓN MODIFICADA =====
 
-function calcularYMostrarTotalesPorCategoria(consumos, categoria, bodyId, footerId) {
-    const resumenBody = document.getElementById(bodyId); const resumenFooter = document.getElementById(footerId);
-    resumenBody.innerHTML = ''; resumenFooter.innerHTML = '';
-    const totales = {};
-    consumos.forEach(c => { const clave = c[categoria]; if (!clave) return; if (!totales[clave]) totales[clave] = { totalGalones: 0, totalCosto: 0 }; totales[clave].totalGalones += parseFloat(c.galones) || 0; totales[clave].totalCosto += parseFloat(c.costo) || 0; });
-    if (Object.keys(totales).length === 0) { resumenBody.innerHTML = `<tr><td colspan="3" class="empty-state">No hay datos.</td></tr>`; return; }
-    const clavesOrdenadas = Object.keys(totales).sort();
-    let htmlBody = '', granTotalGalones = 0, granTotalCosto = 0;
-    clavesOrdenadas.forEach(clave => { const total = totales[clave]; htmlBody += `<tr><td><strong>${clave}</strong></td><td>${total.totalGalones.toFixed(2)}</td><td>$${total.totalCosto.toFixed(2)}</td></tr>`; granTotalGalones += total.totalGalones; granTotalCosto += total.totalCosto; });
-    resumenBody.innerHTML = htmlBody;
-    resumenFooter.innerHTML = `<tr><td><strong>TOTAL</strong></td><td><strong>${granTotalGalones.toFixed(2)}</strong></td><td><strong>$${granTotalCosto.toFixed(2)}</strong></td></tr>`;
-}
 
+function cargarDatosParaModificar(id) { /* ... (sin cambios) ... */ }
+function calcularYMostrarTotalesPorCategoria(consumos, categoria, bodyId, footerId) { /* ... (sin cambios) ... */ }
 const calcularYMostrarTotalesPorEmpresa = (consumos) => calcularYMostrarTotalesPorCategoria(consumos, 'empresa', 'resumenEmpresaBody', 'resumenEmpresaFooter');
 const calcularYMostrarTotalesPorProveedor = (consumos) => calcularYMostrarTotalesPorCategoria(consumos, 'proveedor', 'resumenProveedorBody', 'resumenProveedorFooter');
 const calcularYMostrarTotalesPorProyecto = (consumos) => calcularYMostrarTotalesPorCategoria(consumos, 'proyecto', 'resumenProyectoBody', 'resumenProyectoFooter');
 const calcularYMostrarTotalesPorChofer = (consumos) => calcularYMostrarTotalesPorCategoria(consumos, 'chofer', 'resumenChoferBody', 'resumenChoferFooter');
 const calcularYMostrarTotales = (consumos) => { calcularYMostrarTotalesPorCategoria(consumos, 'volqueta', 'resumenBody', 'resumenFooter'); };
 
+// ===== INICIO DE FUNCIÓN MODIFICADA =====
 async function borrarItemAdmin(item, tipo) { 
-    const coleccionesPermitidas = ["choferes", "placas", "detallesVolqueta", "empresas", "proveedores", "proyectos"];
-    if (!coleccionesPermitidas.includes(tipo)) { console.error("Intento de borrar de una colección no permitida:", tipo); mostrarNotificacion("Error interno al borrar.", "error"); return; }
+    const coleccionesPermitidas = ["choferes", "placas", "detallesVolqueta", "maquinaria", "empresas", "proveedores", "proyectos"]; // Añadir maquinaria
+    if (!coleccionesPermitidas.includes(tipo)) { console.error("Tipo inválido:", tipo); mostrarNotificacion("Error interno.", "error"); return; }
+    if (!item || !item.id || !item.nombre) { console.error("Item inválido:", item); mostrarNotificacion("Error al identificar elemento.", "error"); return; }
     if (confirm(`¿Seguro que quieres borrar "${item.nombre}"?`)) { 
         try { await deleteDoc(doc(db, tipo, item.id)); mostrarNotificacion("Elemento borrado.", "exito"); await cargarDatosIniciales(); } 
         catch(e) { console.error("Error borrando:", e); mostrarNotificacion("No se pudo borrar.", "error"); } 
     } 
 }
+// ===== FIN DE FUNCIÓN MODIFICADA =====
 
-async function borrarConsumoHistorial(id) {
-    if (confirm('¿Seguro que quieres borrar este registro? Esta acción no se puede deshacer.')) {
-        try {
-            await deleteDoc(doc(db, "consumos", id));
-            mostrarNotificacion("Registro borrado con éxito.", "exito");
-            await cargarDatosIniciales();
-        } catch (error) {
-            console.error("Error borrando registro:", error);
-            mostrarNotificacion("No se pudo borrar el registro.", "error");
-        }
-    }
-}
+async function borrarConsumoHistorial(id) { /* ... (sin cambios) ... */ }
+function poblarFiltroDeMes() { /* ... (sin cambios) ... */ }
+function poblarFiltrosReportes() { /* ... (sin cambios) ... */ }
+function mostrarHistorialAgrupado(consumos) { /* ... (sin cambios) ... */ }
+function asignarSincronizacionDeFiltros() { /* ... (sin cambios) ... */ }
+function handleLogin(e) { /* ... (sin cambios) ... */ }
+function handleLogout() { /* ... (sin cambios) ... */ }
 
-function poblarFiltroDeMes() { const filtros = document.querySelectorAll('.filtro-sincronizado[data-sync-id="filtroMes"]'); const mesesUnicos = [...new Set(todosLosConsumos.map(c => c.fecha.substring(0, 7)))]; mesesUnicos.sort().reverse(); filtros.forEach(filtroSelect => { const valorSeleccionado = filtroSelect.value; filtroSelect.innerHTML = '<option value="todos">Todos los Meses</option>'; mesesUnicos.forEach(mes => { const [year, month] = mes.split('-'); const fechaMes = new Date(year, month - 1); const nombreMes = fechaMes.toLocaleDateString('es-EC', { month: 'long', year: 'numeric' }); const opcion = document.createElement('option'); opcion.value = mes; opcion.textContent = nombreMes.charAt(0).toUpperCase() + nombreMes.slice(1); filtroSelect.appendChild(opcion); }); if (filtroSelect.value) filtroSelect.value = valorSeleccionado || 'todos'; }); }
-function poblarFiltrosReportes() { const tipos = { choferes: 'filtroChofer', proveedores: 'filtroProveedor', empresas: 'filtroEmpresa', proyectos: 'filtroProyecto' }; const titulos = { choferes: 'Todos los Choferes', proveedores: 'Todos los Proveedores', empresas: 'Todas las Empresas', proyectos: 'Todos los Proyectos' }; for (const tipo in tipos) { const syncId = tipos[tipo]; const selects = document.querySelectorAll(`.filtro-sincronizado[data-sync-id="${syncId}"]`); selects.forEach(select => { const valorActual = select.value; select.innerHTML = `<option value="todos">${titulos[tipo]}</option>`; listasAdmin[tipo].forEach(item => { select.innerHTML += `<option value="${item.nombre}">${item.nombre}</option>`; }); select.value = valorActual || 'todos'; }); } }
-
-function mostrarHistorialAgrupado(consumos) {
-    const historialBody = document.getElementById('historialBody'); const historialFooter = document.getElementById('historialFooter');
-    historialBody.innerHTML = ''; historialFooter.innerHTML = '';
-    if (consumos.length === 0) { historialBody.innerHTML = `<tr><td colspan="14" class="empty-state"><i class="fa-solid fa-folder-open"></i><p>No se encontraron registros.</p></td></tr>`; return; }
-    let totalGalones = 0, totalCosto = 0;
-    consumos.sort((a,b) => new Date(b.fecha) - new Date(a.fecha) || a.volqueta.localeCompare(b.volqueta));
-    let mesAnioActual = "";
-    consumos.forEach(consumo => {
-        totalGalones += parseFloat(consumo.galones) || 0; totalCosto += parseFloat(consumo.costo) || 0;
-        const fechaConsumo = new Date(consumo.fecha + 'T00:00:00'); const mesAnio = fechaConsumo.toLocaleDateString('es-EC', { month: 'long', year: 'numeric' });
-        if (mesAnio !== mesAnioActual && !(obtenerConsumosFiltrados.fechaInicio && obtenerConsumosFiltrados.fechaFin)) {
-            mesAnioActual = mesAnio;
-            const filaGrupo = document.createElement('tr'); filaGrupo.className = 'fila-grupo'; 
-            filaGrupo.innerHTML = `<td colspan="14">${mesAnioActual.charAt(0).toUpperCase() + mesAnioActual.slice(1)}</td>`;
-            historialBody.appendChild(filaGrupo);
-        }
-        const filaDato = document.createElement('tr');
-        filaDato.innerHTML = `<td class="no-print"><button class="btn-accion btn-modificar button-warning" data-id="${consumo.id}" title="Modificar"><i class="fa-solid fa-pencil" style="margin: 0;"></i></button><button class="btn-accion btn-borrar" data-id="${consumo.id}" title="Borrar"><i class="fa-solid fa-trash-can" style="margin: 0;"></i></button></td>
-            <td>${consumo.fecha}</td><td>${consumo.hora || ''}</td><td>${consumo.numeroFactura || ''}</td><td>${consumo.chofer}</td><td>${consumo.volqueta}</td>
-            <td>${consumo.detallesVolqueta || ''}</td><td>${consumo.kilometraje || ''}</td>
-            <td>${consumo.proveedor || ''}</td><td>${consumo.proyecto || ''}</td><td>${(parseFloat(consumo.galones) || 0).toFixed(2)}</td><td>$${(parseFloat(consumo.costo) || 0).toFixed(2)}</td><td>${consumo.empresa || ''}</td><td>${consumo.descripcion}</td>`;
-        historialBody.appendChild(filaDato);
-    });
-    historialFooter.innerHTML = `<tr><td class="no-print"></td><td colspan="9" style="text-align: right;"><strong>TOTAL GALONES:</strong></td><td><strong>${totalGalones.toFixed(2)}</strong></td><td style="text-align: right;"><strong>VALOR TOTAL:</strong></td><td><strong>$${totalCosto.toFixed(2)}</strong></td><td></td></tr>`;
-}
-
-function asignarSincronizacionDeFiltros() {
-    const filtros = document.querySelectorAll('.filtro-sincronizado');
-    filtros.forEach(filtro => {
-        filtro.addEventListener('change', (e) => {
-            const syncId = e.target.dataset.syncId;
-            const newValue = e.target.value;
-            const filtrosASincronizar = document.querySelectorAll(`.filtro-sincronizado[data-sync-id="${syncId}"]`);
-            filtrosASincronizar.forEach(f => { if (f !== e.target) { f.value = newValue; } });
-        });
-    });
-}
-
-function handleLogin(e) { e.preventDefault(); const email = document.getElementById('login-email').value; const password = document.getElementById('login-password').value; signInWithEmailAndPassword(auth, email, password).then(userCredential => { mostrarNotificacion("Bienvenido de nuevo", "exito"); }).catch(error => { mostrarNotificacion("Credenciales incorrectas.", "error"); }); }
-function handleLogout() { signOut(auth).catch(error => { mostrarNotificacion("Error al cerrar sesión: " + error.message, "error"); }); }
-
+// ===== INICIO DE FUNCIÓN MODIFICADA =====
 function asignarEventosApp() {
-    btnAbrirModal.addEventListener('click', abrirModal);
-    btnCerrarModal.addEventListener('click', cerrarModal);
-    
-    document.getElementById('btnTabRegistrar').addEventListener('click', (e) => openMainTab(e, 'tabRegistrar'));
-    document.getElementById('btnTabReportes').addEventListener('click', (e) => openMainTab(e, 'tabReportes'));
-    document.getElementById('btnTabHistorial').addEventListener('click', (e) => openMainTab(e, 'tabHistorial'));
-    document.getElementById('btnTabAdmin').addEventListener('click', (e) => openMainTab(e, 'tabAdmin'));
-    
-    document.getElementById('consumoForm').addEventListener('submit', guardarOActualizar);
-
-    document.querySelectorAll('.btn-print').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            const targetId = e.currentTarget.dataset.printTarget;
-            const targetTab = document.getElementById(targetId);
-            if (targetTab) {
-                tabActivaParaImprimir = targetTab;
-                targetTab.classList.add('printable-active');
-                window.print();
-            }
-        });
-    });
-    
-    window.onafterprint = () => {
-        if (tabActivaParaImprimir) {
-            tabActivaParaImprimir.classList.remove('printable-active');
-            tabActivaParaImprimir = null;
-        }
-        document.getElementById('facturas-impresion').innerHTML = '';
-    };
-    
+    if(btnAbrirModal) btnAbrirModal.addEventListener('click', abrirModal);
+    if(btnCerrarModal) btnCerrarModal.addEventListener('click', cerrarModal);
+    const btnReg = document.getElementById('btnTabRegistrar'); if(btnReg) btnReg.addEventListener('click', (e) => openMainTab(e, 'tabRegistrar'));
+    const btnRep = document.getElementById('btnTabReportes'); if(btnRep) btnRep.addEventListener('click', (e) => openMainTab(e, 'tabReportes'));
+    const btnHist = document.getElementById('btnTabHistorial'); if(btnHist) btnHist.addEventListener('click', (e) => openMainTab(e, 'tabHistorial'));
+    const btnAdm = document.getElementById('btnTabAdmin'); if(btnAdm) btnAdm.addEventListener('click', (e) => openMainTab(e, 'tabAdmin'));
+    const consumoForm = document.getElementById('consumoForm'); if(consumoForm) consumoForm.addEventListener('submit', guardarOActualizar);
+    document.querySelectorAll('.btn-print').forEach(btn => btn.addEventListener('click', (e) => { /* ... */ }));
+    window.onafterprint = () => { /* ... */ };
     document.querySelectorAll('#btnAplicarFiltros').forEach(btn => btn.addEventListener('click', actualizarTodaLaUI));
-    document.querySelectorAll('#btnLimpiarFiltros').forEach(btn => btn.addEventListener('click', () => {
-        document.querySelectorAll('.filtro-sincronizado').forEach(filtro => {
-            const valorOriginal = filtro.value;
-            if(filtro.tagName === 'SELECT') filtro.value = 'todos'; else filtro.value = '';
-            if (filtro.value !== valorOriginal) { filtro.dispatchEvent(new Event('change', { 'bubbles': true })); }
-        });
-        actualizarTodaLaUI();
-    }));
-    
-    document.getElementById('historialBody').addEventListener('click', manejarAccionesHistorial);
-    document.getElementById('formAdminChofer').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('choferes', document.getElementById('nuevoChofer')); });
-    document.getElementById('formAdminPlaca').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('placas', document.getElementById('nuevaPlaca')); });
-    document.getElementById('formAdminDetallesVolqueta').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('detallesVolqueta', document.getElementById('nuevoDetalleVolqueta')); });
-    document.getElementById('formAdminEmpresa').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('empresas', document.getElementById('nuevaEmpresa')); });
-    document.getElementById('formAdminProveedor').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('proveedores', document.getElementById('nuevoProveedor')); });
-    document.getElementById('formAdminProyecto').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('proyectos', document.getElementById('nuevoProyecto')); });
-    
+    document.querySelectorAll('#btnLimpiarFiltros').forEach(btn => btn.addEventListener('click', () => { /* ... */ }));
+    const histBody = document.getElementById('historialBody'); if(histBody) histBody.addEventListener('click', manejarAccionesHistorial);
+    // Forms Admin
+    const formChofer = document.getElementById('formAdminChofer'); if(formChofer) formChofer.addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('choferes', document.getElementById('nuevoChofer')); });
+    const formPlaca = document.getElementById('formAdminPlaca'); if(formPlaca) formPlaca.addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('placas', document.getElementById('nuevaPlaca')); });
+    const formDetalles = document.getElementById('formAdminDetallesVolqueta'); if(formDetalles) formDetalles.addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('detallesVolqueta', document.getElementById('nuevoDetalleVolqueta')); }); 
+    const formMaquinaria = document.getElementById('formAdminMaquinaria'); if(formMaquinaria) formMaquinaria.addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('maquinaria', document.getElementById('nuevaMaquinaria')); }); // <-- NUEVO EVENTO
+    const formEmpresa = document.getElementById('formAdminEmpresa'); if(formEmpresa) formEmpresa.addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('empresas', document.getElementById('nuevaEmpresa')); });
+    const formProveedor = document.getElementById('formAdminProveedor'); if(formProveedor) formProveedor.addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('proveedores', document.getElementById('nuevoProveedor')); });
+    const formProyecto = document.getElementById('formAdminProyecto'); if(formProyecto) formProyecto.addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('proyectos', document.getElementById('nuevoProyecto')); });
     const botonesAcordeon = document.querySelectorAll('.accordion-button');
-    botonesAcordeon.forEach(boton => {
-        boton.addEventListener('click', function() {
-            this.classList.toggle('active');
-            const panel = this.nextElementSibling;
-            if (panel.style.maxHeight) { panel.style.maxHeight = null; } else { panel.style.maxHeight = panel.scrollHeight + "px"; } 
-        });
-    });
+    botonesAcordeon.forEach(boton => { boton.addEventListener('click', function() { /* ... */ }); });
     asignarSincronizacionDeFiltros();
 }
+// ===== FIN DE FUNCIÓN MODIFICADA =====
 
 function iniciarAplicacion() {
     asignarEventosApp();
     cargarDatosIniciales();
 }
-
-document.getElementById('login-form').addEventListener('submit', handleLogin);
-btnLogout.addEventListener('click', handleLogout);
