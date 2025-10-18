@@ -93,6 +93,9 @@ button:hover { opacity: 0.9; }
 .button-warning { background-color: var(--warning-color); color: var(--dark-text-color); }
 .btn-modificar { background-color: var(--warning-color); color: black; }
 .btn-borrar { background-color: var(--danger-color); color: white; }
+/* ===== INICIO DE CÓDIGO NUEVO ===== */
+.btn-distribuir { background-color: var(--info-color); color: white; } 
+/* ===== FIN DE CÓDIGO NUEVO ===== */
 
 .accordion-button { background-color: var(--light-gray); color: var(--text-color); cursor: pointer; padding: 18px; width: 100%; border: none; text-align: left; outline: none; font-size: 16px; font-weight: bold; transition: background-color 0.4s ease; border-bottom: 1px solid var(--border-color); }
 .accordion-button:first-of-type { border-top-left-radius: 8px; border-top-right-radius: 8px; }
@@ -154,13 +157,22 @@ button:hover { opacity: 0.9; }
     #historialTabla th, #historialTabla td { font-size: 7pt; padding: 2px 3px; word-break: break-word; white-space: normal; }
     #historialTabla th { white-space: nowrap; }
     #historialTabla th:last-child, #historialTabla td:last-child { min-width: 100px; } 
+    /* ===== INICIO DE CÓDIGO MODIFICADO (Ajustar ancho para nueva columna) ===== */
+    #historialTabla th:nth-child(1), #historialTabla td:nth-child(1), /* Acciones */
+    #historialTabla th:nth-child(2), #historialTabla td:nth-child(2) /* Distribuir */ {
+         width: auto; /* Dejar que se ajusten */
+         min-width: 30px; /* Ancho mínimo pequeño */
+    }
+    /* ===== FIN DE CÓDIGO MODIFICADO ===== */
 }
 
-#historialTabla th:nth-child(1), #historialTabla td:nth-child(1) { width: 120px; } 
-#historialTabla th:nth-child(2), #historialTabla td:nth-child(2) { width: 105px; } 
-#historialTabla th:nth-child(7), #historialTabla td:nth-child(7) { min-width: 130px; } 
-#historialTabla th:nth-child(8), #historialTabla td:nth-child(8) { width: 110px; } 
-#historialTabla th:last-child, #historialTabla td:last-child { min-width: 200px; } 
+/* Ajustes de Ancho para Vista Normal */
+#historialTabla th:nth-child(1), #historialTabla td:nth-child(1) { width: 120px; } /* Acciones */
+#historialTabla th:nth-child(2), #historialTabla td:nth-child(2) { width: 70px; text-align: center; } /* Distribuir */
+#historialTabla th:nth-child(3), #historialTabla td:nth-child(3) { width: 105px; } /* Fecha */
+#historialTabla th:nth-child(8), #historialTabla td:nth-child(8) { min-width: 130px; } /* Detalles Volqueta */
+#historialTabla th:nth-child(9), #historialTabla td:nth-child(9) { width: 110px; } /* Kilometraje */
+#historialTabla th:last-child, #historialTabla td:last-child { min-width: 180px; } /* Descripción */
 
 .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 

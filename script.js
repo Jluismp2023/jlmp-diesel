@@ -18,9 +18,8 @@ const auth = getAuth(app);
 let vistaLogin, vistaApp, btnLogout, modal, btnAbrirModal, btnCerrarModal; 
 
 let todosLosConsumos = [];
-// ===== INICIO DE LÍNEA MODIFICADA =====
+// Asegúrate que maquinaria esté en la lista
 let listasAdmin = { choferes: [], placas: [], detallesVolqueta: [], maquinaria: [], empresas: [], proveedores: [], proyectos: [] };
-// ===== FIN DE LÍNEA MODIFICADA =====
 let appInicializada = false;
 let tabActivaParaImprimir = null;
 
@@ -65,7 +64,6 @@ function abrirModal() { if(modal) modal.style.display = 'block'; }
 function cerrarModal() { if(modal) modal.style.display = 'none'; reiniciarFormulario(); }
 function openMainTab(evt, tabName) { /* ... (sin cambios) ... */ }
 
-// ===== INICIO DE FUNCIÓN MODIFICADA =====
 async function cargarDatosIniciales() {
     const loadingMessageElement = document.getElementById('loadingMessage');
     const loaderContainer = document.getElementById('loaderContainer');
@@ -74,14 +72,14 @@ async function cargarDatosIniciales() {
 
     try {
         const [
-            consumosRes, choferesRes, placasRes, detallesVolquetaRes, maquinariaRes, // Añadir maquinariaRes
+            consumosRes, choferesRes, placasRes, detallesVolquetaRes, maquinariaRes, 
             empresasRes, proveedoresRes, proyectosRes
         ] = await Promise.all([
             getDocs(query(collection(db, "consumos"), orderBy("fecha", "desc"))), 
             getDocs(query(collection(db, "choferes"), orderBy("nombre"))), 
             getDocs(query(collection(db, "placas"), orderBy("nombre"))), 
             getDocs(query(collection(db, "detallesVolqueta"), orderBy("nombre"))), 
-            getDocs(query(collection(db, "maquinaria"), orderBy("nombre"))), // Cargar nueva colección
+            getDocs(query(collection(db, "maquinaria"), orderBy("nombre"))), 
             getDocs(query(collection(db, "empresas"), orderBy("nombre"))), 
             getDocs(query(collection(db, "proveedores"), orderBy("nombre"))), 
             getDocs(query(collection(db, "proyectos"), orderBy("nombre")))
@@ -90,7 +88,7 @@ async function cargarDatosIniciales() {
         listasAdmin.choferes = choferesRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         listasAdmin.placas = placasRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         listasAdmin.detallesVolqueta = detallesVolquetaRes.docs.map(doc => ({ id: doc.id, ...doc.data() })); 
-        listasAdmin.maquinaria = maquinariaRes.docs.map(doc => ({ id: doc.id, ...doc.data() })); // Guardar maquinaria
+        listasAdmin.maquinaria = maquinariaRes.docs.map(doc => ({ id: doc.id, ...doc.data() })); 
         listasAdmin.empresas = empresasRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         listasAdmin.proveedores = proveedoresRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         listasAdmin.proyectos = proyectosRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -102,7 +100,6 @@ async function cargarDatosIniciales() {
         if (loaderContainer) { loaderContainer.style.display = 'none'; }
     }
 }
-// ===== FIN DE FUNCIÓN MODIFICADA =====
 
 function actualizarTodaLaUI() {
     try {
@@ -125,7 +122,6 @@ function actualizarTodaLaUI() {
     }
 }
 
-// ===== INICIO DE FUNCIÓN MODIFICADA =====
 function poblarSelectores() {
     const selectores = { 
         choferes: document.getElementById('selectChofer'), 
@@ -141,7 +137,6 @@ function poblarSelectores() {
     };
     for (const tipo in selectores) {
         const select = selectores[tipo];
-        // Asegurarse que la lista existe en listasAdmin
         if (!select || !listasAdmin[tipo] || !titulos[tipo]) { continue; } 
         const valorActual = select.value;
         select.innerHTML = `<option value="">${titulos[tipo]}</option>`; 
@@ -149,90 +144,27 @@ function poblarSelectores() {
         select.value = valorActual;
     }
 }
-// ===== FIN DE FUNCIÓN MODIFICADA =====
 
 function reiniciarFormulario() { /* ... (sin cambios) ... */ }
 async function guardarOActualizar(e) { /* ... (sin cambios) ... */ }
+async function agregarItemAdmin(tipo, inputElement) { /* ... (sin cambios) ... */ }
 
 // ===== INICIO DE FUNCIÓN MODIFICADA =====
-async function agregarItemAdmin(tipo, inputElement) {
-    const coleccionesPermitidas = ["choferes", "placas", "detallesVolqueta", "maquinaria", "empresas", "proveedores", "proyectos"]; // Añadir maquinaria
-    if (!coleccionesPermitidas.includes(tipo)) { console.error("Tipo inválido:", tipo); mostrarNotificacion("Error interno.", "error"); return; }
-    if (!inputElement) { console.error("Input no encontrado."); return; }
-    const valor = (tipo === 'placas') ? inputElement.value.trim().toUpperCase() : inputElement.value.trim();
-    if (valor && listasAdmin[tipo]) { 
-        const listaNombres = listasAdmin[tipo].map(item => item.nombre.toUpperCase());
-        if (listaNombres.includes(valor.toUpperCase())) { mostrarNotificacion(`"${valor}" ya existe.`, "error"); return; }
-        try { await addDoc(collection(db, tipo), { nombre: valor }); mostrarNotificacion(`Elemento agregado.`, "exito"); inputElement.value = ''; await cargarDatosIniciales(); } 
-        catch (error) { console.error("Error agregando:", error); mostrarNotificacion("No se pudo agregar.", "error"); }
-    } else if (!listasAdmin[tipo]) { console.error(`Lista para "${tipo}" no existe.`); }
+function manejarAccionesHistorial(e) { 
+    const target = e.target.closest('button'); 
+    if (!target) return;
+    const id = target.dataset.id; 
+    if (!id) return; 
+    if (target.classList.contains('btn-modificar')) cargarDatosParaModificar(id); 
+    if (target.classList.contains('btn-borrar')) borrarConsumoHistorial(id);
+    // Nueva acción para distribuir
+    if (target.classList.contains('btn-distribuir')) abrirModalDistribucion(id); 
 }
 // ===== FIN DE FUNCIÓN MODIFICADA =====
 
-
-function manejarAccionesHistorial(e) { /* ... (sin cambios) ... */ }
 function obtenerConsumosFiltrados() { /* ... (sin cambios) ... */ }
-
-// ===== INICIO DE FUNCIÓN MODIFICADA =====
-function mostrarListasAdmin() {
-    const contenedores = { 
-        choferes: 'listaChoferes', placas: 'listaPlacas', detallesVolqueta: 'listaDetallesVolqueta', 
-        maquinaria: 'listaMaquinaria', // Nuevo contenedor
-        empresas: 'listaEmpresas', proveedores: 'listaProveedores', proyectos: 'listaProyectos' 
-    };
-    for (const tipo in contenedores) {
-        const ul = document.getElementById(contenedores[tipo]);
-        if (!ul || !listasAdmin[tipo]) { if(ul) ul.innerHTML = `<li class="empty-state">Error al cargar.</li>`; continue; }
-        ul.innerHTML = '';
-        if (listasAdmin[tipo].length === 0) { ul.innerHTML = `<li class="empty-state">No hay elementos.</li>`; continue; }
-        const listaOrdenada = [...listasAdmin[tipo]].sort((a, b) => a.nombre.localeCompare(b.nombre));
-        listaOrdenada.forEach(item => {
-            const li = document.createElement('li');
-            li.innerHTML = `<span>${item.nombre}</span><div><button class="btn-accion btn-modificar button-warning" data-id="${item.id}" title="Modificar"><i class="fa-solid fa-pencil" style="margin:0;"></i></button><button class="btn-accion btn-borrar" data-id="${item.id}" title="Borrar"><i class="fa-solid fa-trash-can" style="margin:0;"></i></button></div>`;
-             li.querySelector('.btn-modificar').addEventListener('click', () => modificarItemAdmin(item, tipo));
-             li.querySelector('.btn-borrar').addEventListener('click', () => borrarItemAdmin(item, tipo));
-            ul.appendChild(li);
-        });
-    }
-}
-// ===== FIN DE FUNCIÓN MODIFICADA =====
-
-// ===== INICIO DE FUNCIÓN MODIFICADA =====
-async function modificarItemAdmin(item, tipo) { 
-    const valorActual = item.nombre; const nuevoValor = prompt(`Modificar "${valorActual}":`, valorActual); 
-    if (!nuevoValor || nuevoValor.trim() === '' || nuevoValor.trim() === valorActual) return; 
-    const valorFormateado = (tipo === 'placas') ? nuevoValor.trim().toUpperCase() : nuevoValor.trim(); 
-    const propiedad = { 
-        placas: 'volqueta', choferes: 'chofer', empresas: 'empresa', proveedores: 'proveedor', 
-        proyectos: 'proyecto', detallesVolqueta: 'detallesVolqueta', maquinaria: null // Maquinaria no afecta registros de consumo
-    }[tipo]; 
-    const coleccionesPermitidas = ["choferes", "placas", "detallesVolqueta", "maquinaria", "empresas", "proveedores", "proyectos"]; // Añadir maquinaria
-     if (!coleccionesPermitidas.includes(tipo)) { console.error("Tipo inválido:", tipo); mostrarNotificacion("Error interno.", "error"); return; }
-    
-    // Si la propiedad es null (como en maquinaria), solo actualiza el item en su colección
-    if (propiedad === null) {
-         if (confirm(`¿Estás seguro de cambiar "${valorActual}" por "${valorFormateado}"?`)) { 
-            try { await updateDoc(doc(db, tipo, item.id), { nombre: valorFormateado }); await cargarDatosIniciales(); mostrarNotificacion("Elemento actualizado.", "exito"); } 
-            catch(e) { console.error("Error modificando:", e); mostrarNotificacion("Error al modificar.", "error"); }
-         } return; 
-    }
-    // Si la propiedad no está definida para el tipo (error interno)
-    if (!propiedad) { console.error("Propiedad no encontrada para tipo:", tipo); mostrarNotificacion("Error interno.", "error"); return; }
-
-    // Actualización masiva
-    if (confirm(`¿Estás seguro de cambiar "${valorActual}" por "${valorFormateado}"? Esto actualizará TODOS los registros asociados.`)) { 
-        try { 
-            await updateDoc(doc(db, tipo, item.id), { nombre: valorFormateado }); 
-            const q = query(collection(db, "consumos"), where(propiedad, "==", valorActual));
-            const snapshot = await getDocs(q);
-            const updates = snapshot.docs.map(docSnapshot => updateDoc(docSnapshot.ref, { [propiedad]: valorFormateado }));
-            await Promise.all(updates); await cargarDatosIniciales(); mostrarNotificacion("Actualización masiva completada.", "exito"); 
-        } catch(e) { console.error("Error en mod. masiva:", e); mostrarNotificacion("Error al actualizar masivamente.", "error"); } 
-    } 
-}
-// ===== FIN DE FUNCIÓN MODIFICADA =====
-
-
+function mostrarListasAdmin() { /* ... (sin cambios) ... */ }
+async function modificarItemAdmin(item, tipo) { /* ... (sin cambios) ... */ }
 function cargarDatosParaModificar(id) { /* ... (sin cambios) ... */ }
 function calcularYMostrarTotalesPorCategoria(consumos, categoria, bodyId, footerId) { /* ... (sin cambios) ... */ }
 const calcularYMostrarTotalesPorEmpresa = (consumos) => calcularYMostrarTotalesPorCategoria(consumos, 'empresa', 'resumenEmpresaBody', 'resumenEmpresaFooter');
@@ -240,56 +172,74 @@ const calcularYMostrarTotalesPorProveedor = (consumos) => calcularYMostrarTotale
 const calcularYMostrarTotalesPorProyecto = (consumos) => calcularYMostrarTotalesPorCategoria(consumos, 'proyecto', 'resumenProyectoBody', 'resumenProyectoFooter');
 const calcularYMostrarTotalesPorChofer = (consumos) => calcularYMostrarTotalesPorCategoria(consumos, 'chofer', 'resumenChoferBody', 'resumenChoferFooter');
 const calcularYMostrarTotales = (consumos) => { calcularYMostrarTotalesPorCategoria(consumos, 'volqueta', 'resumenBody', 'resumenFooter'); };
-
-// ===== INICIO DE FUNCIÓN MODIFICADA =====
-async function borrarItemAdmin(item, tipo) { 
-    const coleccionesPermitidas = ["choferes", "placas", "detallesVolqueta", "maquinaria", "empresas", "proveedores", "proyectos"]; // Añadir maquinaria
-    if (!coleccionesPermitidas.includes(tipo)) { console.error("Tipo inválido:", tipo); mostrarNotificacion("Error interno.", "error"); return; }
-    if (!item || !item.id || !item.nombre) { console.error("Item inválido:", item); mostrarNotificacion("Error al identificar elemento.", "error"); return; }
-    if (confirm(`¿Seguro que quieres borrar "${item.nombre}"?`)) { 
-        try { await deleteDoc(doc(db, tipo, item.id)); mostrarNotificacion("Elemento borrado.", "exito"); await cargarDatosIniciales(); } 
-        catch(e) { console.error("Error borrando:", e); mostrarNotificacion("No se pudo borrar.", "error"); } 
-    } 
-}
-// ===== FIN DE FUNCIÓN MODIFICADA =====
-
+async function borrarItemAdmin(item, tipo) { /* ... (sin cambios) ... */ }
 async function borrarConsumoHistorial(id) { /* ... (sin cambios) ... */ }
 function poblarFiltroDeMes() { /* ... (sin cambios) ... */ }
 function poblarFiltrosReportes() { /* ... (sin cambios) ... */ }
-function mostrarHistorialAgrupado(consumos) { /* ... (sin cambios) ... */ }
-function asignarSincronizacionDeFiltros() { /* ... (sin cambios) ... */ }
-function handleLogin(e) { /* ... (sin cambios) ... */ }
-function handleLogout() { /* ... (sin cambios) ... */ }
 
 // ===== INICIO DE FUNCIÓN MODIFICADA =====
-function asignarEventosApp() {
-    if(btnAbrirModal) btnAbrirModal.addEventListener('click', abrirModal);
-    if(btnCerrarModal) btnCerrarModal.addEventListener('click', cerrarModal);
-    const btnReg = document.getElementById('btnTabRegistrar'); if(btnReg) btnReg.addEventListener('click', (e) => openMainTab(e, 'tabRegistrar'));
-    const btnRep = document.getElementById('btnTabReportes'); if(btnRep) btnRep.addEventListener('click', (e) => openMainTab(e, 'tabReportes'));
-    const btnHist = document.getElementById('btnTabHistorial'); if(btnHist) btnHist.addEventListener('click', (e) => openMainTab(e, 'tabHistorial'));
-    const btnAdm = document.getElementById('btnTabAdmin'); if(btnAdm) btnAdm.addEventListener('click', (e) => openMainTab(e, 'tabAdmin'));
-    const consumoForm = document.getElementById('consumoForm'); if(consumoForm) consumoForm.addEventListener('submit', guardarOActualizar);
-    document.querySelectorAll('.btn-print').forEach(btn => btn.addEventListener('click', (e) => { /* ... */ }));
-    window.onafterprint = () => { /* ... */ };
-    document.querySelectorAll('#btnAplicarFiltros').forEach(btn => btn.addEventListener('click', actualizarTodaLaUI));
-    document.querySelectorAll('#btnLimpiarFiltros').forEach(btn => btn.addEventListener('click', () => { /* ... */ }));
-    const histBody = document.getElementById('historialBody'); if(histBody) histBody.addEventListener('click', manejarAccionesHistorial);
-    // Forms Admin
-    const formChofer = document.getElementById('formAdminChofer'); if(formChofer) formChofer.addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('choferes', document.getElementById('nuevoChofer')); });
-    const formPlaca = document.getElementById('formAdminPlaca'); if(formPlaca) formPlaca.addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('placas', document.getElementById('nuevaPlaca')); });
-    const formDetalles = document.getElementById('formAdminDetallesVolqueta'); if(formDetalles) formDetalles.addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('detallesVolqueta', document.getElementById('nuevoDetalleVolqueta')); }); 
-    const formMaquinaria = document.getElementById('formAdminMaquinaria'); if(formMaquinaria) formMaquinaria.addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('maquinaria', document.getElementById('nuevaMaquinaria')); }); // <-- NUEVO EVENTO
-    const formEmpresa = document.getElementById('formAdminEmpresa'); if(formEmpresa) formEmpresa.addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('empresas', document.getElementById('nuevaEmpresa')); });
-    const formProveedor = document.getElementById('formAdminProveedor'); if(formProveedor) formProveedor.addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('proveedores', document.getElementById('nuevoProveedor')); });
-    const formProyecto = document.getElementById('formAdminProyecto'); if(formProyecto) formProyecto.addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('proyectos', document.getElementById('nuevoProyecto')); });
-    const botonesAcordeon = document.querySelectorAll('.accordion-button');
-    botonesAcordeon.forEach(boton => { boton.addEventListener('click', function() { /* ... */ }); });
-    asignarSincronizacionDeFiltros();
+function mostrarHistorialAgrupado(consumos) {
+    const historialBody = document.getElementById('historialBody'); 
+    const historialFooter = document.getElementById('historialFooter');
+    if (!historialBody || !historialFooter) { console.error("Elementos del historial no encontrados"); return; }
+    historialBody.innerHTML = ''; 
+    historialFooter.innerHTML = '';
+
+    // Ajustar colspan para el estado vacío (ahora 15 columnas)
+    if (!Array.isArray(consumos) || consumos.length === 0) { 
+        historialBody.innerHTML = `<tr><td colspan="15" class="empty-state"><i class="fa-solid fa-folder-open"></i><p>No se encontraron registros.</p></td></tr>`; 
+        return; 
+    }
+    let totalGalones = 0, totalCosto = 0;
+    const consumosOrdenados = [...consumos].sort((a,b) => new Date(b.fecha) - new Date(a.fecha) || a.volqueta.localeCompare(b.volqueta));
+    let mesAnioActual = "";
+    consumosOrdenados.forEach(consumo => {
+        totalGalones += parseFloat(consumo.galones) || 0; 
+        totalCosto += parseFloat(consumo.costo) || 0;
+        const fechaConsumo = new Date(consumo.fecha + 'T00:00:00'); 
+        const mesAnio = fechaConsumo.toLocaleDateString('es-EC', { month: 'long', year: 'numeric', timeZone: 'UTC' });
+        
+        const fechaInicioFiltro = document.querySelector('.filtro-sincronizado[data-sync-id="filtroFechaInicio"]')?.value;
+        const fechaFinFiltro = document.querySelector('.filtro-sincronizado[data-sync-id="filtroFechaFin"]')?.value;
+
+        if (mesAnio !== mesAnioActual && !(fechaInicioFiltro && fechaFinFiltro)) { 
+            mesAnioActual = mesAnio;
+            const filaGrupo = document.createElement('tr'); 
+            filaGrupo.className = 'fila-grupo'; 
+            // Ajustar colspan
+            filaGrupo.innerHTML = `<td colspan="15">${mesAnioActual.charAt(0).toUpperCase() + mesAnioActual.slice(1)}</td>`;
+            historialBody.appendChild(filaGrupo);
+        }
+        const filaDato = document.createElement('tr');
+        // Añadir la nueva celda con el botón Distribuir
+        filaDato.innerHTML = `
+            <td class="no-print">
+                <button class="btn-accion btn-modificar button-warning" data-id="${consumo.id}" title="Modificar"><i class="fa-solid fa-pencil" style="margin: 0;"></i></button>
+                <button class="btn-accion btn-borrar" data-id="${consumo.id}" title="Borrar"><i class="fa-solid fa-trash-can" style="margin: 0;"></i></button>
+            </td>
+            <td class="no-print">
+                 <button class="btn-accion btn-distribuir button-info" data-id="${consumo.id}" title="Distribuir Diésel"><i class="fa-solid fa-share-from-square" style="margin: 0;"></i></button>
+            </td>
+            <td>${consumo.fecha}</td><td>${consumo.hora || ''}</td><td>${consumo.numeroFactura || ''}</td><td>${consumo.chofer}</td><td>${consumo.volqueta}</td>
+            <td>${consumo.detallesVolqueta || ''}</td><td>${consumo.kilometraje || ''}</td>
+            <td>${consumo.proveedor || ''}</td><td>${consumo.proyecto || ''}</td><td>${(parseFloat(consumo.galones) || 0).toFixed(2)}</td><td>$${(parseFloat(consumo.costo) || 0).toFixed(2)}</td><td>${consumo.empresa || ''}</td><td>${consumo.descripcion}</td>`;
+        historialBody.appendChild(filaDato);
+    });
+    // Ajustar colspan del footer
+    historialFooter.innerHTML = `<tr><td class="no-print" colspan="2"></td><td colspan="8" style="text-align: right;"><strong>TOTAL GALONES:</strong></td><td><strong>${totalGalones.toFixed(2)}</strong></td><td style="text-align: right;"><strong>VALOR TOTAL:</strong></td><td><strong>$${totalCosto.toFixed(2)}</strong></td><td></td></tr>`;
 }
 // ===== FIN DE FUNCIÓN MODIFICADA =====
 
-function iniciarAplicacion() {
-    asignarEventosApp();
-    cargarDatosIniciales();
+// ===== INICIO DE FUNCIÓN NUEVA (Placeholder) =====
+function abrirModalDistribucion(consumoId) {
+    console.log("Abrir modal distribución para el consumo ID:", consumoId);
+    // Aquí irá la lógica para abrir el nuevo modal y cargar datos
+    mostrarNotificacion("Funcionalidad 'Distribuir' aún no implementada.", "info"); 
 }
+// ===== FIN DE FUNCIÓN NUEVA =====
+
+function asignarSincronizacionDeFiltros() { /* ... (sin cambios) ... */ }
+function handleLogin(e) { /* ... (sin cambios) ... */ }
+function handleLogout() { /* ... (sin cambios) ... */ }
+function asignarEventosApp() { /* ... (sin cambios) ... */ }
+function iniciarAplicacion() { /* ... (sin cambios) ... */ }
