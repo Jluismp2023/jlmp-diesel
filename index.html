@@ -67,7 +67,7 @@
 
             <div id="tabAdmin" class="main-tab-content no-print">
                 <div class="container" id="adminContainer"><h2><i class="fa-solid fa-screwdriver-wrench"></i>Administración</h2><div class="admin-section"><div class="admin-box"><h3><i class="fa-solid fa-user-tie"></i>Gestionar Choferes</h3><form id="formAdminChofer" class="admin-form"><input type="text" id="nuevoChofer" placeholder="Nombre del chofer" required><button type="submit" class="button-success"><i class="fa-solid fa-plus"></i>Agregar</button></form><ul id="listaChoferes" class="lista-gestion"></ul></div><div class="admin-box"><h3><i class="fa-solid fa-truck"></i>Gestionar Placas</h3><form id="formAdminPlaca" class="admin-form"><input type="text" id="nuevaPlaca" placeholder="Placa de la volqueta" required><button type="submit" class="button-success"><i class="fa-solid fa-plus"></i>Agregar</button></form><ul id="listaPlacas" class="lista-gestion"></ul></div><div class="admin-box"><h3><i class="fa-solid fa-tags"></i>Gestionar Detalles Volqueta</h3><form id="formAdminDetallesVolqueta" class="admin-form"><input type="text" id="nuevoDetalleVolqueta" placeholder="Ej: Doble Eje, Tritón Rojo" required><button type="submit" class="button-success"><i class="fa-solid fa-plus"></i>Agregar</button></form><ul id="listaDetallesVolqueta" class="lista-gestion"></ul></div>
-                 <div class="admin-box"><h3><i class="fa-solid fa-tractor"></i>Gestionar Maquinaria</h3><form id="formAdminMaquinaria" class="admin-form"><input type="text" id="nuevaMaquinaria" placeholder="Ej: Rodillo Dynapac, CAT 320" required><button type="submit" class="button-success"><i class="fa-solid fa-plus"></i>Agregar</button></form><ul id="listaMaquinaria" class="lista-gestion"></ul></div>
+                <div class="admin-box"><h3><i class="fa-solid fa-tractor"></i>Gestionar Maquinaria</h3><form id="formAdminMaquinaria" class="admin-form"><input type="text" id="nuevaMaquinaria" placeholder="Ej: Rodillo Dynapac, CAT 320" required><button type="submit" class="button-success"><i class="fa-solid fa-plus"></i>Agregar</button></form><ul id="listaMaquinaria" class="lista-gestion"></ul></div>
                 <div class="admin-box"><h3><i class="fa-solid fa-building"></i>Gestionar Empresas</h3><form id="formAdminEmpresa" class="admin-form"><input type="text" id="nuevaEmpresa" placeholder="Nombre de la empresa" required><button type="submit" class="button-success"><i class="fa-solid fa-plus"></i>Agregar</button></form><ul id="listaEmpresas" class="lista-gestion"></ul></div><div class="admin-box"><h3><i class="fa-solid fa-dolly"></i>Gestionar Proveedores</h3><form id="formAdminProveedor" class="admin-form"><input type="text" id="nuevoProveedor" placeholder="Nombre del proveedor" required><button type="submit" class="button-success"><i class="fa-solid fa-plus"></i>Agregar</button></form><ul id="listaProveedores" class="lista-gestion"></ul></div><div class="admin-box"><h3><i class="fa-solid fa-list-check"></i>Gestionar Proyectos</h3><form id="formAdminProyecto" class="admin-form"><input type="text" id="nuevoProyecto" placeholder="Nombre del proyecto" required><button type="submit" class="button-success"><i class="fa-solid fa-plus"></i>Agregar</button></form><ul id="listaProyectos" class="lista-gestion"></ul></div></div></div>
             </div>
             
@@ -75,6 +75,46 @@
         </div>
     </div>
     
+    <div id="modalDistribucion" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="cerrarModalDistribucion">&times;</span>
+            <h2><i class="fa-solid fa-share-from-square"></i> Registrar Distribución de Diésel</h2>
+            
+            <div id="distribucionInfoCarga" style="background-color: #f8f9fa; padding: 10px; border-radius: 4px; margin-bottom: 20px; border: 1px solid #ddd;">
+                <strong>Carga Original:</strong><br>
+                Fecha: <span id="distInfoFecha"></span> | 
+                Volqueta: <span id="distInfoVolqueta"></span> | 
+                Galones Cargados: <span id="distInfoGalonesCargados"></span><br>
+                Galones Ya Distribuidos: <span id="distInfoGalonesDistribuidos"></span> |
+                Galones Restantes: <span id="distInfoGalonesRestantes"></span>
+            </div>
+
+            <form id="distribucionForm">
+                <input type="hidden" id="distribucionConsumoId"> <label for="selectDistMaquinaria">Maquinaria Receptora:</label>
+                <select id="selectDistMaquinaria" required></select>
+                
+                <label for="distGalonesSuministrados">Galones a Suministrar:</label>
+                <input type="number" id="distGalonesSuministrados" step="0.01" required>
+                
+                <label for="selectDistProyecto">Proyecto (Opcional):</label>
+                <select id="selectDistProyecto"></select>
+                
+                <label for="distDescripcion">Descripción (Opcional):</label>
+                <textarea id="distDescripcion"></textarea>
+                
+                <div style="display: flex; gap: 10px; margin-top: 15px;">
+                    <button type="submit" id="btnGuardarDistribucion" class="button-primary"><i class="fa-solid fa-plus"></i> Guardar Distribución</button>
+                    <button type="button" id="btnFinalizarDistribucion" class="button-secondary" style="margin-left: auto;"><i class="fa-solid fa-door-closed"></i> Cerrar</button>
+                </div>
+            </form>
+            
+            <div style="margin-top: 25px;">
+                <h4>Distribuciones Registradas para esta Carga:</h4>
+                <ul id="distribucionesAnterioresLista" style="font-size: 0.9em; max-height: 150px; overflow-y: auto; list-style-type: none; padding-left: 0;">
+                    </ul>
+            </div>
+        </div>
+    </div>
     <div id="facturas-impresion"></div>
 
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
