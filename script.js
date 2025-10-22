@@ -102,6 +102,27 @@ async function cargarDatosIniciales() {
     }
 }
 
+// ==== NUEVA FUNCIÓN PARA EL DASHBOARD ====
+function actualizarTarjetasResumen() {
+    const ahora = new Date();
+    const anio = ahora.getFullYear();
+    const mes = (ahora.getMonth() + 1).toString().padStart(2, '0');
+    const mesActual = `${anio}-${mes}`;
+
+    let totalGalonesMes = 0;
+    let totalCostoMes = 0;
+
+    todosLosConsumos.forEach(c => {
+        if (c.fecha.startsWith(mesActual)) {
+            totalGalonesMes += parseFloat(c.galones) || 0;
+            totalCostoMes += parseFloat(c.costo) || 0;
+        }
+    });
+
+    document.getElementById('resumenMesGalones').textContent = `${totalGalonesMes.toFixed(2)} Gal`;
+    document.getElementById('resumenMesCosto').textContent = `$ ${totalCostoMes.toFixed(2)}`;
+}
+
 function actualizarTodaLaUI() {
     poblarFiltroDeMes();
     poblarFiltrosReportes();
@@ -114,6 +135,9 @@ function actualizarTodaLaUI() {
     poblarSelectores();
     mostrarListasAdmin();
     mostrarHistorialAgrupado(consumosFiltrados);
+    
+    // ==== LLAMADA A LA NUEVA FUNCIÓN ====
+    actualizarTarjetasResumen(); 
 }
 
 function poblarSelectores() {
@@ -405,6 +429,8 @@ function asignarEventosApp() {
     btnAbrirModal.addEventListener('click', abrirModal);
     btnCerrarModal.addEventListener('click', cerrarModal);
     
+    // ==== LISTENERS DE PESTAÑAS PRINCIPALES (INCLUYE EL NUEVO "INICIO") ====
+    document.getElementById('btnTabInicio').addEventListener('click', (e) => openMainTab(e, 'tabInicio'));
     document.getElementById('btnTabRegistrar').addEventListener('click', (e) => openMainTab(e, 'tabRegistrar'));
     document.getElementById('btnTabReportes').addEventListener('click', (e) => openMainTab(e, 'tabReportes'));
     document.getElementById('btnTabHistorial').addEventListener('click', (e) => openMainTab(e, 'tabHistorial'));
@@ -450,6 +476,48 @@ function asignarEventosApp() {
     document.getElementById('formAdminProveedor').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('proveedores', document.getElementById('nuevoProveedor')); });
     document.getElementById('formAdminProyecto').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('proyectos', document.getElementById('nuevoProyecto')); });
     
+    // ==== LISTENERS PARA LOS NUEVOS BOTONES DEL DASHBOARD ====
+    document.getElementById('btnDashRegistrar').addEventListener('click', () => {
+        openMainTab(null, 'tabRegistrar');
+    });
+    document.getElementById('btnDashHistorial').addEventListener('click', () => {
+        openMainTab(null, 'tabHistorial');
+    });
+    document.getElementById('btnDashAdmin').addEventListener('click', () => {
+        openMainTab(null, 'tabAdmin');
+    });
+    document.getElementById('btnDashImprimir').addEventListener('click', () => {
+        // 1. Obtener mes actual
+        const ahora = new Date();
+        const anio = ahora.getFullYear();
+        const mes = (ahora.getMonth() + 1).toString().padStart(2, '0');
+        const mesActual = `${anio}-${mes}`;
+
+        // 2. Establecer filtro de mes en Reportes
+        const filtroReportes = document.getElementById('filtroMesReportes');
+        if (filtroReportes.querySelector(`option[value="${mesActual}"]`)) {
+            filtroReportes.value = mesActual;
+            // 3. Disparar evento change para sincronizar
+            filtroReportes.dispatchEvent(new Event('change', { 'bubbles': true }));
+        } else {
+            mostrarNotificacion("No hay datos para el mes actual.", "info");
+            filtroReportes.value = 'todos';
+            filtroReportes.dispatchEvent(new Event('change', { 'bubbles': true }));
+        }
+        
+        // 4. Aplicar filtros
+        actualizarTodaLaUI();
+        
+        // 5. Abrir pestaña de reportes
+        openMainTab(null, 'tabReportes');
+
+        // 6. Disparar impresión de reportes
+        const btnPrintReportes = document.querySelector('.btn-print[data-print-target="tabReportes"]');
+        if (btnPrintReportes) {
+            btnPrintReportes.click();
+        }
+    });
+
     const botonesAcordeon = document.querySelectorAll('.accordion-button');
     botonesAcordeon.forEach(boton => {
         boton.addEventListener('click', function() {
