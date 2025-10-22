@@ -28,10 +28,8 @@ let esModoObservador = false; // Variable global para el rol
 onAuthStateChanged(auth, (user) => {
     if (user) {
         
-        // ===== CAMBIO REALIZADO AQUÍ =====
+        // ===== CAMBIA ESTE EMAIL POR EL DE TU USUARIO OBSERVADOR =====
         const emailObservador = "obreco@observador.com"; 
-        // ===================================
-
         esModoObservador = (user.email === emailObservador);
 
         if (esModoObservador) {
@@ -250,10 +248,12 @@ async function guardarOActualizar(e) {
         cerrarModal();
         await cargarDatosIniciales();
         
+        // ===== ESTA ES LA CORRECCIÓN QUE SOLICITAS =====
         // Regresa al panel de inicio (si no es observador)
         if (!esModoObservador) {
             openMainTab(null, 'tabInicio');
         }
+        // ===============================================
 
     } catch (error) {
         console.error("Error guardando en Firestore:", error);
@@ -464,7 +464,7 @@ function asignarSincronizacionDeFiltros() {
 }
 
 function handleLogin(e) { e.preventDefault(); const email = document.getElementById('login-email').value; const password = document.getElementById('login-password').value; signInWithEmailAndPassword(auth, email, password).then(userCredential => { mostrarNotificacion("Bienvenido de nuevo", "exito"); }).catch(error => { mostrarNotificacion("Credenciales incorrectas.", "error"); }); }
-function handleLogout() { signOut(auth).catch(error => { mostrarNotClicasión("Error al cerrar sesión: " + error.message, "error"); }); }
+function handleLogout() { signOut(auth).catch(error => { mostrarNotificacion("Error al cerrar sesión: " + error.message, "error"); }); }
 
 function asignarEventosApp() {
     // Botón "Nuevo Registro" en la pestaña Registrar
