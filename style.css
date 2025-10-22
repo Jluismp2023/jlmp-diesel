@@ -256,7 +256,7 @@ button:hover { opacity: 0.9; }
     margin-bottom: 15px;
 }
 
-/* --- AJUSTES PARA MÓVILES --- */
+/* --- AJUSTES PARA MÓVILES (DASHBOARD) --- */
 @media screen and (max-width: 600px) {
     .summary-container {
         flex-direction: column;
@@ -279,4 +279,37 @@ button:hover { opacity: 0.9; }
         margin-bottom: 0;
         margin-right: 20px;
     }
+}
+
+/* --- ESTILOS PARA MODO OBSERVADOR (SOLO LECTURA) --- */
+
+/* Oculta las pestañas de navegación que no debe ver */
+.modo-observador #btnTabInicio,
+.modo-observador #btnTabRegistrar,
+.modo-observador #btnTabAdmin {
+    display: none;
+}
+
+/* Oculta la columna de 'Acciones' (th) en la tabla de Historial */
+.modo-observador #historialTabla th.no-print {
+    display: none;
+}
+
+/* Oculta la celda de 'Acciones' (td) en las filas de datos del Historial */
+.modo-observador #historialTabla td.no-print {
+    display: none;
+}
+
+/* --- NAVEGACIÓN CENTRADA EN EL PANEL DE INICIO --- */
+
+/* Regla para el Administrador (cuando NO es modo-observador):
+  Oculta todas las pestañas de la barra MENOS la de "Inicio".
+  Esto fuerza al admin a usar el panel para navegar
+  y la pestaña "Inicio" para regresar al panel.
+*/
+body:not(.modo-observador) #btnTabRegistrar,
+body:not(.modo-observador) #btnTabReportes,
+body:not(.modo-observador) #btnTabHistorial,
+body:not(.modo-observador) #btnTabAdmin {
+    display: none;
 }

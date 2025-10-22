@@ -23,9 +23,36 @@ let todosLosConsumos = [];
 let listasAdmin = { choferes: [], placas: [], detallesVolqueta: [], empresas: [], proveedores: [], proyectos: [] };
 let appInicializada = false;
 let tabActivaParaImprimir = null;
+let esModoObservador = false; // Variable global para el rol
 
 onAuthStateChanged(auth, (user) => {
     if (user) {
+        
+        // ===== CAMBIA ESTE EMAIL POR EL DE TU USUARIO OBSERVADOR =====
+        const emailObservador = "observador@empresa.com"; 
+        esModoObservador = (user.email === emailObservador);
+
+        if (esModoObservador) {
+            // --- Lógica para Observador ---
+            document.body.classList.add('modo-observador');
+            // Oculta pestañas que no debe ver
+            document.getElementById('tabInicio').style.display = 'none';
+            document.getElementById('tabRegistrar').style.display = 'none';
+            document.getElementById('tabAdmin').style.display = 'none';
+            
+            // Muestra 'Reportes' por defecto y activa la pestaña
+            document.getElementById('tabReportes').style.display = 'block';
+            document.querySelector('.main-tab-link.active')?.classList.remove('active');
+            document.getElementById('btnTabReportes').classList.add('active');
+        } else {
+            // --- Lógica para Administrador ---
+            document.body.classList.remove('modo-observador');
+            // Muestra 'Inicio' por defecto
+            document.getElementById('tabInicio').style.display = 'block';
+            document.querySelector('.main-tab-link.active')?.classList.remove('active');
+            document.getElementById('btnTabInicio').classList.add('active');
+        }
+
         vistaLogin.style.display = 'none';
         vistaApp.style.display = 'block';
         btnLogout.style.display = 'block';
@@ -34,10 +61,13 @@ onAuthStateChanged(auth, (user) => {
             appInicializada = true;
         }
     } else {
+        // --- Lógica de Logout ---
         vistaLogin.style.display = 'block';
         vistaApp.style.display = 'none';
         btnLogout.style.display = 'none';
         appInicializada = false;
+        esModoObservador = false; // Resetea el modo
+        document.body.classList.remove('modo-observador'); // Limpia la clase
     }
 });
 
@@ -102,7 +132,7 @@ async function cargarDatosIniciales() {
     }
 }
 
-// ==== NUEVA FUNCIÓN PARA EL DASHBOARD ====
+// Función para el Dashboard
 function actualizarTarjetasResumen() {
     const ahora = new Date();
     const anio = ahora.getFullYear();
@@ -136,7 +166,7 @@ function actualizarTodaLaUI() {
     mostrarListasAdmin();
     mostrarHistorialAgrupado(consumosFiltrados);
     
-    // ==== LLAMADA A LA NUEVA FUNCIÓN ====
+    // Llamada a la función del dashboard
     actualizarTarjetasResumen(); 
 }
 
@@ -217,6 +247,12 @@ async function guardarOActualizar(e) {
         reiniciarFormulario();
         cerrarModal();
         await cargarDatosIniciales();
+        
+        // Regresa al panel de inicio (si no es observador)
+        if (!esModoObservador) {
+            openMainTab(null, 'tabInicio');
+        }
+
     } catch (error) {
         console.error("Error guardando en Firestore:", error);
         mostrarNotificacion(`Error al guardar: ${error.message}`, "error", 5000);
@@ -315,7 +351,6 @@ async function modificarItemAdmin(item, tipo) {
     } 
 }
 
-// ===== INICIO DE FUNCIÓN MODIFICADA =====
 function cargarDatosParaModificar(id) {
     const consumo = todosLosConsumos.find(c => c.id === id); if (!consumo) return;
     document.getElementById('registroId').value = consumo.id; 
@@ -332,13 +367,9 @@ function cargarDatosParaModificar(id) {
     document.getElementById('selectProyecto').value = consumo.proyecto || "";
     document.getElementById('selectDetallesVolqueta').value = consumo.detallesVolqueta || "";
     document.getElementById('kilometraje').value = consumo.kilometraje || "";
-
-    // Llama a openMainTab SIN evento para cambiar a la pestaña Registrar
     openMainTab(null, 'tabRegistrar'); 
-    
-    abrirModal(); // Abre el modal después de cambiar de pestaña
+    abrirModal();
 }
-// ===== FIN DE FUNCIÓN MODIFICADA =====
 
 function calcularYMostrarTotalesPorCategoria(consumos, categoria, bodyId, footerId) {
     const resumenBody = document.getElementById(bodyId); const resumenFooter = document.getElementById(footerId);
@@ -407,7 +438,15 @@ function mostrarHistorialAgrupado(consumos) {
             <td>${consumo.proveedor || ''}</td><td>${consumo.proyecto || ''}</td><td>${(parseFloat(consumo.galones) || 0).toFixed(2)}</td><td>$${(parseFloat(consumo.costo) || 0).toFixed(2)}</td><td>${consumo.empresa || ''}</td><td>${consumo.descripcion}</td>`;
         historialBody.appendChild(filaDato);
     });
-    historialFooter.innerHTML = `<tr><td class="no-print"></td><td colspan="9" style="text-align: right;"><strong>TOTAL GALONES:</strong></td><td><strong>${totalGalones.toFixed(2)}</strong></td><td style="text-align: right;"><strong>VALOR TOTAL:</strong></td><td><strong>$${totalCosto.toFixed(2)}</strong></td><td></td></tr>`;
+    
+    // Ajusta el footer de la tabla historial si es modo observador
+    let footerHtml;
+    if (esModoObservador) {
+        footerHtml = `<tr><td colspan="9" style="text-align: right;"><strong>TOTAL GALONES:</strong></td><td><strong>${totalGalones.toFixed(2)}</strong></td><td style="text-align: right;"><strong>VALOR TOTAL:</strong></td><td><strong>$${totalCosto.toFixed(2)}</strong></td><td></td></tr>`;
+    } else {
+        footerHtml = `<tr><td class="no-print"></td><td colspan="9" style="text-align: right;"><strong>TOTAL GALONES:</strong></td><td><strong>${totalGalones.toFixed(2)}</strong></td><td style="text-align: right;"><strong>VALOR TOTAL:</strong></td><td><strong>$${totalCosto.toFixed(2)}</strong></td><td></td></tr>`;
+    }
+    historialFooter.innerHTML = footerHtml;
 }
 
 function asignarSincronizacionDeFiltros() {
@@ -426,18 +465,26 @@ function handleLogin(e) { e.preventDefault(); const email = document.getElementB
 function handleLogout() { signOut(auth).catch(error => { mostrarNotificacion("Error al cerrar sesión: " + error.message, "error"); }); }
 
 function asignarEventosApp() {
-    btnAbrirModal.addEventListener('click', abrirModal);
+    // Botón "Nuevo Registro" en la pestaña Registrar
+    btnAbrirModal.addEventListener('click', () => {
+        reiniciarFormulario(); // Asegura que esté limpio
+        abrirModal();
+    });
+    
+    // Botón 'x' para cerrar modal
     btnCerrarModal.addEventListener('click', cerrarModal);
     
-    // ==== LISTENERS DE PESTAÑAS PRINCIPALES (INCLUYE EL NUEVO "INICIO") ====
+    // Listeners de Pestañas Principales
     document.getElementById('btnTabInicio').addEventListener('click', (e) => openMainTab(e, 'tabInicio'));
     document.getElementById('btnTabRegistrar').addEventListener('click', (e) => openMainTab(e, 'tabRegistrar'));
     document.getElementById('btnTabReportes').addEventListener('click', (e) => openMainTab(e, 'tabReportes'));
     document.getElementById('btnTabHistorial').addEventListener('click', (e) => openMainTab(e, 'tabHistorial'));
     document.getElementById('btnTabAdmin').addEventListener('click', (e) => openMainTab(e, 'tabAdmin'));
     
+    // Formulario de Consumo
     document.getElementById('consumoForm').addEventListener('submit', guardarOActualizar);
 
+    // Botones de Imprimir
     document.querySelectorAll('.btn-print').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const targetId = e.currentTarget.dataset.printTarget;
@@ -450,6 +497,7 @@ function asignarEventosApp() {
         });
     });
     
+    // Evento después de imprimir
     window.onafterprint = () => {
         if (tabActivaParaImprimir) {
             tabActivaParaImprimir.classList.remove('printable-active');
@@ -458,6 +506,7 @@ function asignarEventosApp() {
         document.getElementById('facturas-impresion').innerHTML = '';
     };
     
+    // Botones de Filtros
     document.querySelectorAll('#btnAplicarFiltros').forEach(btn => btn.addEventListener('click', actualizarTodaLaUI));
     document.querySelectorAll('#btnLimpiarFiltros').forEach(btn => btn.addEventListener('click', () => {
         document.querySelectorAll('.filtro-sincronizado').forEach(filtro => {
@@ -468,7 +517,10 @@ function asignarEventosApp() {
         actualizarTodaLaUI();
     }));
     
+    // Acciones en Tabla Historial (Modificar/Borrar)
     document.getElementById('historialBody').addEventListener('click', manejarAccionesHistorial);
+
+    // Formularios de Administración
     document.getElementById('formAdminChofer').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('choferes', document.getElementById('nuevoChofer')); });
     document.getElementById('formAdminPlaca').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('placas', document.getElementById('nuevaPlaca')); });
     document.getElementById('formAdminDetallesVolqueta').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('detallesVolqueta', document.getElementById('nuevoDetalleVolqueta')); });
@@ -476,16 +528,26 @@ function asignarEventosApp() {
     document.getElementById('formAdminProveedor').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('proveedores', document.getElementById('nuevoProveedor')); });
     document.getElementById('formAdminProyecto').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('proyectos', document.getElementById('nuevoProyecto')); });
     
-    // ==== LISTENERS PARA LOS NUEVOS BOTONES DEL DASHBOARD ====
+    // ==== LISTENERS PARA LOS BOTONES DEL DASHBOARD ====
+    
+    // Botón del Panel: "Registrar Nueva Carga"
     document.getElementById('btnDashRegistrar').addEventListener('click', () => {
+        reiniciarFormulario(); // Asegura un form limpio
         openMainTab(null, 'tabRegistrar');
+        abrirModal(); // Abre el modal automáticamente
     });
+
+    // Botón del Panel: "Ver Reporte Detallado"
     document.getElementById('btnDashHistorial').addEventListener('click', () => {
         openMainTab(null, 'tabHistorial');
     });
+
+    // Botón del Panel: "Administrar Base de Datos"
     document.getElementById('btnDashAdmin').addEventListener('click', () => {
         openMainTab(null, 'tabAdmin');
     });
+
+    // Botón del Panel: "Imprimir Reporte Mensual"
     document.getElementById('btnDashImprimir').addEventListener('click', () => {
         // 1. Obtener mes actual
         const ahora = new Date();
@@ -518,6 +580,7 @@ function asignarEventosApp() {
         }
     });
 
+    // Acordeón en la pestaña Historial
     const botonesAcordeon = document.querySelectorAll('.accordion-button');
     botonesAcordeon.forEach(boton => {
         boton.addEventListener('click', function() {
@@ -526,6 +589,8 @@ function asignarEventosApp() {
             if (panel.style.maxHeight) { panel.style.maxHeight = null; } else { panel.style.maxHeight = panel.scrollHeight + "px"; } 
         });
     });
+
+    // Sincronización de filtros entre pestañas
     asignarSincronizacionDeFiltros();
 }
 
@@ -534,5 +599,6 @@ function iniciarAplicacion() {
     cargarDatosIniciales();
 }
 
+// Eventos de Autenticación
 document.getElementById('login-form').addEventListener('submit', handleLogin);
 btnLogout.addEventListener('click', handleLogout);
