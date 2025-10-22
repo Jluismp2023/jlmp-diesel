@@ -28,8 +28,10 @@ let esModoObservador = false; // Variable global para el rol
 onAuthStateChanged(auth, (user) => {
     if (user) {
         
-        // ===== CAMBIA ESTE EMAIL POR EL DE TU USUARIO OBSERVADOR =====
-        const emailObservador = "observador@empresa.com"; 
+        // ===== CAMBIO REALIZADO AQUÍ =====
+        const emailObservador = "obreco@observador.com"; 
+        // ===================================
+
         esModoObservador = (user.email === emailObservador);
 
         if (esModoObservador) {
@@ -462,7 +464,7 @@ function asignarSincronizacionDeFiltros() {
 }
 
 function handleLogin(e) { e.preventDefault(); const email = document.getElementById('login-email').value; const password = document.getElementById('login-password').value; signInWithEmailAndPassword(auth, email, password).then(userCredential => { mostrarNotificacion("Bienvenido de nuevo", "exito"); }).catch(error => { mostrarNotificacion("Credenciales incorrectas.", "error"); }); }
-function handleLogout() { signOut(auth).catch(error => { mostrarNotificacion("Error al cerrar sesión: " + error.message, "error"); }); }
+function handleLogout() { signOut(auth).catch(error => { mostrarNotClicasión("Error al cerrar sesión: " + error.message, "error"); }); }
 
 function asignarEventosApp() {
     // Botón "Nuevo Registro" en la pestaña Registrar
