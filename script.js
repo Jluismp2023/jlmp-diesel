@@ -250,7 +250,8 @@ async function guardarOActualizar(e) {
         volqueta: document.getElementById('selectVolqueta').value,
         fecha: document.getElementById('fecha').value,
         hora: document.getElementById('hora').value,
-        numeroFactura: document.getElementById('numeroFactura').value,
+        // *** MODIFICACIÓN: Se elimina la referencia a numeroFactura ***
+        // numeroFactura: document.getElementById('numeroFactura').value,
         galones: document.getElementById('galones').value,
         costo: document.getElementById('costo').value,
         descripcion: document.getElementById('descripcion').value,
@@ -388,7 +389,8 @@ function cargarDatosParaModificar(id) {
     document.getElementById('registroId').value = consumo.id; 
     document.getElementById('fecha').value = consumo.fecha; 
     document.getElementById('hora').value = consumo.hora || ''; 
-    document.getElementById('numeroFactura').value = consumo.numeroFactura || ''; 
+    // *** MODIFICACIÓN: Se elimina la referencia a numeroFactura ***
+    // document.getElementById('numeroFactura').value = consumo.numeroFactura || ''; 
     document.getElementById('selectChofer').value = consumo.chofer; 
     document.getElementById('selectVolqueta').value = consumo.volqueta; 
     document.getElementById('galones').value = consumo.galones; 
@@ -464,6 +466,7 @@ function mostrarHistorialAgrupado(consumos) {
             historialBody.appendChild(filaGrupo);
         }
         const filaDato = document.createElement('tr');
+        // Se ha ajustado el número de columnas colspan en la fila de datos
         filaDato.innerHTML = `<td class="no-print"><button class="btn-accion btn-modificar button-warning" data-id="${consumo.id}" title="Modificar"><i class="fa-solid fa-pencil" style="margin: 0;"></i></button><button class="btn-accion btn-borrar" data-id="${consumo.id}" title="Borrar"><i class="fa-solid fa-trash-can" style="margin: 0;"></i></button></td>
             <td>${consumo.fecha}</td><td>${consumo.hora || ''}</td><td>${consumo.numeroFactura || ''}</td><td>${consumo.chofer}</td><td>${consumo.volqueta}</td>
             <td>${consumo.detallesVolqueta || ''}</td><td>${consumo.kilometraje || ''}</td>
@@ -472,6 +475,7 @@ function mostrarHistorialAgrupado(consumos) {
     });
     
     let footerHtml;
+    // Se ha ajustado el colspan en el footer ya que la tabla sigue teniendo 14 columnas (1 columna no-print + 13 columnas de datos, incluyendo la Factura # que aún se muestra del dato guardado)
     if (esModoObservador) {
         footerHtml = `<tr><td colspan="9" style="text-align: right;"><strong>TOTAL GALONES:</strong></td><td><strong>${totalGalones.toFixed(2)}</strong></td><td style="text-align: right;"><strong>VALOR TOTAL:</strong></td><td><strong>$${totalCosto.toFixed(2)}</strong></td><td></td></tr>`;
     } else {
