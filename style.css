@@ -22,7 +22,8 @@ body {
 }
 
 h1, h2, h3 { color: var(--primary-color); text-align: center; }
-.container { max-width: 900px; margin: 20px auto; background: var(--white-color); padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+/* --- MODIFICACIÓN: Aumento de ancho máximo de 900px a 1200px --- */
+.container { max-width: 1200px; margin: 20px auto; background: var(--white-color); padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
 table { width: 100%; border-collapse: collapse; }
 th, td { padding: 10px; text-align: left; border: 1px solid var(--border-color); }
 form { display: flex; flex-direction: column; gap: 15px; }
@@ -62,7 +63,8 @@ button:hover { opacity: 0.9; }
 #login-form input { width: calc(100% - 22px); margin-bottom: 15px; }
 #login-form button { width: 100%; margin-top: 10px; }
 
-.header-container { display: flex; justify-content: space-between; align-items: center; max-width: 900px; margin: 20px auto; padding: 10px 20px; background: var(--white-color); border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+/* MODIFICACIÓN: Aumento de header-container width para coincidir con el nuevo .container */
+.header-container { display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 20px auto; padding: 10px 20px; background: var(--white-color); border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
 .header-content { display: flex; align-items: center; gap: 15px; }
 .header-logo { height: 60px; width: auto; }
 .header-titles h1, .header-titles h2 { margin: 0; text-align: left; }
@@ -116,6 +118,8 @@ button:hover { opacity: 0.9; }
     .filter-group { flex-direction: column; align-items: stretch; }
     .main-tabs button { font-size: 14px; padding: 12px 10px; }
     .modal-content { margin: 20% auto; }
+    /* Ajuste para que el header y el container ocupen más espacio en móviles */
+    .header-container, .container { max-width: 95%; } 
     .header-container { flex-direction: column; gap: 15px; }
     .header-container .button-danger { width: 100%; }
     .header-content { justify-content: center; width: 100%;}
