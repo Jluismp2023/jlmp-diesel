@@ -155,7 +155,23 @@
                     <div class="accordion-panel" style="max-height: fit-content;">
                         <div class="table-container">
                             <table id="historialTabla">
-                                <thead><tr><th class="no-print">Acciones</th><th>Fecha</th><th>Hora</th><th>Factura #</th><th>Chofer</th><th>Placa</th><th>Detalles Volqueta</th><th>Kilometraje</th><th>Proveedor</th><th>Proyecto</th><th>Galones</th><th>Costo ($)</th><th>Empresa</th><th>Descripción</th></tr></thead>
+                                <thead>
+                                    <tr>
+                                        <th class="no-print">Acciones</th>
+                                        <th>Fecha</th>
+                                        <th>Hora</th>
+                                        <th>Chofer</th>
+                                        <th>Placa</th>
+                                        <th>Detalles Volqueta</th>
+                                        <th>Kilometraje</th>
+                                        <th>Proveedor</th>
+                                        <th>Proyecto</th>
+                                        <th>Galones</th>
+                                        <th>Costo ($)</th>
+                                        <th>Empresa</th>
+                                        <th>Descripción</th>
+                                    </tr>
+                                </thead>
                                 <tbody id="historialBody"></tbody>
                                 <tfoot id="historialFooter"></tfoot>
                             </table>
@@ -165,7 +181,7 @@
             </div>
 
             <div id="tabAdmin" class="main-tab-content no-print">
-                <div class="container" id="adminContainer"><h2><i class="fa-solid fa-screwdriver-wrench"></i>Administración</h2><div class="admin-section"><div class="admin-box"><h3><i class="fa-solid fa-user-tie"></i>Gestionar Choferes</h3><form id="formAdminChofer" class="admin-form"><input type="text" id="nuevoChofer" placeholder="Nombre del chofer" required><button type="submit" class="button-success"><i class="fa-solid fa-plus"></i>Agregar</button></form><ul id="listaChoferes" class="lista-gestion"></ul></div><div class="admin-box"><h3><i class="fa-solid fa-truck"></i>Gestionar Placas</h3><form id="formAdminPlaca" class="admin-form"><input type="text" id="nuevaPlaca" placeholder="Placa de la volqueta" required><button type="submit" class="button-success"><i class="fa-solid fa-plus"></i>Agregar</button></form><ul id="listaPlacas" class="lista-gestion"></ul></div><div class="admin-box"><h3><i class="fa-solid fa-tags"></i>Gestionar Detalles Volqueta</h3><form id="formAdminDetallesVolqueta" class="admin-form"><input type="text" id="nuevoDetalleVolqueta" placeholder="Ej: Doble Eje, Tritón Rojo" required><button type="submit" class"button-success"><i class="fa-solid fa-plus"></i>Agregar</button></form><ul id="listaDetallesVolqueta" class="lista-gestion"></ul></div><div class="admin-box"><h3><i class="fa-solid fa-building"></i>Gestionar Empresas</h3><form id="formAdminEmpresa" class="admin-form"><input type="text" id="nuevaEmpresa" placeholder="Nombre de la empresa" required><button type="submit" class="button-success"><i class="fa-solid fa-plus"></i>Agregar</button></form><ul id="listaEmpresas" class="lista-gestion"></ul></div><div class="admin-box"><h3><i class="fa-solid fa-dolly"></i>Gestionar Proveedores</h3><form id="formAdminProveedor" class="admin-form"><input type="text" id="nuevoProveedor" placeholder="Nombre del proveedor" required><button type="submit" class="button-success"><i class="fa-solid fa-plus"></i>Agregar</button></form><ul id="listaProveedores" class="lista-gestion"></ul></div><div class="admin-box"><h3><i class="fa-solid fa-list-check"></i>Gestionar Proyectos</h3><form id="formAdminProyecto" class="admin-form"><input type="text" id="nuevoProyecto" placeholder="Nombre del proyecto" required><button type="submit" class="button-success"><i class="fa-solid fa-plus"></i>Agregar</button></form><ul id="listaProyectos" class="lista-gestion"></ul></div></div></div>
+                <div class="container" id="adminContainer"><h2><i class="fa-solid fa-screwdriver-wrench"></i>Administración</h2><div class="admin-section"><div class="admin-box"><h3><i class="fa-solid fa-user-tie"></i>Gestionar Choferes</h3><form id="formAdminChofer" class="admin-form"><input type="text" id="nuevoChofer" placeholder="Nombre del chofer" required><button type="submit" class="button-success"><i class="fa-solid fa-plus"></i>Agregar</button></form><ul id="listaChoferes" class="lista-gestion"></ul></div><div class="admin-box"><h3><i class="fa-solid fa-truck"></i>Gestionar Placas</h3><form id="formAdminPlaca" class="admin-form"><input type="text" id="nuevaPlaca" placeholder="Placa de la volqueta" required><button type="submit" class="button-success"><i class="fa-solid fa-plus"></i>Agregar</button></form><ul id="listaPlacas" class="lista-gestion"></ul></div><div class="admin-box"><h3><i class="fa-solid fa-tags"></i>Gestionar Detalles Volqueta</h3><form id="formAdminDetallesVolqueta" class="admin-form"><input type="text" id="nuevoDetalleVolqueta" placeholder="Ej: Doble Eje, Tritón Rojo" required><button type="submit" class="button-success"><i class="fa-solid fa-plus"></i>Agregar</button></form><ul id="listaDetallesVolqueta" class="lista-gestion"></ul></div><div class="admin-box"><h3><i class="fa-solid fa-building"></i>Gestionar Empresas</h3><form id="formAdminEmpresa" class="admin-form"><input type="text" id="nuevaEmpresa" placeholder="Nombre de la empresa" required><button type="submit" class="button-success"><i class="fa-solid fa-plus"></i>Agregar</button></form><ul id="listaEmpresas" class="lista-gestion"></ul></div><div class="admin-box"><h3><i class="fa-solid fa-dolly"></i>Gestionar Proveedores</h3><form id="formAdminProveedor" class="admin-form"><input type="text" id="nuevoProveedor" placeholder="Nombre del proveedor" required><button type="submit" class="button-success"><i class="fa-solid fa-plus"></i>Agregar</button></form><ul id="listaProveedores" class="lista-gestion"></ul></div><div class="admin-box"><h3><i class="fa-solid fa-list-check"></i>Gestionar Proyectos</h3><form id="formAdminProyecto" class="admin-form"><input type="text" id="nuevoProyecto" placeholder="Nombre del proyecto" required><button type="submit" class="button-success"><i class="fa-solid fa-plus"></i>Agregar</button></form><ul id="listaProyectos" class="lista-gestion"></ul></div></div></div>
             </div>
             
             <div class="signature-block"><div class="line"></div>Ing. José L. Macas P.<br>RESIDENTE DE OBRA</div>

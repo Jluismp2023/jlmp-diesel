@@ -250,8 +250,8 @@ async function guardarOActualizar(e) {
         volqueta: document.getElementById('selectVolqueta').value,
         fecha: document.getElementById('fecha').value,
         hora: document.getElementById('hora').value,
-        // *** MODIFICACIÓN: Se elimina la referencia a numeroFactura ***
-        // numeroFactura: document.getElementById('numeroFactura').value,
+        // *** MODIFICACIÓN APLICADA: Se elimina la referencia a numeroFactura ***
+        // numeroFactura: document.getElementById('numeroFactura').value, 
         galones: document.getElementById('galones').value,
         costo: document.getElementById('costo').value,
         descripcion: document.getElementById('descripcion').value,
@@ -389,7 +389,7 @@ function cargarDatosParaModificar(id) {
     document.getElementById('registroId').value = consumo.id; 
     document.getElementById('fecha').value = consumo.fecha; 
     document.getElementById('hora').value = consumo.hora || ''; 
-    // *** MODIFICACIÓN: Se elimina la referencia a numeroFactura ***
+    // *** MODIFICACIÓN APLICADA: Se elimina la referencia a numeroFactura ***
     // document.getElementById('numeroFactura').value = consumo.numeroFactura || ''; 
     document.getElementById('selectChofer').value = consumo.chofer; 
     document.getElementById('selectVolqueta').value = consumo.volqueta; 
@@ -461,25 +461,31 @@ function mostrarHistorialAgrupado(consumos) {
         const fechaConsumo = new Date(consumo.fecha + 'T00:00:00'); const mesAnio = fechaConsumo.toLocaleDateString('es-EC', { month: 'long', year: 'numeric' });
         if (mesAnio !== mesAnioActual && !(obtenerConsumosFiltrados.fechaInicio && obtenerConsumosFiltrados.fechaFin)) {
             mesAnioActual = mesAnio;
+            // Se ajusta el colspan a 13 porque hemos quitado la columna Factura # (14 columnas originales - 1)
             const filaGrupo = document.createElement('tr'); filaGrupo.className = 'fila-grupo'; 
-            filaGrupo.innerHTML = `<td colspan="14">${mesAnioActual.charAt(0).toUpperCase() + mesAnioActual.slice(1)}</td>`;
+            filaGrupo.innerHTML = `<td colspan="13">${mesAnioActual.charAt(0).toUpperCase() + mesAnioActual.slice(1)}</td>`;
             historialBody.appendChild(filaGrupo);
         }
         const filaDato = document.createElement('tr');
-        // Se ha ajustado el número de columnas colspan en la fila de datos
+        
+        // *** MODIFICACIÓN APLICADA: Se elimina el dato de numeroFactura y se ajusta la fila ***
         filaDato.innerHTML = `<td class="no-print"><button class="btn-accion btn-modificar button-warning" data-id="${consumo.id}" title="Modificar"><i class="fa-solid fa-pencil" style="margin: 0;"></i></button><button class="btn-accion btn-borrar" data-id="${consumo.id}" title="Borrar"><i class="fa-solid fa-trash-can" style="margin: 0;"></i></button></td>
-            <td>${consumo.fecha}</td><td>${consumo.hora || ''}</td><td>${consumo.numeroFactura || ''}</td><td>${consumo.chofer}</td><td>${consumo.volqueta}</td>
+            <td>${consumo.fecha}</td><td>${consumo.hora || ''}</td><td>${consumo.chofer}</td><td>${consumo.volqueta}</td>
             <td>${consumo.detallesVolqueta || ''}</td><td>${consumo.kilometraje || ''}</td>
             <td>${consumo.proveedor || ''}</td><td>${consumo.proyecto || ''}</td><td>${(parseFloat(consumo.galones) || 0).toFixed(2)}</td><td>$${(parseFloat(consumo.costo) || 0).toFixed(2)}</td><td>${consumo.empresa || ''}</td><td>${consumo.descripcion}</td>`;
         historialBody.appendChild(filaDato);
     });
     
     let footerHtml;
-    // Se ha ajustado el colspan en el footer ya que la tabla sigue teniendo 14 columnas (1 columna no-print + 13 columnas de datos, incluyendo la Factura # que aún se muestra del dato guardado)
+    // Se ajusta el colspan a 8 (antes era 9) para la suma de Galones/Costo, ya que eliminamos la columna Factura #.
+    const colspanTotal = 8; 
+    
     if (esModoObservador) {
-        footerHtml = `<tr><td colspan="9" style="text-align: right;"><strong>TOTAL GALONES:</strong></td><td><strong>${totalGalones.toFixed(2)}</strong></td><td style="text-align: right;"><strong>VALOR TOTAL:</strong></td><td><strong>$${totalCosto.toFixed(2)}</strong></td><td></td></tr>`;
+        // En modo observador, no hay columna 'Acciones' (no-print), por lo que el colspan es 8.
+        footerHtml = `<tr><td colspan="${colspanTotal}" style="text-align: right;"><strong>TOTAL GALONES:</strong></td><td><strong>${totalGalones.toFixed(2)}</strong></td><td style="text-align: right;"><strong>VALOR TOTAL:</strong></td><td><strong>$${totalCosto.toFixed(2)}</strong></td><td></td></tr>`;
     } else {
-        footerHtml = `<tr><td class="no-print"></td><td colspan="9" style="text-align: right;"><strong>TOTAL GALONES:</strong></td><td><strong>${totalGalones.toFixed(2)}</strong></td><td style="text-align: right;"><strong>VALOR TOTAL:</strong></td><td><strong>$${totalCosto.toFixed(2)}</strong></td><td></td></tr>`;
+        // En modo administrador, la columna 'Acciones' existe, por lo que el colspan es 8 (Acciones no cuenta en colspan).
+        footerHtml = `<tr><td class="no-print"></td><td colspan="${colspanTotal}" style="text-align: right;"><strong>TOTAL GALONES:</strong></td><td><strong>${totalGalones.toFixed(2)}</strong></td><td style="text-align: right;"><strong>VALOR TOTAL:</strong></td><td><strong>$${totalCosto.toFixed(2)}</strong></td><td></td></tr>`;
     }
     historialFooter.innerHTML = footerHtml;
 }
