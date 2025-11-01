@@ -67,7 +67,7 @@ button:hover { opacity: 0.9; }
     background: var(--white-color); 
     padding: 40px; 
     border-radius: 8px; 
-    box-shadow: 0 8px 25px rgba(0,0,0,0.2); /* Sombra más fuerte */
+    box-shadow: 0 8px 25px rgba(0,0,0,0.2); 
     width: 100%; 
     max-width: 450px; 
     text-align: center; 
@@ -94,7 +94,7 @@ button:hover { opacity: 0.9; }
 .admin-section { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; }
 .admin-box { flex: 1 1 350px; background: var(--white-color); border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: all 0.3s ease; }
 .admin-box:hover { transform: translateY(-5px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-.admin-box h3 { margin-top: 0; padding-bottom: 10px; border-bottom: 1px solid #eee; color: var(--dark-text-color); } /* Títulos de Admin en negro */
+.admin-box h3 { margin-top: 0; padding-bottom: 10px; border-bottom: 1px solid #eee; color: var(--dark-text-color); }
 .admin-form { display: flex; gap: 10px; margin-bottom: 15px; }
 .admin-form input { flex-grow: 1; }
 .lista-gestion { list-style-type: none; padding: 0; max-height: 200px; overflow-y: auto; }
@@ -180,10 +180,55 @@ button:hover { opacity: 0.9; }
      #historialTabla th:last-child, #historialTabla td:last-child { min-width: 100px; } 
 }
 
-#historialTabla th:nth-child(1), #historialTabla td:nth-child(1) { width: 120px; } 
-#historialTabla th:nth-child(2), #historialTabla td:nth-child(2) { width: 105px; } 
-#historialTabla th:nth-child(7), #historialTabla td:nth-child(7) { min-width: 130px; } 
-#historialTabla th:nth-child(8), #historialTabla td:nth-child(8) { width: 110px; } 
+/* --------------------------------------------------------------------- */
+/* --- MODIFICACIONES DE ANCHO PARA LA VISTA DE IMPRESIÓN (SIN FACTURA #) --- */
+/* --------------------------------------------------------------------- */
+
+/* Posiciones de las Columnas (sin Factura #):
+   1: Acciones (no-print)
+   2: Fecha
+   3: Hora
+   4: Chofer
+   5: Placa
+   6: Detalles Volqueta
+   7: Kilometraje (Antes era 8)
+   8: Proveedor (Antes era 9)
+   9: Proyecto
+  10: Galones
+  11: Costo ($)
+  12: Empresa
+  13: Descripción (Antes era 14)
+*/
+
+
+/* Columna 2: Fecha */
+#historialTabla th:nth-child(2), #historialTabla td:nth-child(2) { width: 80px; min-width: 80px; } 
+
+/* Columna 3: Hora */
+#historialTabla th:nth-child(3), #historialTabla td:nth-child(3) { width: 60px; min-width: 60px; } 
+
+/* Columna 4: Chofer */
+#historialTabla th:nth-child(4), #historialTabla td:nth-child(4) { width: 100px; min-width: 100px; }
+
+/* Columna 5: Placa */
+#historialTabla th:nth-child(5), #historialTabla td:nth-child(5) { width: 80px; min-width: 80px; }
+
+/* Columna 6: Detalles Volqueta */
+#historialTabla th:nth-child(6), #historialTabla td:nth-child(6) { width: 120px; min-width: 120px; } 
+
+/* Columna 7: Kilometraje (Antes era 8) */
+#historialTabla th:nth-child(7), #historialTabla td:nth-child(7) { width: 70px; min-width: 70px; } 
+
+/* Columna 8: Proveedor (Antes era 9) */
+#historialTabla th:nth-child(8), #historialTabla td:nth-child(8) { width: 120px; min-width: 120px; } 
+
+/* Columna 10: Galones - Mantener un ancho fijo */
+#historialTabla th:nth-child(10), #historialTabla td:nth-child(10) { width: 70px; min-width: 70px; }
+
+/* Columna 11: Costo ($) - Mantener un ancho fijo */
+#historialTabla th:nth-child(11), #historialTabla td:nth-child(11) { width: 70px; min-width: 70px; }
+
+/* La última columna (Descripción) tomará el espacio restante */
 #historialTabla th:last-child, #historialTabla td:last-child { min-width: 200px; } 
 
 .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
