@@ -235,7 +235,7 @@ button:hover { opacity: 0.9; }
 #historialTabla th:nth-child(12), #historialTabla td:nth-child(12) { width: 80px; min-width: 80px; }
 
 /* Columna 13: Descripción (Aumentado) */
-#historialTabla th:last-child, #historialTabla td:last-child { min-width: 270px; } 
+#historialTabla th:last-child, #historialTabla td:last-child { min-width: 400px; } 
 
 .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 
@@ -366,4 +366,5 @@ body:not(.modo-observador) #btnTabReportes,
 body:not(.modo-observador) #btnTabHistorial,
 body:not(.modo-observador) #btnTabAdmin {
     display: none;
+}
 }
