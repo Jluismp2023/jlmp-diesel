@@ -1,8 +1,8 @@
 /* --- VARIABLES DE COLOR Y ESTILOS GLOBALES --- */
 :root {
-    --primary-color: #007bff;
-    --success-color: #28a745;
-    --secondary-color: #6c757d;
+    --primary-color: #FFC107; /* Obreco: Amarillo/Oro */
+    --success-color: #007BFF; /* Mantenemos un color funcional para Guardar/Éxito */
+    --secondary-color: #A0A0A0; /* Obreco: Gris medio */
     --info-color: #17a2b8;
     --warning-color: #ffc107;
     --danger-color: #dc3545;
@@ -10,7 +10,7 @@
     --text-color: #333;
     --border-color: #ddd;
     --white-color: #fff;
-    --dark-text-color: #343a40;
+    --dark-text-color: #212529; /* Obreco: Negro intenso */
 }
 
 body {
@@ -21,8 +21,8 @@ body {
     color: var(--text-color);
 }
 
-h1, h2, h3 { color: var(--primary-color); text-align: center; }
-/* --- MODIFICACIÓN CLAVE: Aumento de ancho máximo de 1200px a 1500px --- */
+h1, h2, h3 { color: var(--dark-text-color); /* Títulos en negro */ text-align: center; }
+/* --- Ancho Máximo 1500px --- */
 .container { max-width: 1500px; margin: 20px auto; background: var(--white-color); padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
 table { width: 100%; border-collapse: collapse; }
 th, td { padding: 10px; text-align: left; border: 1px solid var(--border-color); }
@@ -32,7 +32,7 @@ label { font-weight: bold; color: var(--dark-text-color); }
 button { cursor: pointer; border-radius: 4px; transition: opacity 0.3s ease; border: none; color: var(--white-color); }
 button:hover { opacity: 0.9; }
 
-.button-primary { background-color: var(--primary-color); }
+.button-primary { background-color: var(--primary-color); color: var(--dark-text-color); } /* Botón Amarillo con texto Negro */
 .button-success { background-color: var(--success-color); }
 .button-secondary { background-color: var(--secondary-color); }
 .button-info { background-color: var(--info-color); }
@@ -40,7 +40,12 @@ button:hover { opacity: 0.9; }
 
 .main-tabs { border-bottom: 2px solid var(--primary-color); overflow: hidden; }
 .main-tabs button { background-color: var(--light-gray); float: left; border: 1px solid var(--border-color); border-bottom: none; outline: none; padding: 14px 16px; transition: 0.3s; font-size: 17px; border-radius: 8px 8px 0 0; margin-right: 5px; color: var(--text-color); }
-.main-tabs button.active { background-color: var(--primary-color); color: var(--white-color); border-color: var(--primary-color); }
+/* --- Ajuste para Pestaña Activa (Fondo Amarillo, Texto Negro) --- */
+.main-tabs button.active { 
+    background-color: var(--primary-color); 
+    color: var(--dark-text-color); 
+    border-color: var(--primary-color); 
+}
 .main-tab-content { display: none; }
 
 #resumenTabla th, #resumenEmpresaTabla th, #resumenProveedorTabla th, #resumenChoferTabla th, #resumenProyectoTabla th {
@@ -58,17 +63,26 @@ button:hover { opacity: 0.9; }
 .filter-group { display: flex; flex-wrap: wrap; gap: 20px; align-items: center; }
 .filter-group label { font-weight: bold; }
 
-.login-container { background: var(--white-color); padding: 40px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 450px; text-align: center; margin: 40px auto 0 auto; }
+.login-container { 
+    background: var(--white-color); 
+    padding: 40px; 
+    border-radius: 8px; 
+    box-shadow: 0 8px 25px rgba(0,0,0,0.2); /* Sombra más fuerte */
+    width: 100%; 
+    max-width: 450px; 
+    text-align: center; 
+    margin: 40px auto 0 auto; 
+}
 #login-form h3 { margin-top: 0; margin-bottom: 20px; }
 #login-form input { width: calc(100% - 22px); margin-bottom: 15px; }
 #login-form button { width: 100%; margin-top: 10px; }
 
-/* MODIFICACIÓN: Aumento de header-container width para coincidir con el nuevo .container */
+/* Ajuste de ancho a 1500px */
 .header-container { display: flex; justify-content: space-between; align-items: center; max-width: 1500px; margin: 20px auto; padding: 10px 20px; background: var(--white-color); border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
 .header-content { display: flex; align-items: center; gap: 15px; }
 .header-logo { height: 60px; width: auto; }
 .header-titles h1, .header-titles h2 { margin: 0; text-align: left; }
-.header-titles h1 { font-size: 1.5em; }
+.header-titles h1 { font-size: 1.5em; color: var(--dark-text-color); }
 .header-titles h2 { font-size: 1em; font-weight: 400; color: var(--secondary-color); }
 
 .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.5); }
@@ -80,7 +94,7 @@ button:hover { opacity: 0.9; }
 .admin-section { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; }
 .admin-box { flex: 1 1 350px; background: var(--white-color); border: 1px solid #e0e0e0; border-radius: 8px; padding: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: all 0.3s ease; }
 .admin-box:hover { transform: translateY(-5px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-.admin-box h3 { margin-top: 0; padding-bottom: 10px; border-bottom: 1px solid #eee; color: var(--primary-color); }
+.admin-box h3 { margin-top: 0; padding-bottom: 10px; border-bottom: 1px solid #eee; color: var(--dark-text-color); } /* Títulos de Admin en negro */
 .admin-form { display: flex; gap: 10px; margin-bottom: 15px; }
 .admin-form input { flex-grow: 1; }
 .lista-gestion { list-style-type: none; padding: 0; max-height: 200px; overflow-y: auto; }
@@ -93,8 +107,8 @@ button:hover { opacity: 0.9; }
 
 .btn-accion { padding: 5px 10px; font-size: 12px; margin-left: 5px; }
 .button-warning { background-color: var(--warning-color); color: var(--dark-text-color); }
-.btn-modificar { background-color: var(--warning-color); color: black; }
-.btn-borrar { background-color: var(--danger-color); color: white; }
+.btn-modificar { background-color: var(--warning-color); color: var(--dark-text-color); }
+.btn-borrar { background-color: var(--danger-color); color: var(--white-color); }
 
 .accordion-button { background-color: var(--light-gray); color: var(--text-color); cursor: pointer; padding: 18px; width: 100%; border: none; text-align: left; outline: none; font-size: 16px; font-weight: bold; transition: background-color 0.4s ease; border-bottom: 1px solid var(--border-color); }
 .accordion-button:first-of-type { border-top-left-radius: 8px; border-top-right-radius: 8px; }
@@ -118,7 +132,6 @@ button:hover { opacity: 0.9; }
     .filter-group { flex-direction: column; align-items: stretch; }
     .main-tabs button { font-size: 14px; padding: 12px 10px; }
     .modal-content { margin: 20% auto; }
-    /* Ajuste para que el header y el container ocupen más espacio en móviles (95% sigue siendo bueno) */
     .header-container, .container { max-width: 95%; } 
     .header-container { flex-direction: column; gap: 15px; }
     .header-container .button-danger { width: 100%; }
@@ -135,7 +148,6 @@ button:hover { opacity: 0.9; }
     .accordion-button { display: none !important; }
     .accordion-panel { max-height: unset !important; overflow: visible !important; padding: 0 !important; border: none !important; }
     body { margin: 0; padding: 5px; background-color: var(--white-color); color: black; font-size: 8pt; }
-    /* MODIFICACIÓN: El contenedor de impresión ahora usa el 100% del espacio del papel */
     .container { box-shadow: none; border: none; margin: 0 0 10px 0; padding: 0; width: 100%; max-width: 100%; }
     .header-container { justify-content: center; padding: 8px 0; border-bottom: 1px solid black; margin-bottom: 10px; box-shadow: none; border-radius: 0; }
     .header-logo { height: 40px; }
