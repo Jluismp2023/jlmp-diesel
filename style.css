@@ -191,45 +191,51 @@ button:hover { opacity: 0.9; }
    4: Chofer
    5: Placa
    6: Detalles Volqueta
-   7: Kilometraje (Antes era 8)
-   8: Proveedor (Antes era 9)
-   9: Proyecto
+   7: Kilometraje
+   8: Proveedor 
+   9: Proyecto 
   10: Galones
   11: Costo ($)
   12: Empresa
-  13: Descripción (Antes era 14)
+  13: Descripción
 */
 
 
-/* Columna 2: Fecha */
-#historialTabla th:nth-child(2), #historialTabla td:nth-child(2) { width: 80px; min-width: 80px; } 
+/* Columna 2: Fecha (reducido) */
+#historialTabla th:nth-child(2), #historialTabla td:nth-child(2) { width: 60px; min-width: 60px; } 
 
-/* Columna 3: Hora */
-#historialTabla th:nth-child(3), #historialTabla td:nth-child(3) { width: 60px; min-width: 60px; } 
+/* Columna 3: Hora (reducido) */
+#historialTabla th:nth-child(3), #historialTabla td:nth-child(3) { width: 45px; min-width: 45px; } 
 
-/* Columna 4: Chofer */
-#historialTabla th:nth-child(4), #historialTabla td:nth-child(4) { width: 100px; min-width: 100px; }
+/* Columna 4: Chofer (reducido) */
+#historialTabla th:nth-child(4), #historialTabla td:nth-child(4) { width: 80px; min-width: 80px; }
 
-/* Columna 5: Placa */
-#historialTabla th:nth-child(5), #historialTabla td:nth-child(5) { width: 80px; min-width: 80px; }
+/* Columna 5: Placa (reducido) */
+#historialTabla th:nth-child(5), #historialTabla td:nth-child(5) { width: 70px; min-width: 70px; }
 
-/* Columna 6: Detalles Volqueta */
+/* Columna 6: Detalles Volqueta (mantenido) */
 #historialTabla th:nth-child(6), #historialTabla td:nth-child(6) { width: 120px; min-width: 120px; } 
 
-/* Columna 7: Kilometraje (Antes era 8) */
+/* Columna 7: Kilometraje (reducido) */
 #historialTabla th:nth-child(7), #historialTabla td:nth-child(7) { width: 70px; min-width: 70px; } 
 
-/* Columna 8: Proveedor (Antes era 9) */
-#historialTabla th:nth-child(8), #historialTabla td:nth-child(8) { width: 120px; min-width: 120px; } 
+/* Columna 8: Proveedor (reducido) */
+#historialTabla th:nth-child(8), #historialTabla td:nth-child(8) { width: 80px; min-width: 80px; } 
 
-/* Columna 10: Galones - Mantener un ancho fijo */
-#historialTabla th:nth-child(10), #historialTabla td:nth-child(10) { width: 70px; min-width: 70px; }
+/* Columna 9: Proyecto (aumentado) */
+#historialTabla th:nth-child(9), #historialTabla td:nth-child(9) { width: 120px; min-width: 120px; } 
 
-/* Columna 11: Costo ($) - Mantener un ancho fijo */
-#historialTabla th:nth-child(11), #historialTabla td:nth-child(11) { width: 70px; min-width: 70px; }
+/* Columna 10: Galones (reducido) */
+#historialTabla th:nth-child(10), #historialTabla td:nth-child(10) { width: 60px; min-width: 60px; }
 
-/* La última columna (Descripción) tomará el espacio restante */
-#historialTabla th:last-child, #historialTabla td:last-child { min-width: 200px; } 
+/* Columna 11: Costo ($) (reducido) */
+#historialTabla th:nth-child(11), #historialTabla td:nth-child(11) { width: 60px; min-width: 60px; }
+
+/* Columna 12: Empresa (reducido) */
+#historialTabla th:nth-child(12), #historialTabla td:nth-child(12) { width: 80px; min-width: 80px; }
+
+/* Columna 13: Descripción - Toma el espacio restante y tiene un buen mínimo */
+#historialTabla th:last-child, #historialTabla td:last-child { min-width: 250px; } 
 
 .table-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 
