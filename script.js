@@ -102,7 +102,13 @@ function openMainTab(evt, tabName) {
 }
 
 async function cargarDatosIniciales() {
-    document.getElementById('loadingMessage').style.display = 'block';
+    // Si existe el elemento loadingMessage, lo mostramos
+    const loadingMessage = document.getElementById('loadingMessage');
+    if (loadingMessage) {
+        loadingMessage.textContent = "Cargando datos desde la nube...";
+        loadingMessage.style.display = 'block';
+    }
+
     try {
         const [
             consumosRes, choferesRes, placasRes, detallesVolquetaRes, 
@@ -126,9 +132,12 @@ async function cargarDatosIniciales() {
         actualizarTodaLaUI();
     } catch (error) {
         console.error("Error cargando datos:", error);
-        document.getElementById('loadingMessage').textContent = "Error al cargar datos. Revisa la consola (F12).";
+        if (loadingMessage) {
+            loadingMessage.textContent = "Error al cargar datos. Revisa la consola (F12).";
+        }
     } finally {
-        if (document.getElementById('loaderContainer')) { document.getElementById('loaderContainer').style.display = 'none'; }
+        const loaderContainer = document.getElementById('loaderContainer');
+        if (loaderContainer) { loaderContainer.style.display = 'none'; }
     }
 }
 
@@ -181,17 +190,36 @@ function actualizarTarjetasResumen() {
     });
 
     // --- Actualizar DOM ---
-    document.getElementById('resumenMesGalones').textContent = `${totalGalonesMes.toFixed(2)} Gal`;
-    document.getElementById('resumenMesCosto').textContent = `$ ${totalCostoMes.toFixed(2)}`;
-    document.getElementById('resumenSemanaGalones').textContent = `${totalGalonesSemana.toFixed(2)} Gal`;
-    document.getElementById('resumenSemanaCosto').textContent = `$ ${totalCostoSemana.toFixed(2)}`;
+    // Nota: Los IDs originales de tu HTML no coinciden con estos, los ajusto a los IDs esperados en el dashboard (ej. dashboardTotalGalones)
+    if (document.getElementById('dashboardTotalGalones')) {
+        document.getElementById('dashboardTotalGalones').textContent = totalGalonesMes.toFixed(2);
+    }
+    if (document.getElementById('dashboardCostoTotal')) {
+        document.getElementById('dashboardCostoTotal').textContent = `$ ${totalCostoMes.toFixed(2)}`;
+    }
+    // Si usas los IDs de las tarjetas de resumen originales (comentados en el HTML actual)
+    if (document.getElementById('resumenMesGalones')) {
+        document.getElementById('resumenMesGalones').textContent = `${totalGalonesMes.toFixed(2)} Gal`;
+    }
+    if (document.getElementById('resumenMesCosto')) {
+        document.getElementById('resumenMesCosto').textContent = `$ ${totalCostoMes.toFixed(2)}`;
+    }
+    if (document.getElementById('resumenSemanaGalones')) {
+        document.getElementById('resumenSemanaGalones').textContent = `${totalGalonesSemana.toFixed(2)} Gal`;
+    }
+    if (document.getElementById('resumenSemanaCosto')) {
+        document.getElementById('resumenSemanaCosto').textContent = `$ ${totalCostoSemana.toFixed(2)}`;
+    }
 }
 
 
 function actualizarTodaLaUI() {
     poblarFiltroDeMes();
     poblarFiltrosReportes();
+    
+    // Ejecutar obtenerConsumosFiltrados después de poblar filtros
     const consumosFiltrados = obtenerConsumosFiltrados();
+
     calcularYMostrarTotalesPorEmpresa(consumosFiltrados);
     calcularYMostrarTotalesPorProveedor(consumosFiltrados);
     calcularYMostrarTotalesPorProyecto(consumosFiltrados);
@@ -202,7 +230,7 @@ function actualizarTodaLaUI() {
     mostrarHistorialAgrupado(consumosFiltrados);
     
     actualizarTarjetasResumen(); 
-    // Asegurar que los campos de distribución estén actualizados al cargar los datos
+    // Asegurar que los campos de distribución estén actualizados si la pestaña es visible
     if (document.getElementById('tabDistribuir').style.display === 'block') {
          actualizarCamposDistribucion();
     }
@@ -234,19 +262,26 @@ function poblarSelectores() {
         listasAdmin[tipo].forEach(item => { select.innerHTML += `<option value="${item.nombre}">${item.nombre}</option>`; });
         select.value = valorActual;
     }
+    // Llamar a la función de la pestaña de distribución para poblar sus selectores también
+    sincronizarSelectoresDistribucion();
 }
 
 function reiniciarFormulario() {
-    document.getElementById('consumoForm').reset();
-    document.getElementById('registroId').value = '';
-    document.getElementById('fecha').valueAsDate = new Date();
-    document.getElementById('formularioTitulo').textContent = 'Nuevo Registro';
-    poblarSelectores();
+    const form = document.getElementById('consumoForm');
+    if (form) {
+        form.reset();
+        document.getElementById('registroId').value = '';
+        document.getElementById('fecha').valueAsDate = new Date();
+        document.getElementById('formularioTitulo').textContent = 'Nuevo Registro';
+        poblarSelectores();
+    }
 }
 
 async function guardarOActualizar(e) {
     e.preventDefault();
     const btnGuardar = document.getElementById('btnGuardar');
+    if (!btnGuardar) return;
+
     btnGuardar.disabled = true;
     btnGuardar.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Guardando...';
 
@@ -327,8 +362,18 @@ function manejarAccionesHistorial(e) {
     if (target.classList.contains('btn-borrar')) borrarConsumoHistorial(id); 
 }
 
+// CORRECCIÓN: Función blindada para evitar el TypeError al inicio
 function obtenerConsumosFiltrados() {
-    const obtenerValorFiltro = (syncId) => document.querySelector(`.filtro-sincronizado[data-sync-id="${syncId}"]`).value;
+    const obtenerValorFiltro = (syncId) => {
+        const elemento = document.querySelector(`.filtro-sincronizado[data-sync-id="${syncId}"]`);
+        if (!elemento) {
+            // Si el elemento no existe (porque la pestaña está oculta al inicio), 
+            // asumimos 'todos' para SELECTs o cadena vacía para INPUTs de fecha.
+            return (syncId === 'filtroMes' || syncId === 'filtroChofer' || syncId === 'filtroProveedor' || syncId === 'filtroEmpresa' || syncId === 'filtroProyecto') ? 'todos' : '';
+        }
+        return elemento.value;
+    };
+    
     const mes = obtenerValorFiltro('filtroMes');
     const fechaInicio = obtenerValorFiltro('filtroFechaInicio');
     const fechaFin = obtenerValorFiltro('filtroFechaFin');
@@ -336,14 +381,31 @@ function obtenerConsumosFiltrados() {
     const proveedor = obtenerValorFiltro('filtroProveedor');
     const empresa = obtenerValorFiltro('filtroEmpresa');
     const proyecto = obtenerValorFiltro('filtroProyecto');
+
     let consumosFiltrados = todosLosConsumos;
-    if (fechaInicio && fechaFin) { if (fechaFin < fechaInicio) { mostrarNotificacion("La fecha de fin no puede ser anterior a la de inicio.", "error"); return []; } consumosFiltrados = consumosFiltrados.filter(c => c.fecha >= fechaInicio && c.fecha <= fechaFin); } else if (fechaInicio) { consumosFiltrados = consumosFiltrados.filter(c => c.fecha === fechaInicio); } else if (mes !== 'todos') { consumosFiltrados = consumosFiltrados.filter(c => c.fecha.startsWith(mes)); }
-    if (chofer !== 'todos') { consumosFiltrados = consumosFiltrados.filter(c => c.chofer === chofer); }
-    if (proveedor !== 'todos') { consumosFiltrados = consumosFiltrados.filter(c => c.proveedor === proveedor); }
-    if (empresa !== 'todos') { consumosFiltrados = consumosFiltrados.filter(c => c.empresa === empresa); }
-    if (proyecto !== 'todos') { consumosFiltrados = consumosFiltrados.filter(c => c.proyecto === proyecto); }
+    
+    // Aplicar filtros de fecha
+    if (fechaInicio && fechaFin) { 
+        if (fechaFin < fechaInicio) { 
+            mostrarNotificacion("La fecha de fin no puede ser anterior a la de inicio.", "error"); 
+            return []; 
+        } 
+        consumosFiltrados = consumosFiltrados.filter(c => c.fecha >= fechaInicio && c.fecha <= fechaFin); 
+    } else if (fechaInicio) { 
+        consumosFiltrados = consumosFiltrados.filter(c => c.fecha === fechaInicio); 
+    } else if (mes !== 'todos' && mes !== '') { 
+        consumosFiltrados = consumosFiltrados.filter(c => c.fecha.startsWith(mes)); 
+    }
+    
+    // Aplicar filtros de selección
+    if (chofer !== 'todos' && chofer !== '') { consumosFiltrados = consumosFiltrados.filter(c => c.chofer === chofer); }
+    if (proveedor !== 'todos' && proveedor !== '') { consumosFiltrados = consumosFiltrados.filter(c => c.proveedor === proveedor); }
+    if (empresa !== 'todos' && empresa !== '') { consumosFiltrados = consumosFiltrados.filter(c => c.empresa === empresa); }
+    if (proyecto !== 'todos' && proyecto !== '') { consumosFiltrados = consumosFiltrados.filter(c => c.proyecto === proyecto); }
+    
     return consumosFiltrados;
 }
+
 
 function mostrarListasAdmin() {
     const contenedores = { 
@@ -406,7 +468,7 @@ function cargarDatosParaModificar(id) {
     document.getElementById('selectDetallesVolqueta').value = consumo.detallesVolqueta || "";
     document.getElementById('kilometraje').value = consumo.kilometraje || "";
     openMainTab(null, 'tabRegistrar'); 
-    abrirModal();
+    // Si usas modal: abrirModal();
 }
 
 function calcularYMostrarTotalesPorCategoria(consumos, categoria, bodyId, footerId) {
@@ -515,7 +577,7 @@ function asignarEventosApp() {
     document.getElementById('btnTabReportes').addEventListener('click', (e) => openMainTab(e, 'tabReportes'));
     document.getElementById('btnTabHistorial').addEventListener('click', (e) => openMainTab(e, 'tabHistorial'));
     
-    // NUEVO: Evento para la pestaña de Distribución
+    // Evento para la pestaña de Distribución
     document.getElementById('btnTabDistribuir').addEventListener('click', (e) => {
         openMainTab(e, 'tabDistribuir');
         reiniciarFormularioDistribucion(); 
@@ -526,22 +588,18 @@ function asignarEventosApp() {
     
     // Eventos de Formularios
     document.getElementById('consumoForm').addEventListener('submit', guardarOActualizar);
-    document.getElementById('distribucionForm').addEventListener('submit', guardarDistribucion); // NUEVO: Evento para guardar distribución
+    // Nota: El ID del formulario de registro fue 'consumoForm' antes, si lo renombraste a 'registroForm' en index.html, 
+    // debes corregir el ID aquí (asumo que se mantiene 'consumoForm' para consistencia con el código anterior)
+    
+    // Evento para guardar distribución
+    document.getElementById('distribucionForm').addEventListener('submit', guardarDistribucion); 
     
     // Eventos de Cálculo de Distribución
-    document.getElementById('distribucionGalonesTotal').addEventListener('input', calcularTotalesDistribucion); 
-    document.getElementById('distribucionCostoTotal').addEventListener('input', calcularTotalesDistribucion);
+    const totalGalonesInput = document.getElementById('distribucionGalonesTotal');
+    const totalCostoInput = document.getElementById('distribucionCostoTotal');
 
-    // Eventos de Modal (Ajustado para el formulario único)
-    // Nota: Si usas el formulario en la pestaña Registrar directamente, estos botones deben estar en ese HTML.
-    // Los he comentado temporalmente asumiendo que el formulario está ahora fijo en tabRegistrar
-    /*
-    btnAbrirModal.addEventListener('click', () => {
-        reiniciarFormulario(); 
-        abrirModal();
-    });
-    btnCerrarModal.addEventListener('click', cerrarModal);
-    */
+    if (totalGalonesInput) totalGalonesInput.addEventListener('input', calcularTotalesDistribucion); 
+    if (totalCostoInput) totalCostoInput.addEventListener('input', calcularTotalesDistribucion);
 
     document.querySelectorAll('.btn-print').forEach(btn => {
         btn.addEventListener('click', (e) => {
@@ -587,7 +645,6 @@ function asignarEventosApp() {
     document.getElementById('btnDashRegistrar').addEventListener('click', () => {
         reiniciarFormulario(); 
         openMainTab(null, 'tabRegistrar');
-        // abrirModal(); // Si se usa modal
     });
 
     document.getElementById('btnDashHistorial').addEventListener('click', () => {
@@ -605,10 +662,10 @@ function asignarEventosApp() {
         const mesActual = `${anio}-${mes}`;
 
         const filtroReportes = document.getElementById('filtroMesReportes');
-        if (filtroReportes.querySelector(`option[value="${mesActual}"]`)) {
+        if (filtroReportes && filtroReportes.querySelector(`option[value="${mesActual}"]`)) {
             filtroReportes.value = mesActual;
             filtroReportes.dispatchEvent(new Event('change', { 'bubbles': true }));
-        } else {
+        } else if (filtroReportes) {
             mostrarNotificacion("No hay datos para el mes actual.", "info");
             filtroReportes.value = 'todos';
             filtroReportes.dispatchEvent(new Event('change', { 'bubbles': true }));
@@ -639,21 +696,30 @@ function asignarEventosApp() {
 // --- NUEVAS FUNCIONES DE DISTRIBUCIÓN POR PROYECTO ---
 
 function reiniciarFormularioDistribucion() {
-    document.getElementById('distribucionForm').reset();
-    document.getElementById('distribucionRegistroId').value = '';
-    document.getElementById('distribucionFecha').valueAsDate = new Date();
+    const form = document.getElementById('distribucionForm');
+    if (form) form.reset();
+
+    const idInput = document.getElementById('distribucionRegistroId');
+    if (idInput) idInput.value = '';
+
+    const fechaInput = document.getElementById('distribucionFecha');
+    if (fechaInput) fechaInput.valueAsDate = new Date();
+
     // Sincronizar selectores con los datos actuales
     sincronizarSelectoresDistribucion();
-    // Borrar campos de proyecto
-    document.getElementById('distribucionProyectosContainer').innerHTML = '';
+    
     // Reiniciar totales pendientes
     const galonesSpan = document.getElementById('galonesPendientes');
     const costoSpan = document.getElementById('costoPendiente');
 
-    if (galonesSpan) galonesSpan.textContent = '0.00';
-    if (costoSpan) costoSpan.textContent = '$ 0.00';
-    if (galonesSpan) galonesSpan.style.color = 'red';
-    if (costoSpan) costoSpan.style.color = 'red';
+    if (galonesSpan) { 
+        galonesSpan.textContent = '0.00';
+        galonesSpan.style.color = 'red';
+    }
+    if (costoSpan) { 
+        costoSpan.textContent = '$ 0.00';
+        costoSpan.style.color = 'red';
+    }
     
     // Volver a cargar campos de proyecto (incluye el recalculate)
     actualizarCamposDistribucion();
@@ -667,7 +733,7 @@ function sincronizarSelectoresDistribucion() {
         detallesVolqueta: document.getElementById('distribucionSelectDetallesVolqueta'), 
         empresas: document.getElementById('distribucionSelectEmpresa'), 
         proveedores: document.getElementById('distribucionSelectProveedor'),
-        // NUEVO: Agregado el selector de Proyecto
+        // Agregado el selector de Proyecto único
         proyectos: document.getElementById('distribucionSelectProyecto')
     };
     const titulos = { 
@@ -676,7 +742,7 @@ function sincronizarSelectoresDistribucion() {
         detallesVolqueta: '--- Detalles Volqueta ---', 
         empresas: '--- Empresa ---', 
         proveedores: '--- Proveedor ---',
-        proyectos: '--- Proyecto ---' // Nuevo Título
+        proyectos: '--- Proyecto ---'
     };
     for (const tipo in selectores) {
         const select = selectores[tipo];
@@ -690,6 +756,8 @@ function sincronizarSelectoresDistribucion() {
 
 function actualizarCamposDistribucion() {
     const container = document.getElementById('distribucionProyectosContainer');
+    if (!container) return; 
+
     // Guardar el bloque de totales para reinsertarlo al final
     const totalesElement = container.querySelector('#distribucionTotales');
     const totalesHTML = totalesElement ? totalesElement.outerHTML : 
@@ -731,8 +799,8 @@ function actualizarCamposDistribucion() {
 function calcularTotalesDistribucion() {
     const totalGalonesInput = document.getElementById('distribucionGalonesTotal');
     const totalCostoInput = document.getElementById('distribucionCostoTotal');
-    const totalGalones = parseFloat(totalGalonesInput.value) || 0;
-    const totalCosto = parseFloat(totalCostoInput.value) || 0;
+    const totalGalones = parseFloat(totalGalonesInput?.value) || 0;
+    const totalCosto = parseFloat(totalCostoInput?.value) || 0;
 
     let sumaGalonesDistribuidos = 0;
     let sumaCostoDistribuido = 0;

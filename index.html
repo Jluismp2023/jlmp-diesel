@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Control de Consumo de Diésel</title>
+    <title>Consumo de Diésel</title>
     
     <link rel="icon" type="image/png" href="logo.png"> 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -22,131 +22,125 @@
             <img src="logo.jpg" alt="Logo Obreco" class="header-logo">
             <div class="header-titles">
                 <h1>GRUPO OBRECO CIA LTDA</h1>
-                <h2>CONTROL DE CONSUMO DE DIÉSEL</h2>
+                <h2>CONTROL DE DIESEL</h2>
             </div>
         </div>
-        <div>
-            <button id="btn-logout" class="button-danger no-print"><i class="fa-solid fa-right-from-bracket"></i> Salir</button>
+        <button id="btn-logout" class="button-danger no-print" style="display: none;"><i class="fa-solid fa-right-from-bracket"></i>Cerrar Sesión</button>
+    </div>
+
+    <div class="container no-print">
+        <div class="main-tabs">
+            <button class="main-tab-link active" id="btnTabInicio"><i class="fa-solid fa-house"></i>Inicio</button>
+            <button class="main-tab-link" id="btnTabRegistrar"><i class="fa-solid fa-pencil"></i>Registrar</button>
+            <button class="main-tab-link" id="btnTabDistribuir"><i class="fa-solid fa-sitemap"></i>Distribución</button>
+            <button class="main-tab-link" id="btnTabReportes"><i class="fa-solid fa-chart-pie"></i>Reportes</button>
+            <button class="main-tab-link" id="btnTabHistorial"><i class="fa-solid fa-list-ul"></i>Historial Detallado</button>
+            <button class="main-tab-link" id="btnTabAdmin"><i class="fa-solid fa-gear"></i>Administración</button>
         </div>
     </div>
 
-    <div id="vista-login">
-        <div class="login-container">
-            <h3><i class="fa-solid fa-lock"></i> Acceso Restringido</h3>
-            <form id="login-form">
-                <input type="email" id="login-email" placeholder="Correo Electrónico" required>
-                <input type="password" id="login-password" placeholder="Contraseña" required>
-                <button type="submit" class="button-primary"><i class="fa-solid fa-sign-in-alt"></i> Iniciar Sesión</button>
-            </form>
-        </div>
-        <div class="credits">
-            APLICACION ELABORADA POR: ING. JOSE LUIS MACAS P.
-        </div>
-    </div>
-
-    <div id="vista-app" style="display: none;">
-        <div class="main-tabs no-print">
-            <button class="tab-button active" id="btnTabInicio" onclick="openMainTab(event, 'tabInicio')"><i class="fa-solid fa-home"></i> Inicio</button>
-            <button class="tab-button" id="btnTabRegistrar" onclick="openMainTab(event, 'tabRegistrar')"><i class="fa-solid fa-gas-pump"></i> Registrar Carga</button>
-            <button class="tab-button" id="btnTabDistribuir" onclick="openMainTab(event, 'tabDistribuir')"><i class="fa-solid fa-sitemap"></i> Distribución Proyectos</button>
-            <button class="tab-button" id="btnTabReportes" onclick="openMainTab(event, 'tabReportes')"><i class="fa-solid fa-chart-bar"></i> Reportes</button>
-            <button class="tab-button" id="btnTabHistorial" onclick="openMainTab(event, 'tabHistorial')"><i class="fa-solid fa-history"></i> Historial</button>
-            <button class="tab-button" id="btnTabAdmin" onclick="openMainTab(event, 'tabAdmin')"><i class="fa-solid fa-user-tie"></i> Admin</button>
+    <div id="main-content-area">
+        <div id="vista-login">
+            <div class="login-container">
+                <form id="login-form">
+                    <h3>Iniciar Sesión</h3>
+                    <input type="email" id="login-email" placeholder="Correo electrónico" required>
+                    <input type="password" id="login-password" placeholder="Contraseña" required>
+                    <button type="submit" class="button-primary">Ingresar</button>
+                </form>
+            </div>
         </div>
 
-        <div class="app-content">
+        <div id="vista-app" style="display: none;">
 
             <div id="tabInicio" class="main-tab-content" style="display: block;">
                 <div class="container">
-                    <h2><i class="fa-solid fa-tachometer-alt"></i> Panel de Control</h2>
-                    <p class="print-suggestion no-print">Use la pestaña de Reportes para la impresión de datos consolidados.</p>
+                    <h2 style="text-align: left;">Bienvenido a su Panel de Control</h2>
                     
                     <div class="summary-container">
-                        <div class="summary-card button-primary">
-                            <span>Total Galones Registrados (General)</span>
-                            <h3 id="dashboardTotalGalones">0.00</h3>
+                        <div class="summary-card">
+                            <span>Volumen Total (Semana Actual)</span>
+                            <h3 id="resumenSemanaGalones">0.00 Gal</h3>
                         </div>
-                        <div class="summary-card button-success">
-                            <span>Costo Total Registrado (General)</span>
-                            <h3 id="dashboardCostoTotal">$ 0.00</h3>
+                        <div class="summary-card">
+                            <span>Costo Total (Semana Actual)</span>
+                            <h3 id="resumenSemanaCosto">$ 0.00</h3>
+                        </div>
+                        <div class="summary-card">
+                            <span>Volumen Total (Mes Actual)</span>
+                            <h3 id="resumenMesGalones">0.00 Gal</h3>
+                        </div>
+                        <div class="summary-card">
+                            <span>Costo Total (Mes Actual)</span>
+                            <h3 id="resumenMesCosto">$ 0.00</h3>
                         </div>
                     </div>
 
-                    <h3 style="text-align: left;"><i class="fa-solid fa-calendar-alt"></i> Navegación Rápida</h3>
                     <div class="dashboard-grid">
-                        <button class="nav-button button-primary" onclick="openMainTab(event, 'tabRegistrar')"><i class="fa-solid fa-gas-pump"></i> Registrar Nueva Carga</button>
-                        <button class="nav-button button-info" onclick="openMainTab(event, 'tabHistorial')"><i class="fa-solid fa-history"></i> Ver Todo el Historial</button>
-                        <button class="nav-button button-secondary" onclick="openMainTab(event, 'tabAdmin')"><i class="fa-solid fa-user-tie"></i> Administrar Listas</button>
-                        <button class="nav-button button-success" id="btnImprimirReporteDashboard"><i class="fa-solid fa-print"></i> Imprimir Reporte Mensual</button>
+                        <button id="btnDashRegistrar" class="nav-button button-primary">
+                            <i class="fa-solid fa-pencil"></i>
+                            <span>Registrar Nueva Carga</span>
+                        </button>
+                        <button id="btnDashHistorial" class="nav-button button-info">
+                            <i class="fa-solid fa-list-ul"></i>
+                            <span>Ver Reporte Detallado</span>
+                        </button>
+                        <button id="btnDashAdmin" class="nav-button button-secondary">
+                            <i class="fa-solid fa-gear"></i>
+                            <span>Administrar Base de Datos</span>
+                        </button>
+                        <button id="btnDashImprimir" class="nav-button button-primary">
+                            <i class="fa-solid fa-print"></i>
+                            <span>Imprimir Reporte Mensual</span>
+                        </button>
                     </div>
                 </div>
             </div>
-
+            
             <div id="tabRegistrar" class="main-tab-content no-print">
                 <div class="container">
-                    <h2><i class="fa-solid fa-gas-pump"></i> Registro de Consumo de Diésel</h2>
-                    
-                    <div id="formularioContainerRegistro">
-                        <form id="registroForm">
-                            <input type="hidden" id="registroId">
-                            
-                            <div class="form-grid">
-                                <div>
-                                    <label for="fecha">Fecha:</label>
-                                    <input type="date" id="fecha" required>
-                                </div>
-                                <div>
-                                    <label for="hora">Hora de Carga:</label>
-                                    <input type="time" id="hora">
-                                </div>
-                                <div>
-                                    <label for="selectChofer">Nombre del Chofer:</label>
-                                    <select id="selectChofer" required></select>
-                                </div>
-                                <div>
-                                    <label for="selectVolqueta">Placa de la Volqueta:</label>
-                                    <select id="selectVolqueta" required></select>
-                                </div>
-                                <div>
-                                    <label for="selectDetallesVolqueta">Detalles Volqueta:</label>
-                                    <select id="selectDetallesVolqueta"></select> 
-                                </div>
-                                <div>
-                                    <label for="kilometraje">Kilometraje:</label>
-                                    <input type="number" id="kilometraje" step="any" placeholder="Ej: 150230.5">
-                                </div>
-                                <div>
-                                    <label for="selectProveedor">Proveedor de Diesel:</label>
-                                    <select id="selectProveedor" required></select>
-                                </div>
-                                <div>
-                                    <label for="selectProyecto">Proyecto:</label>
-                                    <select id="selectProyecto" required></select>
-                                </div>
-                                <div>
-                                    <label for="selectEmpresa">Empresa:</label>
-                                    <select id="selectEmpresa" required></select>
-                                </div>
-                                <div>
-                                    <label for="galones">Galones de Diésel:</label>
-                                    <input type="number" id="galones" step="0.01" required>
-                                </div>
-                                <div>
-                                    <label for="costo">Costo Total ($):</label>
-                                    <input type="number" id="costo" step="0.01" required>
-                                </div>
-                                
-                            </div>
-                            <label for="descripcion">Descripción del Uso:</label>
-                            <textarea id="descripcion" required></textarea>
-                            
-                            <button type="submit" id="btnGuardarRegistro" class="button-primary"><i class="fa-solid fa-floppy-disk"></i>Guardar Registro</button>
-                            <button type="button" id="btnCancelarEdicion" class="button-secondary" style="display:none;"><i class="fa-solid fa-ban"></i>Cancelar Edición</button>
-                        </form>
+                    <h2><i class="fa-solid fa-file-circle-plus"></i>Registros de Consumo</h2>
+                    <p>Haz clic en el botón para añadir un nuevo registro de consumo de diésel.</p>
+                    <button id="btnAbrirModal" class="button-primary"><i class="fa-solid fa-plus"></i>Nuevo Registro</button>
+                </div>
+                <div id="modalRegistro" class="modal">
+                    <div class="modal-content">
+                        <span class="close-button">&times;</span>
+                        <div id="formularioContainer">
+                            <h2 id="formularioTitulo">Nuevo Registro</h2>
+                            <form id="consumoForm">
+                                <input type="hidden" id="registroId">
+                                <label for="fecha">Fecha:</label>
+                                <input type="date" id="fecha" required>
+                                <label for="hora">Hora de Carga:</label>
+                                <input type="time" id="hora">
+                                <label for="selectChofer">Nombre del Chofer:</label>
+                                <select id="selectChofer" required></select>
+                                <label for="selectVolqueta">Placa de la Volqueta:</label>
+                                <select id="selectVolqueta" required></select>
+                                <label for="selectDetallesVolqueta">Detalles Volqueta:</label>
+                                <select id="selectDetallesVolqueta"></select> 
+                                <label for="kilometraje">Kilometraje:</label>
+                                <input type="number" id="kilometraje" step="any" placeholder="Ej: 150230.5">
+                                <label for="selectProveedor">Proveedor de Diesel:</label>
+                                <select id="selectProveedor" required></select>
+                                <label for="selectProyecto">Proyecto:</label>
+                                <select id="selectProyecto" required></select>
+                                <label for="galones">Galones de Diésel (Volumen):</label>
+                                <input type="number" id="galones" step="0.01" required>
+                                <label for="costo">Costo Total ($):</label>
+                                <input type="number" id="costo" step="0.01" required>
+                                <label for="selectEmpresa">Empresa:</label>
+                                <select id="selectEmpresa" required></select>
+                                <label for="descripcion">Descripción del Uso:</label>
+                                <textarea id="descripcion" required></textarea>
+                                <button type="submit" id="btnGuardar" class="button-primary"><i class="fa-solid fa-floppy-disk"></i>Guardar Registro</button>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>
-
+            
             <div id="tabDistribuir" class="main-tab-content no-print">
                 <div class="container">
                     <h2><i class="fa-solid fa-sitemap"></i>Distribución de Consumo por Proyecto</h2>
@@ -222,219 +216,52 @@
                     </div>
                 </div>
             </div>
-
-            <div id="tabReportes" class="main-tab-content">
-                <div class="container">
-                    <h2><i class="fa-solid fa-chart-bar"></i> Reportes Consolidados</h2>
-
-                    <div class="filter-section no-print">
-                        <div class="filter-group">
-                            <label for="filtroMesReportes">Filtrar por Mes:</label>
-                            <select id="filtroMesReportes">
-                                </select>
-                            <button type="button" class="button-info" id="btnFiltrarReportes"><i class="fa-solid fa-filter"></i> Aplicar Filtro</button>
-                            <button type="button" class="button-primary btn-print" data-print-target="tabReportes"><i class="fa-solid fa-print"></i> Imprimir Reporte</button>
-                        </div>
-                    </div>
-                    
-                    <p class="print-suggestion no-print">Para un historial detallado, use la pestaña de Historial.</p>
-                    
-                    <div class="report-cards-container">
-                        <div class="report-card" id="resumenGeneralCard">
-                            <div class="card-header">
-                                <i class="fa-solid fa-clipboard-list"></i> 
-                                <h3>Resumen General del Periodo</h3>
-                            </div>
-                            <div class="card-body table-container">
-                                <table id="resumenTabla">
-                                    <thead>
-                                        <tr><th>Total Galones</th><th>Costo Total ($)</th><th>Total Viajes</th><th>Costo Promedio ($/Gal)</th></tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr><td id="resumenTotalGalones">0.00</td><td id="resumenCostoTotal">$ 0.00</td><td id="resumenTotalViajes">0</td><td id="resumenCostoPromedio">$ 0.00</td></tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                        <div class="report-card" id="resumenEmpresaCard">
-                            <div class="card-header">
-                                <i class="fa-solid fa-building"></i> 
-                                <h3>Resumen por Empresa</h3>
-                            </div>
-                            <div class="card-body table-container">
-                                <table id="resumenEmpresaTabla">
-                                    <thead><tr><th>Empresa</th><th>Galones</th><th>Costo ($)</th><th>% Total</th></tr></thead>
-                                    <tbody></tbody>
-                                    <tfoot><tr><th>TOTALES</th><td id="empresaTotalGalones">0.00</td><td id="empresaCostoTotal">$ 0.00</td><td>100%</td></tr></tfoot>
-                                </table>
-                            </div>
-                        </div>
-                        
-                        <div class="report-card" id="resumenProveedorCard">
-                            <div class="card-header">
-                                <i class="fa-solid fa-truck-field"></i> 
-                                <h3>Resumen por Proveedor</h3>
-                            </div>
-                            <div class="card-body table-container">
-                                <table id="resumenProveedorTabla">
-                                    <thead><tr><th>Proveedor</th><th>Galones</th><th>Costo ($)</th><th>% Total</th></tr></thead>
-                                    <tbody></tbody>
-                                    <tfoot><tr><th>TOTALES</th><td id="proveedorTotalGalones">0.00</td><td id="proveedorCostoTotal">$ 0.00</td><td>100%</td></tr></tfoot>
-                                </table>
-                            </div>
-                        </div>
-                        
-                        <div class="report-card" id="resumenChoferCard">
-                            <div class="card-header">
-                                <i class="fa-solid fa-id-card"></i> 
-                                <h3>Resumen por Chofer</h3>
-                            </div>
-                            <div class="card-body table-container">
-                                <table id="resumenChoferTabla">
-                                    <thead><tr><th>Chofer</th><th>Galones</th><th>Costo ($)</th><th>% Total</th></tr></thead>
-                                    <tbody></tbody>
-                                    <tfoot><tr><th>TOTALES</th><td id="choferTotalGalones">0.00</td><td id="choferCostoTotal">$ 0.00</td><td>100%</td></tr></tfoot>
-                                </table>
-                            </div>
-                        </div>
-                        
-                        <div class="report-card" id="resumenProyectoCard">
-                            <div class="card-header">
-                                <i class="fa-solid fa-list-check"></i> 
-                                <h3>Resumen por Proyecto</h3>
-                            </div>
-                            <div class="card-body table-container">
-                                <table id="resumenProyectoTabla">
-                                    <thead><tr><th>Proyecto</th><th>Galones</th><th>Costo ($)</th><th>% Total</th></tr></thead>
-                                    <tbody></tbody>
-                                    <tfoot><tr><th>TOTALES</th><td id="proyectoTotalGalones">0.00</td><td id="proyectoCostoTotal">$ 0.00</td><td>100%</td></tr></tfoot>
-                                </table>
-                            </div>
-                        </div>
-                        
-                    </div>
-                </div>
-            </div>
+            <div id="tabReportes" class="main-tab-content"><div class="container no-print"><div class="filter-section"><div class="filter-group"><div><label for="filtroMesReportes">Por Mes:</label><select id="filtroMesReportes" class="filtro-sincronizado" data-sync-id="filtroMes"></select></div><div><label for="filtroFechaInicioReportes">Por Rango:</label><input type="date" id="filtroFechaInicioReportes" class="filtro-sincronizado" data-sync-id="filtroFechaInicio" title="Desde la Fecha"></div><div><label for="filtroFechaFinReportes">-</label><input type="date" id="filtroFechaFinReportes" class="filtro-sincronizado" data-sync-id="filtroFechaFin" title="Hasta la Fecha"></div></div><div class="filter-group"><div><label for="filtroChoferReportes">Por Chofer:</label><select id="filtroChoferReportes" class="filtro-sincronizado" data-sync-id="filtroChofer"></select></div><div><label for="filtroProveedorReportes">Por Proveedor:</label><select id="filtroProveedorReportes" class="filtro-sincronizado" data-sync-id="filtroProveedor"></select></div><div><label for="filtroEmpresaReportes">Por Empresa:</label><select id="filtroEmpresaReportes" class="filtro-sincronizado" data-sync-id="filtroEmpresa"></select></div><div><label for="filtroProyectoReportes">Por Proyecto:</label><select id="filtroProyectoReportes" class="filtro-sincronizado" data-sync-id="filtroProyecto"></select></div></div><div class="filter-group"><button id="btnAplicarFiltros" class="button-success"><i class="fa-solid fa-filter"></i>Aplicar Filtros</button><button id="btnLimpiarFiltros" class="button-secondary"><i class="fa-solid fa-eraser"></i>Limpiar Filtros</button><button class="button-info btn-print" data-print-target="tabReportes" style="margin-left: auto;"><i class="fa-solid fa-print"></i>Imprimir Reporte</button></div></div></div><div class="container" id="loaderContainer"><h2 id="loadingMessage" class="loader">Cargando datos desde la nube...</h2></div><div class="container report-cards-container"><div class="report-card"><div class="card-header"><i class="fa-solid fa-building"></i><h3>Por Empresa</h3></div><div class="card-body"><table id="resumenEmpresaTabla"><thead><tr><th>Empresa</th><th>Galones</th><th>Costo ($)</th></tr></thead><tbody id="resumenEmpresaBody"></tbody><tfoot id="resumenEmpresaFooter"></tfoot></table></div></div><div class="report-card"><div class="card-header"><i class="fa-solid fa-dolly"></i><h3>Por Proveedor</h3></div><div class="card-body"><table id="resumenProveedorTabla"><thead><tr><th>Proveedor</th><th>Galones</th><th>Costo ($)</th></tr></thead><tbody id="resumenProveedorBody"></tbody><tfoot id="resumenProveedorFooter"></tfoot></table></div></div><div class="report-card"><div class="card-header"><i class="fa-solid fa-list-check"></i><h3>Por Proyecto</h3></div><div class="card-body"><table id="resumenProyectoTabla"><thead><tr><th>Proyecto</th><th>Galones</th><th>Costo ($)</th></tr></thead><tbody id="resumenProyectoBody"></tbody><tfoot id="resumenProyectoFooter"></tfoot></table></div></div><div class="report-card"><div class="card-header"><i class="fa-solid fa-user-tie"></i><h3>Por Chofer</h3></div><div class="card-body"><table id="resumenChoferTabla"><thead><tr><th>Chofer</th><th>Galones</th><th>Costo ($)</th></tr></thead><tbody id="resumenChoferBody"></tbody><tfoot id="resumenChoferFooter"></tfoot></table></div></div><div class="report-card"><div class="card-header"><i class="fa-solid fa-truck"></i><h3>Por Placa</h3></div><div class="card-body"><table id="resumenTabla"><thead><tr><th>Placa</th><th>Galones</th><th>Costo ($)</th></tr></thead><tbody id="resumenBody"></tbody><tfoot id="resumenFooter"></tfoot></table></div></div></div></div>
 
             <div id="tabHistorial" class="main-tab-content">
-                <div class="container">
-                    <h2><i class="fa-solid fa-history"></i> Historial Detallado de Consumos</h2>
-
-                    <div class="filter-section no-print">
-                        <div class="filter-group">
-                            <label for="filtroHistorialMes">Filtrar por Mes:</label>
-                            <select id="filtroHistorialMes">
-                                </select>
-                            <label for="filtroHistorialProyecto">Proyecto:</label>
-                            <select id="filtroHistorialProyecto">
-                                </select>
-                            <button type="button" class="button-info" id="btnFiltrarHistorial"><i class="fa-solid fa-filter"></i> Aplicar Filtro</button>
-                            <button type="button" class="button-primary btn-print" data-print-target="tabHistorial"><i class="fa-solid fa-print"></i> Imprimir Historial</button>
-                        </div>
+                <div class="container no-print"><div class="filter-section"><div class="filter-group"><div><label for="filtroMesHistorial">Por Mes:</label><select id="filtroMesHistorial" class="filtro-sincronizado" data-sync-id="filtroMes"></select></div><div><label for="filtroFechaInicioHistorial">Por Rango:</label><input type="date" id="filtroFechaInicioHistorial" class="filtro-sincronizado" data-sync-id="filtroFechaInicio" title="Desde la Fecha"></div><div><label for="filtroFechaFinHistorial">-</label><input type="date" id="filtroFechaFinHistorial" class="filtro-sincronizado" data-sync-id="filtroFechaFin" title="Hasta la Fecha"></div></div><div class="filter-group"><div><label for="filtroChoferHistorial">Por Chofer:</label><select id="filtroChoferHistorial" class="filtro-sincronizado" data-sync-id="filtroChofer"></select></div><div><label for="filtroProveedorHistorial">Por Proveedor:</label><select id="filtroProveedorHistorial" class="filtro-sincronizado" data-sync-id="filtroProveedor"></select></div><div><label for="filtroEmpresaHistorial">Por Empresa:</label><select id="filtroEmpresaHistorial" class="filtro-sincronizado" data-sync-id="filtroEmpresa"></select></div><div><label for="filtroProyectoHistorial">Por Proyecto:</label><select id="filtroProyectoHistorial" class="filtro-sincronizado" data-sync-id="filtroProyecto"></select></div></div>
+                    <div class="filter-group">
+                        <button id="btnAplicarFiltros" class="button-success"><i class="fa-solid fa-filter"></i>Aplicar Filtros</button>
+                        <button id="btnLimpiarFiltros" class="button-secondary"><i class="fa-solid fa-eraser"></i>Limpiar Filtros</button>
+                        <button class="button-info btn-print" data-print-target="tabHistorial" style="margin-left: auto;"><i class="fa-solid fa-print"></i>Imprimir Historial</button>
                     </div>
-                    
-                    <div class="table-container">
-                        <table id="historialTabla">
-                            <thead>
-                                <tr>
-                                    <th class="no-print">Acciones</th>
-                                    <th>Fecha</th>
-                                    <th>Hora</th>
-                                    <th>Chofer</th>
-                                    <th>Placa</th>
-                                    <th>Detalles Volqueta</th>
-                                    <th>Kilometraje</th>
-                                    <th>Proveedor</th>
-                                    <th>Proyecto</th>
-                                    <th>Galones</th>
-                                    <th>Costo ($)</th>
-                                    <th>Empresa</th>
-                                    <th>Descripción</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                </tbody>
-                            <tfoot>
-                                <tr>
-                                    <th class="no-print"></th>
-                                    <th colspan="8" style="text-align: right;">TOTALES</th>
-                                    <td id="historialTotalGalones">0.00</td>
-                                    <td id="historialCostoTotal">$ 0.00</td>
-                                    <th colspan="2"></th>
-                                </tr>
-                            </tfoot>
-                        </table>
+                    <small class="print-suggestion no-print">Sugerencia: Para mejor visualización, configure la impresión en orientación Horizontal.</small>
+                    </div></div>
+                <div class="container">
+                    <button class="accordion-button active">TOTAL DE CONSUMO DE DIESEL (HISTORIAL DETALLADO)</button>
+                    <div class="accordion-panel" style="max-height: fit-content;">
+                        <div class="table-container">
+                            <table id="historialTabla">
+                                <thead>
+                                    <tr>
+                                        <th class="no-print">Acciones</th>
+                                        <th>Fecha</th>
+                                        <th>Hora</th>
+                                        <th>Chofer</th>
+                                        <th>Placa</th>
+                                        <th>Detalles Volqueta</th>
+                                        <th>Kilometraje</th>
+                                        <th>Proveedor</th>
+                                        <th>Proyecto</th>
+                                        <th>Galones</th>
+                                        <th>Costo ($)</th>
+                                        <th>Empresa</th>
+                                        <th>Descripción</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="historialBody"></tbody>
+                                <tfoot id="historialFooter"></tfoot>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
-            
+
             <div id="tabAdmin" class="main-tab-content no-print">
-                <div class="container">
-                    <h2><i class="fa-solid fa-user-tie"></i> Administración de Listas</h2>
-                    
-                    <div class="admin-section">
-                        <div class="admin-box">
-                            <h3><i class="fa-solid fa-id-card"></i> Gestionar Choferes</h3>
-                            <form id="formAdminChofer" class="admin-form">
-                                <input type="text" id="nuevoChofer" placeholder="Nombre del chofer" required>
-                                <button type="submit" class="button-success"><i class="fa-solid fa-plus"></i>Agregar</button>
-                            </form>
-                            <ul id="listaChoferes" class="lista-gestion"></ul>
-                        </div>
-                        
-                        <div class="admin-box">
-                            <h3><i class="fa-solid fa-truck"></i> Gestionar Placas (Volquetas)</h3>
-                            <form id="formAdminPlaca" class="admin-form">
-                                <input type="text" id="nuevaPlaca" placeholder="Número de Placa" required>
-                                <button type="submit" class="button-success"><i class="fa-solid fa-plus"></i>Agregar</button>
-                            </form>
-                            <ul id="listaPlacas" class="lista-gestion"></ul>
-                        </div>
-                        
-                        <div class="admin-box">
-                            <h3><i class="fa-solid fa-truck-moving"></i> Gestionar Detalles Volqueta</h3>
-                            <form id="formAdminDetalle" class="admin-form">
-                                <input type="text" id="nuevoDetalle" placeholder="Ej: Doble eje, Tandem" required>
-                                <button type="submit" class="button-success"><i class="fa-solid fa-plus"></i>Agregar</button>
-                            </form>
-                            <ul id="listaDetallesVolqueta" class="lista-gestion"></ul>
-                        </div>
-
-                        <div class="admin-box">
-                            <h3><i class="fa-solid fa-building"></i> Gestionar Empresas</h3>
-                            <form id="formAdminEmpresa" class="admin-form">
-                                <input type="text" id="nuevaEmpresa" placeholder="Nombre de la empresa" required>
-                                <button type="submit" class="button-success"><i class="fa-solid fa-plus"></i>Agregar</button>
-                            </form>
-                            <ul id="listaEmpresas" class="lista-gestion"></ul>
-                        </div>
-                        
-                        <div class="admin-box">
-                            <h3><i class="fa-solid fa-dolly"></i> Gestionar Proveedores</h3>
-                            <form id="formAdminProveedor" class="admin-form">
-                                <input type="text" id="nuevoProveedor" placeholder="Nombre del proveedor" required>
-                                <button type="submit" class="button-success"><i class="fa-solid fa-plus"></i>Agregar</button>
-                            </form>
-                            <ul id="listaProveedores" class="lista-gestion"></ul>
-                        </div>
-                        
-                        <div class="admin-box">
-                            <h3><i class="fa-solid fa-list-check"></i> Gestionar Proyectos</h3>
-                            <form id="formAdminProyecto" class="admin-form">
-                                <input type="text" id="nuevoProyecto" placeholder="Nombre del proyecto" required>
-                                <button type="submit" class="button-success"><i class="fa-solid fa-plus"></i>Agregar</button>
-                            </form>
-                            <ul id="listaProyectos" class="lista-gestion"></ul>
-                        </div>
-                    </div>
-                </div>
+                <div class="container" id="adminContainer"><h2><i class="fa-solid fa-screwdriver-wrench"></i>Administración</h2><div class="admin-section"><div class="admin-box"><h3><i class="fa-solid fa-user-tie"></i>Gestionar Choferes</h3><form id="formAdminChofer" class="admin-form"><input type="text" id="nuevoChofer" placeholder="Nombre del chofer" required><button type="submit" class="button-success"><i class="fa-solid fa-plus"></i>Agregar</button></form><ul id="listaChoferes" class="lista-gestion"></ul></div><div class="admin-box"><h3><i class="fa-solid fa-truck"></i>Gestionar Placas</h3><form id="formAdminPlaca" class="admin-form"><input type="text" id="nuevaPlaca" placeholder="Placa de la volqueta" required><button type="submit" class="button-success"><i class="fa-solid fa-plus"></i>Agregar</button></form><ul id="listaPlacas" class="lista-gestion"></ul></div><div class="admin-box"><h3><i class="fa-solid fa-tags"></i>Gestionar Detalles Volqueta</h3><form id="formAdminDetallesVolqueta" class="admin-form"><input type="text" id="nuevoDetalleVolqueta" placeholder="Ej: Doble Eje, Tritón Rojo" required><button type="submit" class="button-success"><i class="fa-solid fa-plus"></i>Agregar</button></form><ul id="listaDetallesVolqueta" class="lista-gestion"></ul></div><div class="admin-box"><h3><i class="fa-solid fa-building"></i>Gestionar Empresas</h3><form id="formAdminEmpresa" class="admin-form"><input type="text" id="nuevaEmpresa" placeholder="Nombre de la empresa" required><button type="submit" class="button-success"><i class="fa-solid fa-plus"></i>Agregar</button></form><ul id="listaEmpresas" class="lista-gestion"></ul></div><div class="admin-box"><h3><i class="fa-solid fa-dolly"></i>Gestionar Proveedores</h3><form id="formAdminProveedor" class="admin-form"><input type="text" id="nuevoProveedor" placeholder="Nombre del proveedor" required><button type="submit" class="button-success"><i class="fa-solid fa-plus"></i>Agregar</button></form><ul id="listaProveedores" class="lista-gestion"></ul></div><div class="admin-box"><h3><i class="fa-solid fa-list-check"></i>Gestionar Proyectos</h3><form id="formAdminProyecto" class="admin-form"><input type="text" id="nuevoProyecto" placeholder="Nombre del proyecto" required><button type="submit" class="button-success"><i class="fa-solid fa-plus"></i>Agregar</button></form><ul id="listaProyectos" class="lista-gestion"></ul></div></div></div>
             </div>
             
-            <div class="signature-block">
-                <div class="line"></div>
-                Ing. José L. Macas P.<br>RESIDENTE DE OBRA
-            </div>
+            <div class="signature-block"><div class="line"></div>Ing. José L. Macas P.<br>RESIDENTE DE OBRA</div>
 
             <div class="credits">
                 APLICACION ELABORADA POR: ING. JOSE LUIS MACAS P.
@@ -444,7 +271,7 @@
     
     <div id="facturas-impresion"></div>
 
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <script type="module" src="script.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 </body>
 </html>
