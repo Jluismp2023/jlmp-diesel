@@ -352,7 +352,7 @@ button:hover { opacity: 0.9; }
 .modo-observador #btnTabInicio,
 .modo-observador #btnTabRegistrar,
 .modo-observador #btnTabAdmin,
-.modo-observador #btnTabDistribuir { /* NUEVO: Ocultar Distribución */
+.modo-observador #btnTabDistribuir { 
     display: none;
 }
 .modo-observador #historialTabla th.no-print {
@@ -363,11 +363,11 @@ button:hover { opacity: 0.9; }
 }
 
 /* --- NAVEGACIÓN CENTRADA EN EL PANEL DE INICIO --- */
+/* CORRECCIÓN: SE QUITA #btnTabDistribuir DE ESTA LISTA PARA QUE SEA VISIBLE */
 body:not(.modo-observador) #btnTabRegistrar,
 body:not(.modo-observador) #btnTabReportes,
 body:not(.modo-observador) #btnTabHistorial,
-body:not(.modo-observador) #btnTabAdmin,
-body:not(.modo-observador) #btnTabDistribuir { /* NUEVO: Ocultar Distribución */
+body:not(.modo-observador) #btnTabAdmin {
     display: none;
 }
 
