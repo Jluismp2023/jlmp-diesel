@@ -83,9 +83,9 @@ function mostrarNotificacion(texto, tipo = 'info', duracion = 3500) {
 
 const modal = document.getElementById('modalRegistro');
 const btnAbrirModal = document.getElementById('btnAbrirModal');
-const btnCerrarModal = modal.querySelector('.close-button');
-function abrirModal() { modal.style.display = 'block'; }
-function cerrarModal() { modal.style.display = 'none'; reiniciarFormulario(); }
+const btnCerrarModal = modal ? modal.querySelector('.close-button') : null; // Se añade chequeo de null
+function abrirModal() { if (modal) modal.style.display = 'block'; }
+function cerrarModal() { if (modal) modal.style.display = 'none'; reiniciarFormulario(); }
 
 function openMainTab(evt, tabName) {
     let i, tabcontent, tablinks;
@@ -190,14 +190,6 @@ function actualizarTarjetasResumen() {
     });
 
     // --- Actualizar DOM ---
-    // Nota: Los IDs originales de tu HTML no coinciden con estos, los ajusto a los IDs esperados en el dashboard (ej. dashboardTotalGalones)
-    if (document.getElementById('dashboardTotalGalones')) {
-        document.getElementById('dashboardTotalGalones').textContent = totalGalonesMes.toFixed(2);
-    }
-    if (document.getElementById('dashboardCostoTotal')) {
-        document.getElementById('dashboardCostoTotal').textContent = `$ ${totalCostoMes.toFixed(2)}`;
-    }
-    // Si usas los IDs de las tarjetas de resumen originales (comentados en el HTML actual)
     if (document.getElementById('resumenMesGalones')) {
         document.getElementById('resumenMesGalones').textContent = `${totalGalonesMes.toFixed(2)} Gal`;
     }
@@ -231,7 +223,7 @@ function actualizarTodaLaUI() {
     
     actualizarTarjetasResumen(); 
     // Asegurar que los campos de distribución estén actualizados si la pestaña es visible
-    if (document.getElementById('tabDistribuir').style.display === 'block') {
+    if (document.getElementById('tabDistribuir') && document.getElementById('tabDistribuir').style.display === 'block') {
          actualizarCamposDistribucion();
     }
 }
@@ -271,8 +263,10 @@ function reiniciarFormulario() {
     if (form) {
         form.reset();
         document.getElementById('registroId').value = '';
-        document.getElementById('fecha').valueAsDate = new Date();
-        document.getElementById('formularioTitulo').textContent = 'Nuevo Registro';
+        const fechaInput = document.getElementById('fecha');
+        if (fechaInput) fechaInput.valueAsDate = new Date();
+        const titulo = document.getElementById('formularioTitulo');
+        if (titulo) titulo.textContent = 'Nuevo Registro';
         poblarSelectores();
     }
 }
@@ -468,7 +462,7 @@ function cargarDatosParaModificar(id) {
     document.getElementById('selectDetallesVolqueta').value = consumo.detallesVolqueta || "";
     document.getElementById('kilometraje').value = consumo.kilometraje || "";
     openMainTab(null, 'tabRegistrar'); 
-    // Si usas modal: abrirModal();
+    abrirModal();
 }
 
 function calcularYMostrarTotalesPorCategoria(consumos, categoria, bodyId, footerId) {
@@ -588,9 +582,6 @@ function asignarEventosApp() {
     
     // Eventos de Formularios
     document.getElementById('consumoForm').addEventListener('submit', guardarOActualizar);
-    // Nota: El ID del formulario de registro fue 'consumoForm' antes, si lo renombraste a 'registroForm' en index.html, 
-    // debes corregir el ID aquí (asumo que se mantiene 'consumoForm' para consistencia con el código anterior)
-    
     // Evento para guardar distribución
     document.getElementById('distribucionForm').addEventListener('submit', guardarDistribucion); 
     
@@ -601,6 +592,22 @@ function asignarEventosApp() {
     if (totalGalonesInput) totalGalonesInput.addEventListener('input', calcularTotalesDistribucion); 
     if (totalCostoInput) totalCostoInput.addEventListener('input', calcularTotalesDistribucion);
 
+    // CORRECCIÓN: Re-habilitar los Eventos del Modal
+    const btnAbrirModal = document.getElementById('btnAbrirModal');
+    const modal = document.getElementById('modalRegistro');
+    const btnCerrarModal = modal ? modal.querySelector('.close-button') : null; 
+    
+    if (btnAbrirModal) {
+        btnAbrirModal.addEventListener('click', () => {
+            reiniciarFormulario(); 
+            abrirModal();
+        });
+    }
+
+    if (btnCerrarModal) {
+        btnCerrarModal.addEventListener('click', cerrarModal);
+    }
+    
     document.querySelectorAll('.btn-print').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const targetId = e.currentTarget.dataset.printTarget;
@@ -645,6 +652,7 @@ function asignarEventosApp() {
     document.getElementById('btnDashRegistrar').addEventListener('click', () => {
         reiniciarFormulario(); 
         openMainTab(null, 'tabRegistrar');
+        abrirModal(); // Se abre el modal al navegar desde el dashboard
     });
 
     document.getElementById('btnDashHistorial').addEventListener('click', () => {
