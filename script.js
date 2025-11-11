@@ -177,7 +177,7 @@ function actualizarTarjetasResumen() {
         // --- Lógica Semanal ---
         const [y, m, d] = c.fecha.split('-').map(Number);
         // Crear la fecha en UTC para evitar problemas de zona horaria al comparar
-        // El formato YYYY-MM-DD se interpreta como UTC por defecto en new Date() si no hay hora
+        // El formato YYYY-MM-DD se interpreta como UTC por defecto en new Date() if no hay hora
         const fechaConsumoUTC = new Date(Date.UTC(y, m - 1, d)); 
         
         // Crear fechas de inicio y fin de semana también en UTC para comparación correcta
@@ -762,8 +762,8 @@ function sincronizarSelectoresDistribucion() {
     const selectores = { 
         choferes: document.getElementById('distribucionSelectChofer'), 
         placas: document.getElementById('distribucionSelectVolqueta'), 
-        detallesVolqueta: document.getElementById('distribucionSelectDetallesVolqueta'), 
-        empresas: document.getElementById('distribucionSelectEmpresa'), 
+        // Eliminado: detallesVolqueta: document.getElementById('distribucionSelectDetallesVolqueta'), 
+        // Eliminado: empresas: document.getElementById('distribucionSelectEmpresa'), 
         proveedores: document.getElementById('distribucionSelectProveedor'),
         // Agregado el selector de Proyecto único
         proyectos: document.getElementById('distribucionSelectProyecto')
@@ -771,8 +771,8 @@ function sincronizarSelectoresDistribucion() {
     const titulos = { 
         choferes: '--- Chofer ---', 
         placas: '--- Placa ---', 
-        detallesVolqueta: '--- Detalles Volqueta ---', 
-        empresas: '--- Empresa ---', 
+        // Eliminado: detallesVolqueta: '--- Detalles Volqueta ---', 
+        // Eliminado: empresas: '--- Empresa ---', 
         proveedores: '--- Proveedor ---',
         proyectos: '--- Proyecto ---'
     };
@@ -780,7 +780,8 @@ function sincronizarSelectoresDistribucion() {
         const select = selectores[tipo];
         if (!select) continue;
         const valorActual = select.value;
-        select.innerHTML = `<option value="">${titulos[tipo]}</option>`; 
+        const tipoBase = tipo.replace('es', '').replace('s', ''); // Base para acceder a listasAdmin
+        select.innerHTML = `<option value="">${titulos[tipo] || `--- ${tipoBase.charAt(0).toUpperCase() + tipoBase.slice(1)} ---`}</option>`; 
         listasAdmin[tipo].forEach(item => { select.innerHTML += `<option value="${item.nombre}">${item.nombre}</option>`; });
         select.value = valorActual;
     }
@@ -883,11 +884,13 @@ async function previsualizarDistribucion() {
         hora: document.getElementById('distribucionHora')?.value,
         volqueta: document.getElementById('distribucionSelectVolqueta')?.value,
         chofer: document.getElementById('distribucionSelectChofer')?.value,
-        empresa: document.getElementById('distribucionSelectEmpresa')?.value,
         proveedor: document.getElementById('distribucionSelectProveedor')?.value,
-        detallesVolqueta: document.getElementById('distribucionSelectDetallesVolqueta')?.value || "", 
-        kilometraje: document.getElementById('distribucionKilometraje')?.value || null,
-        descripcion: document.getElementById('distribucionDescripcion')?.value,
+        
+        // ELIMINADOS del formulario, se usan valores por defecto o vacíos para Firestore
+        empresa: "", 
+        detallesVolqueta: "", 
+        kilometraje: null,
+        descripcion: "Consumo distribuido" 
     };
 
     // 3. Validación Mínima

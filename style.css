@@ -363,9 +363,7 @@ button:hover { opacity: 0.9; }
 }
 
 /* --- NAVEGACIÓN CENTRADA EN EL PANEL DE INICIO --- */
-/* Esta regla se mantiene vacía en el CSS para que todas las pestañas se muestren por defecto 
-   en modo Administrador, confiando en que script.js active la pestaña 'Inicio' al cargar.
-   Si ves pestañas duplicadas, revisa esta sección en tu style.css */
+/* Se mantiene vacía para que el script pueda controlar la visibilidad después del login */
 body:not(.modo-observador) #btnTabRegistrar,
 body:not(.modo-observador) #btnTabReportes,
 body:not(.modo-observador) #btnTabHistorial,
