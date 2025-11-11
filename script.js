@@ -542,7 +542,7 @@ function mostrarHistorialAgrupado(consumos) {
     
     if (esModoObservador) {
         // En modo observador, no hay columna 'Acciones' (no-print), por lo que el colspan es 8.
-        footerHtml = `<tr><td colspan="${colspanTotal}" style="text-align: right;"><strong>TOTAL GALONES:</strong></td><td><strong>${totalGalones.toFixed(2)}</strong></td><td style="text-align: right;"><strong>VALOR TOTAL:</strong></td><td><strong>$${totalCosto.toFixed(2)}</strong></td><td></td></tr>`;
+        footerHtml = `<tr><td colspan="${colspanTotal}" style="text-align: right;"><strong>TOTAL GALONES:</strong></td><td><strong>${totalGalones.toFixed(2)}</strong></td><td style="text-align: right;"><strong>VALOR TOTAL:</strong></strong></td><td><strong>$${totalCosto.toFixed(2)}</strong></td><td></td></tr>`;
     } else {
         // En modo administrador, la columna 'Acciones' existe.
         footerHtml = `<tr><td class="no-print"></td><td colspan="${colspanTotal}" style="text-align: right;"><strong>TOTAL GALONES:</strong></td><td><strong>${totalGalones.toFixed(2)}</strong></td><td style="text-align: right;"><strong>VALOR TOTAL:</strong></td><td><strong>$${totalCosto.toFixed(2)}</strong></td><td></td></tr>`;
@@ -762,8 +762,7 @@ function sincronizarSelectoresDistribucion() {
     const selectores = { 
         choferes: document.getElementById('distribucionSelectChofer'), 
         placas: document.getElementById('distribucionSelectVolqueta'), 
-        // Eliminado: detallesVolqueta: document.getElementById('distribucionSelectDetallesVolqueta'), 
-        // Eliminado: empresas: document.getElementById('distribucionSelectEmpresa'), 
+        // Eliminado: detallesVolqueta, empresas
         proveedores: document.getElementById('distribucionSelectProveedor'),
         // Agregado el selector de Proyecto único
         proyectos: document.getElementById('distribucionSelectProyecto')
@@ -771,18 +770,27 @@ function sincronizarSelectoresDistribucion() {
     const titulos = { 
         choferes: '--- Chofer ---', 
         placas: '--- Placa ---', 
-        // Eliminado: detallesVolqueta: '--- Detalles Volqueta ---', 
-        // Eliminado: empresas: '--- Empresa ---', 
         proveedores: '--- Proveedor ---',
         proyectos: '--- Proyecto ---'
     };
+    // Listas de Admin para referencia
+    const adminLists = {
+        choferes: listasAdmin.choferes,
+        placas: listasAdmin.placas,
+        proveedores: listasAdmin.proveedores,
+        proyectos: listasAdmin.proyectos
+    };
+    
     for (const tipo in selectores) {
         const select = selectores[tipo];
         if (!select) continue;
         const valorActual = select.value;
-        const tipoBase = tipo.replace('es', '').replace('s', ''); // Base para acceder a listasAdmin
-        select.innerHTML = `<option value="">${titulos[tipo] || `--- ${tipoBase.charAt(0).toUpperCase() + tipoBase.slice(1)} ---`}</option>`; 
-        listasAdmin[tipo].forEach(item => { select.innerHTML += `<option value="${item.nombre}">${item.nombre}</option>`; });
+        const lista = adminLists[tipo];
+        
+        select.innerHTML = `<option value="">${titulos[tipo]}</option>`; 
+        if (lista) {
+             lista.forEach(item => { select.innerHTML += `<option value="${item.nombre}">${item.nombre}</option>`; });
+        }
         select.value = valorActual;
     }
 }
@@ -814,7 +822,7 @@ function actualizarCamposDistribucion() {
             <label>Galones (${proyecto.nombre}):</label>
             <input type="number" step="0.01" data-type="galones" data-proyecto="${proyecto.nombre}" value="0.00" min="0">
             <label>Costo ($) (${proyecto.nombre}):</label>
-            <input type="number" step="0.01" data-type="costo" data-proyecto="${proyecto.nombre}" value="0.00" min="0">
+            <input type="number" step="0.01" data-type="costo" data-proyecto="${proyecto.nombre}" value="0.00" min="0" disabled>
         `;
         container.appendChild(div);
     });
@@ -822,9 +830,13 @@ function actualizarCamposDistribucion() {
     // Reinsertar el bloque de totales pendientes
     container.insertAdjacentHTML('beforeend', totalesHTML);
     // Volver a asignar el evento de cálculo a todos los nuevos inputs
-    container.querySelectorAll('input[type="number"]').forEach(input => {
+    container.querySelectorAll('input[data-type="galones"]').forEach(input => {
         input.addEventListener('input', calcularTotalesDistribucion);
     });
+    // Escuchar cambios en los totales para recalcular costos unitarios
+    document.getElementById('distribucionGalonesTotal')?.addEventListener('input', calcularTotalesDistribucion);
+    document.getElementById('distribucionCostoTotal')?.addEventListener('input', calcularTotalesDistribucion);
+    
     // Aplicar la primera ejecución del cálculo
     calcularTotalesDistribucion();
 }
@@ -835,22 +847,36 @@ function calcularTotalesDistribucion() {
     const totalGalones = parseFloat(totalGalonesInput?.value) || 0;
     const totalCosto = parseFloat(totalCostoInput?.value) || 0;
 
+    let costoUnitario = 0;
+    if (totalGalones > 0 && totalCosto >= 0) {
+        costoUnitario = totalCosto / totalGalones;
+    }
+
     let sumaGalonesDistribuidos = 0;
-    let sumaCostoDistribuido = 0;
 
-    // Sumar todos los campos de galones y costo de los proyectos
-    document.querySelectorAll('#distribucionProyectosContainer input[data-type="galones"]').forEach(input => {
-        sumaGalonesDistribuidos += parseFloat(input.value) || 0;
-    });
-
-    document.querySelectorAll('#distribucionProyectosContainer input[data-type="costo"]').forEach(input => {
-        sumaCostoDistribuido += parseFloat(input.value) || 0;
+    // 1. Calcular y actualizar los costos por proyecto
+    document.querySelectorAll('#distribucionProyectosContainer input[data-type="galones"]').forEach(galonesInput => {
+        const galones = parseFloat(galonesInput.value) || 0;
+        const proyectoNombre = galonesInput.dataset.proyecto;
+        const costoInput = document.querySelector(`input[data-proyecto="${proyectoNombre}"][data-type="costo"]`);
+        
+        // Calcular el costo basado en el volumen y el costo unitario
+        const costoCalculado = galones * costoUnitario;
+        
+        if (costoInput) {
+            costoInput.value = costoCalculado.toFixed(2);
+        }
+        
+        sumaGalonesDistribuidos += galones;
     });
     
-    // Calcular pendientes
+    // 2. Calcular pendientes (SOLO GALONES)
     const galonesPendientes = totalGalones - sumaGalonesDistribuidos;
+    
+    // El costo pendiente se calcula por diferencia para mostrar si hay desbalance
+    const sumaCostoDistribuido = sumaGalonesDistribuidos * costoUnitario;
     const costoPendiente = totalCosto - sumaCostoDistribuido;
-
+    
     // Mostrar en la UI
     const galonesSpan = document.getElementById('galonesPendientes');
     const costoSpan = document.getElementById('costoPendiente');
@@ -879,6 +905,7 @@ async function previsualizarDistribucion() {
     const totalCosto = parseFloat(document.getElementById('distribucionCostoTotal')?.value) || 0;
     const proyectoUnico = document.getElementById('distribucionSelectProyecto')?.value;
 
+    // Datos simplificados
     const datosBase = {
         fecha: document.getElementById('distribucionFecha')?.value,
         hora: document.getElementById('distribucionHora')?.value,
@@ -886,16 +913,16 @@ async function previsualizarDistribucion() {
         chofer: document.getElementById('distribucionSelectChofer')?.value,
         proveedor: document.getElementById('distribucionSelectProveedor')?.value,
         
-        // ELIMINADOS del formulario, se usan valores por defecto o vacíos para Firestore
+        // Campos fijos o vacíos
         empresa: "", 
         detallesVolqueta: "", 
         kilometraje: null,
-        descripcion: "Consumo distribuido" 
+        descripcion: "Consumo distribuido (Automatizado)" 
     };
 
     // 3. Validación Mínima
-    if (!datosBase.chofer || !datosBase.volqueta || totalGalones === 0 || totalCosto === 0) {
-        mostrarNotificacion("Por favor, complete Chofer, Placa y los Totales de galones/costo.", "error");
+    if (!datosBase.chofer || !datosBase.volqueta || totalGalones <= 0 || totalCosto <= 0) {
+        mostrarNotificacion("Por favor, complete Chofer, Placa y que los Totales de galones/costo sean mayores a cero.", "error");
         if (btnPrevisualizar) {
             btnPrevisualizar.disabled = false;
             btnPrevisualizar.innerHTML = '<i class="fa-solid fa-eye"></i> Previsualizar y Distribuir';
@@ -922,10 +949,10 @@ async function previsualizarDistribucion() {
         // MODO DISTRIBUCIÓN
         calcularTotalesDistribucion();
         const galonesPendientes = parseFloat(document.getElementById('galonesPendientes')?.textContent);
-        const costoPendiente = parseFloat(document.getElementById('costoPendiente')?.textContent.replace('$', '')) || 0;
-
-        if (Math.abs(galonesPendientes) >= 0.01 || Math.abs(costoPendiente) >= 0.01) {
-            validationMessage.textContent = "⚠️ Error: La suma de proyectos NO coincide con los totales ingresados. Ajuste los campos.";
+        
+        // **Validación enfocada SÓLO en galones**
+        if (Math.abs(galonesPendientes) >= 0.01) {
+            validationMessage.textContent = "⚠️ Error: La suma de GALONES distribuidos NO coincide con el Total. Ajuste los campos.";
             previewContainer.style.display = 'block';
             if (btnPrevisualizar) {
                 btnPrevisualizar.disabled = false;
@@ -940,7 +967,7 @@ async function previsualizarDistribucion() {
             const costoInput = document.querySelector(`input[data-proyecto="${proyecto.nombre}"][data-type="costo"]`);
             
             const galones = parseFloat(galonesInput?.value) || 0;
-            const costo = parseFloat(costoInput?.value) || 0;
+            const costo = parseFloat(costoInput?.value) || 0; // Se toma el valor auto-calculado
 
             if (galones > 0 || costo > 0) {
                 registros.push({
@@ -1007,6 +1034,12 @@ async function previsualizarDistribucion() {
     
     // Almacenar registros temporalmente para la confirmación
     registrosParaGuardar = registros;
+    
+    // Re-habilitar botón
+    if (btnPrevisualizar) {
+        btnPrevisualizar.disabled = false;
+        btnPrevisualizar.innerHTML = '<i class="fa-solid fa-eye"></i> Previsualizar y Distribuir';
+    }
 }
 
 
@@ -1049,8 +1082,11 @@ async function confirmarGuardado() {
         document.getElementById('btnCancelarPreview').style.display = 'none';
         
     } finally {
-        document.getElementById('btnPrevisualizarDistribucion').innerHTML = '<i class="fa-solid fa-eye"></i> Previsualizar y Distribuir';
-        document.getElementById('btnPrevisualizarDistribucion').disabled = false;
+        const btnPrevisualizar = document.getElementById('btnPrevisualizarDistribucion');
+        if (btnPrevisualizar) {
+            btnPrevisualizar.innerHTML = '<i class="fa-solid fa-eye"></i> Previsualizar y Distribuir';
+            btnPrevisualizar.disabled = false;
+        }
     }
 }
 
