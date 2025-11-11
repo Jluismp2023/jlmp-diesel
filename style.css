@@ -363,7 +363,7 @@ button:hover { opacity: 0.9; }
 }
 
 /* --- NAVEGACIÓN CENTRADA EN EL PANEL DE INICIO --- */
-/* CORRECCIÓN: SE QUITA #btnTabDistribuir DE ESTA LISTA PARA QUE SEA VISIBLE */
+/* CORRECCIÓN: SOLO OCULTAR LAS PESTAÑAS NO PERMITIDAS AL INICIO EN MODO ADMIN/DEFAULT */
 body:not(.modo-observador) #btnTabRegistrar,
 body:not(.modo-observador) #btnTabReportes,
 body:not(.modo-observador) #btnTabHistorial,

@@ -37,7 +37,6 @@ onAuthStateChanged(auth, (user) => {
             // Oculta pestañas que no debe ver
             document.getElementById('tabInicio').style.display = 'none';
             document.getElementById('tabRegistrar').style.display = 'none';
-            // NUEVO: Ocultar Distribución para Observador
             document.getElementById('tabDistribuir').style.display = 'none';
             document.getElementById('tabAdmin').style.display = 'none';
             
@@ -203,7 +202,7 @@ function actualizarTodaLaUI() {
     mostrarHistorialAgrupado(consumosFiltrados);
     
     actualizarTarjetasResumen(); 
-    // NUEVO: Asegurar que los campos de distribución estén actualizados al cargar los datos
+    // Asegurar que los campos de distribución estén actualizados al cargar los datos
     if (document.getElementById('tabDistribuir').style.display === 'block') {
          actualizarCamposDistribucion();
     }
@@ -310,7 +309,7 @@ async function agregarItemAdmin(tipo, inputElement) {
             mostrarNotificacion(`Elemento agregado correctamente.`, "exito");
             inputElement.value = '';
             await cargarDatosIniciales();
-            // NUEVO: Si se agregan proyectos, actualizar la pestaña de distribución si está activa
+            // Si se agregan proyectos, actualizar la pestaña de distribución si está activa
             if (tipo === 'proyectos') { actualizarCamposDistribucion(); } 
         } catch (error) {
             console.error("Error agregando:", error);
@@ -510,13 +509,7 @@ function handleLogin(e) { e.preventDefault(); const email = document.getElementB
 function handleLogout() { signOut(auth).catch(error => { mostrarNotificacion("Error al cerrar sesión: " + error.message, "error"); }); }
 
 function asignarEventosApp() {
-    btnAbrirModal.addEventListener('click', () => {
-        reiniciarFormulario(); 
-        abrirModal();
-    });
-    
-    btnCerrarModal.addEventListener('click', cerrarModal);
-    
+    // Eventos de Navegación
     document.getElementById('btnTabInicio').addEventListener('click', (e) => openMainTab(e, 'tabInicio'));
     document.getElementById('btnTabRegistrar').addEventListener('click', (e) => openMainTab(e, 'tabRegistrar'));
     document.getElementById('btnTabReportes').addEventListener('click', (e) => openMainTab(e, 'tabReportes'));
@@ -531,13 +524,24 @@ function asignarEventosApp() {
     
     document.getElementById('btnTabAdmin').addEventListener('click', (e) => openMainTab(e, 'tabAdmin'));
     
+    // Eventos de Formularios
     document.getElementById('consumoForm').addEventListener('submit', guardarOActualizar);
-    // NUEVO: Evento para guardar distribución
-    document.getElementById('distribucionForm').addEventListener('submit', guardarDistribucion);
-    // NUEVO: Eventos para actualizar la suma pendiente al cambiar el TOTAL
-    document.getElementById('distribucionGalonesTotal').addEventListener('input', calcularTotalesDistribucion);
+    document.getElementById('distribucionForm').addEventListener('submit', guardarDistribucion); // NUEVO: Evento para guardar distribución
+    
+    // Eventos de Cálculo de Distribución
+    document.getElementById('distribucionGalonesTotal').addEventListener('input', calcularTotalesDistribucion); 
     document.getElementById('distribucionCostoTotal').addEventListener('input', calcularTotalesDistribucion);
 
+    // Eventos de Modal (Ajustado para el formulario único)
+    // Nota: Si usas el formulario en la pestaña Registrar directamente, estos botones deben estar en ese HTML.
+    // Los he comentado temporalmente asumiendo que el formulario está ahora fijo en tabRegistrar
+    /*
+    btnAbrirModal.addEventListener('click', () => {
+        reiniciarFormulario(); 
+        abrirModal();
+    });
+    btnCerrarModal.addEventListener('click', cerrarModal);
+    */
 
     document.querySelectorAll('.btn-print').forEach(btn => {
         btn.addEventListener('click', (e) => {
@@ -571,6 +575,7 @@ function asignarEventosApp() {
     
     document.getElementById('historialBody').addEventListener('click', manejarAccionesHistorial);
 
+    // Eventos de Administración
     document.getElementById('formAdminChofer').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('choferes', document.getElementById('nuevoChofer')); });
     document.getElementById('formAdminPlaca').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('placas', document.getElementById('nuevaPlaca')); });
     document.getElementById('formAdminDetallesVolqueta').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('detallesVolqueta', document.getElementById('nuevoDetalleVolqueta')); });
@@ -578,10 +583,11 @@ function asignarEventosApp() {
     document.getElementById('formAdminProveedor').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('proveedores', document.getElementById('nuevoProveedor')); });
     document.getElementById('formAdminProyecto').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('proyectos', document.getElementById('nuevoProyecto')); });
     
+    // Eventos de Dashboard
     document.getElementById('btnDashRegistrar').addEventListener('click', () => {
         reiniciarFormulario(); 
         openMainTab(null, 'tabRegistrar');
-        abrirModal(); 
+        // abrirModal(); // Si se usa modal
     });
 
     document.getElementById('btnDashHistorial').addEventListener('click', () => {
@@ -641,8 +647,14 @@ function reiniciarFormularioDistribucion() {
     // Borrar campos de proyecto
     document.getElementById('distribucionProyectosContainer').innerHTML = '';
     // Reiniciar totales pendientes
-    document.getElementById('galonesPendientes').textContent = '0.00';
-    document.getElementById('costoPendiente').textContent = '$ 0.00';
+    const galonesSpan = document.getElementById('galonesPendientes');
+    const costoSpan = document.getElementById('costoPendiente');
+
+    if (galonesSpan) galonesSpan.textContent = '0.00';
+    if (costoSpan) costoSpan.textContent = '$ 0.00';
+    if (galonesSpan) galonesSpan.style.color = 'red';
+    if (costoSpan) costoSpan.style.color = 'red';
+    
     // Volver a cargar campos de proyecto (incluye el recalculate)
     actualizarCamposDistribucion();
 }
@@ -654,14 +666,17 @@ function sincronizarSelectoresDistribucion() {
         placas: document.getElementById('distribucionSelectVolqueta'), 
         detallesVolqueta: document.getElementById('distribucionSelectDetallesVolqueta'), 
         empresas: document.getElementById('distribucionSelectEmpresa'), 
-        proveedores: document.getElementById('distribucionSelectProveedor')
+        proveedores: document.getElementById('distribucionSelectProveedor'),
+        // NUEVO: Agregado el selector de Proyecto
+        proyectos: document.getElementById('distribucionSelectProyecto')
     };
     const titulos = { 
         choferes: '--- Chofer ---', 
         placas: '--- Placa ---', 
         detallesVolqueta: '--- Detalles Volqueta ---', 
         empresas: '--- Empresa ---', 
-        proveedores: '--- Proveedor ---'
+        proveedores: '--- Proveedor ---',
+        proyectos: '--- Proyecto ---' // Nuevo Título
     };
     for (const tipo in selectores) {
         const select = selectores[tipo];
@@ -756,19 +771,10 @@ async function guardarDistribucion(e) {
     btnGuardar.disabled = true;
     btnGuardar.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Guardando...';
 
-    // Se ejecuta el cálculo final para actualizar el estado de pendientes
-    calcularTotalesDistribucion();
-    const galonesPendientes = parseFloat(document.getElementById('galonesPendientes').textContent);
-    const costoPendiente = parseFloat(document.getElementById('costoPendiente').textContent.replace('$', '')) || 0;
+    const totalGalones = parseFloat(document.getElementById('distribucionGalonesTotal').value) || 0;
+    const totalCosto = parseFloat(document.getElementById('distribucionCostoTotal').value) || 0;
+    const proyectoUnico = document.getElementById('distribucionSelectProyecto').value;
 
-    if (Math.abs(galonesPendientes) >= 0.01 || Math.abs(costoPendiente) >= 0.01) {
-        mostrarNotificacion("Error: Los totales de galones y costos distribuidos NO coinciden con los totales ingresados.", "error", 7000);
-        btnGuardar.disabled = false;
-        btnGuardar.innerHTML = '<i class="fa-solid fa-floppy-disk"></i>Guardar Distribución';
-        return;
-    }
-    
-    // --- Recolectar Datos para los múltiples registros ---
     const datosBase = {
         fecha: document.getElementById('distribucionFecha').value,
         hora: document.getElementById('distribucionHora').value,
@@ -781,38 +787,73 @@ async function guardarDistribucion(e) {
         descripcion: document.getElementById('distribucionDescripcion').value,
     };
 
-    if (!datosBase.chofer || !datosBase.volqueta) {
-        mostrarNotificacion("Por favor, complete al menos el chofer y la placa.", "error");
+    if (!datosBase.chofer || !datosBase.volqueta || totalGalones === 0 || totalCosto === 0) {
+        mostrarNotificacion("Por favor, complete al menos el chofer, la placa y los totales de galones/costo.", "error");
         btnGuardar.disabled = false;
         btnGuardar.innerHTML = '<i class="fa-solid fa-floppy-disk"></i>Guardar Distribución';
         return;
     }
 
     const registrosADB = [];
-    let registrosValidos = 0;
+    let isMultiProyecto = false;
 
-    // Iterar sobre los proyectos para crear un registro por cada uno
-    listasAdmin.proyectos.forEach(proyecto => {
-        const galonesInput = document.querySelector(`input[data-proyecto="${proyecto.nombre}"][data-type="galones"]`);
-        const costoInput = document.querySelector(`input[data-proyecto="${proyecto.nombre}"][data-type="costo"]`);
-        
-        const galones = parseFloat(galonesInput.value) || 0;
-        const costo = parseFloat(costoInput.value) || 0;
+    // 1. Verificar si hay distribución en los campos individuales de proyecto (MODO DISTRIBUCIÓN)
+    const galonesDistribuidos = Array.from(document.querySelectorAll('#distribucionProyectosContainer input[data-type="galones"]'))
+        .map(input => parseFloat(input.value) || 0);
+    
+    const tieneDistribucion = galonesDistribuidos.some(g => g > 0);
 
-        // Solo crear un registro si hay consumo para ese proyecto
-        if (galones > 0 || costo > 0) {
-            registrosADB.push({
-                ...datosBase,
-                proyecto: proyecto.nombre, // Sobreescribe el proyecto
-                galones: galones.toFixed(2),
-                costo: costo.toFixed(2),
-            });
-            registrosValidos++;
+    if (tieneDistribucion) {
+        // MODO DISTRIBUCIÓN: Se debe validar la suma contra el total.
+        calcularTotalesDistribucion();
+        const galonesPendientes = parseFloat(document.getElementById('galonesPendientes').textContent);
+        const costoPendiente = parseFloat(document.getElementById('costoPendiente').textContent.replace('$', '')) || 0;
+
+        if (Math.abs(galonesPendientes) >= 0.01 || Math.abs(costoPendiente) >= 0.01) {
+            mostrarNotificacion("Error: La suma de proyectos NO coincide con los totales ingresados.", "error", 7000);
+            btnGuardar.disabled = false;
+            btnGuardar.innerHTML = '<i class="fa-solid fa-floppy-disk"></i>Guardar Distribución';
+            return;
         }
-    });
 
-    if (registrosValidos === 0) {
-        mostrarNotificacion("Debe ingresar galones y costo en al menos un proyecto.", "error");
+        // Crear múltiples registros
+        listasAdmin.proyectos.forEach(proyecto => {
+            const galonesInput = document.querySelector(`input[data-proyecto="${proyecto.nombre}"][data-type="galones"]`);
+            const costoInput = document.querySelector(`input[data-proyecto="${proyecto.nombre}"][data-type="costo"]`);
+            
+            const galones = parseFloat(galonesInput.value) || 0;
+            const costo = parseFloat(costoInput.value) || 0;
+
+            if (galones > 0 || costo > 0) {
+                registrosADB.push({
+                    ...datosBase,
+                    proyecto: proyecto.nombre,
+                    galones: galones.toFixed(2),
+                    costo: costo.toFixed(2),
+                });
+                isMultiProyecto = true;
+            }
+        });
+
+    } else if (proyectoUnico) {
+        // MODO REGISTRO ÚNICO: Si se seleccionó un proyecto pero no se llenaron los campos de distribución.
+        registrosADB.push({
+            ...datosBase,
+            proyecto: proyectoUnico,
+            galones: totalGalones.toFixed(2),
+            costo: totalCosto.toFixed(2),
+        });
+
+    } else {
+        // Ni distribución, ni proyecto único seleccionado.
+        mostrarNotificacion("Debe seleccionar un Proyecto (si es único) O ingresar la distribución en los proyectos de abajo.", "error");
+        btnGuardar.disabled = false;
+        btnGuardar.innerHTML = '<i class="fa-solid fa-floppy-disk"></i>Guardar Distribución';
+        return;
+    }
+
+    if (registrosADB.length === 0) {
+        mostrarNotificacion("No se generó ningún registro válido.", "error");
         btnGuardar.disabled = false;
         btnGuardar.innerHTML = '<i class="fa-solid fa-floppy-disk"></i>Guardar Distribución';
         return;
@@ -821,7 +862,11 @@ async function guardarDistribucion(e) {
     try {
         const promesas = registrosADB.map(registro => addDoc(collection(db, "consumos"), registro));
         await Promise.all(promesas);
-        mostrarNotificacion(`Éxito: Se crearon ${registrosADB.length} registros distribuidos.`, "exito", 5000);
+        const mensaje = isMultiProyecto 
+            ? `Éxito: Se crearon ${registrosADB.length} registros distribuidos.`
+            : "Registro único guardado con éxito.";
+            
+        mostrarNotificacion(mensaje, "exito", 5000);
         
         reiniciarFormularioDistribucion();
         await cargarDatosIniciales();
