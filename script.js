@@ -24,8 +24,6 @@ let listasAdmin = { choferes: [], placas: [], detallesVolqueta: [], empresas: []
 let appInicializada = false;
 let tabActivaParaImprimir = null;
 let esModoObservador = false; // Variable global para el rol
-let registrosParaGuardar = []; // ALMACENA TEMPORALMENTE LOS REGISTROS PARA LA PREVISUALIZACIÓN
-let historialDistribuciones = []; // Variable para almacenar el historial de cargas distribuidas.
 
 onAuthStateChanged(auth, (user) => {
     if (user) {
@@ -39,7 +37,6 @@ onAuthStateChanged(auth, (user) => {
             // Oculta pestañas que no debe ver
             document.getElementById('tabInicio').style.display = 'none';
             document.getElementById('tabRegistrar').style.display = 'none';
-            document.getElementById('tabDistribuir').style.display = 'none';
             document.getElementById('tabAdmin').style.display = 'none';
             
             // Muestra 'Reportes' por defecto y activa la pestaña
@@ -85,9 +82,9 @@ function mostrarNotificacion(texto, tipo = 'info', duracion = 3500) {
 
 const modal = document.getElementById('modalRegistro');
 const btnAbrirModal = document.getElementById('btnAbrirModal');
-const btnCerrarModal = modal ? modal.querySelector('.close-button') : null; // Se añade chequeo de null
-function abrirModal() { if (modal) modal.style.display = 'block'; }
-function cerrarModal() { if (modal) modal.style.display = 'none'; reiniciarFormulario(); }
+const btnCerrarModal = modal.querySelector('.close-button');
+function abrirModal() { modal.style.display = 'block'; }
+function cerrarModal() { modal.style.display = 'none'; reiniciarFormulario(); }
 
 function openMainTab(evt, tabName) {
     let i, tabcontent, tablinks;
@@ -104,13 +101,7 @@ function openMainTab(evt, tabName) {
 }
 
 async function cargarDatosIniciales() {
-    // Si existe el elemento loadingMessage, lo mostramos
-    const loadingMessage = document.getElementById('loadingMessage');
-    if (loadingMessage) {
-        loadingMessage.textContent = "Cargando datos desde la nube...";
-        loadingMessage.style.display = 'block';
-    }
-
+    document.getElementById('loadingMessage').style.display = 'block';
     try {
         const [
             consumosRes, choferesRes, placasRes, detallesVolquetaRes, 
@@ -131,19 +122,12 @@ async function cargarDatosIniciales() {
         listasAdmin.empresas = empresasRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         listasAdmin.proveedores = proveedoresRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         listasAdmin.proyectos = proyectosRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        
         actualizarTodaLaUI();
-        // NUEVO: Cargar el historial de distribuciones después de la carga inicial
-        cargarHistorialDistribuciones(); 
-        
     } catch (error) {
         console.error("Error cargando datos:", error);
-        if (loadingMessage) {
-            loadingMessage.textContent = "Error al cargar datos. Revisa la consola (F12).";
-        }
+        document.getElementById('loadingMessage').textContent = "Error al cargar datos. Revisa la consola (F12).";
     } finally {
-        const loaderContainer = document.getElementById('loaderContainer');
-        if (loaderContainer) { loaderContainer.style.display = 'none'; }
+        if (document.getElementById('loaderContainer')) { document.getElementById('loaderContainer').style.display = 'none'; }
     }
 }
 
@@ -182,7 +166,7 @@ function actualizarTarjetasResumen() {
         // --- Lógica Semanal ---
         const [y, m, d] = c.fecha.split('-').map(Number);
         // Crear la fecha en UTC para evitar problemas de zona horaria al comparar
-        // El formato YYYY-MM-DD se interpreta como UTC por defecto en new Date() if no hay hora
+        // El formato YYYY-MM-DD se interpreta como UTC por defecto en new Date() si no hay hora
         const fechaConsumoUTC = new Date(Date.UTC(y, m - 1, d)); 
         
         // Crear fechas de inicio y fin de semana también en UTC para comparación correcta
@@ -196,28 +180,17 @@ function actualizarTarjetasResumen() {
     });
 
     // --- Actualizar DOM ---
-    if (document.getElementById('resumenMesGalones')) {
-        document.getElementById('resumenMesGalones').textContent = `${totalGalonesMes.toFixed(2)} Gal`;
-    }
-    if (document.getElementById('resumenMesCosto')) {
-        document.getElementById('resumenMesCosto').textContent = `$ ${totalCostoMes.toFixed(2)}`;
-    }
-    if (document.getElementById('resumenSemanaGalones')) {
-        document.getElementById('resumenSemanaGalones').textContent = `${totalGalonesSemana.toFixed(2)} Gal`;
-    }
-    if (document.getElementById('resumenSemanaCosto')) {
-        document.getElementById('resumenSemanaCosto').textContent = `$ ${totalCostoSemana.toFixed(2)}`;
-    }
+    document.getElementById('resumenMesGalones').textContent = `${totalGalonesMes.toFixed(2)} Gal`;
+    document.getElementById('resumenMesCosto').textContent = `$ ${totalCostoMes.toFixed(2)}`;
+    document.getElementById('resumenSemanaGalones').textContent = `${totalGalonesSemana.toFixed(2)} Gal`;
+    document.getElementById('resumenSemanaCosto').textContent = `$ ${totalCostoSemana.toFixed(2)}`;
 }
 
 
 function actualizarTodaLaUI() {
     poblarFiltroDeMes();
     poblarFiltrosReportes();
-    
-    // Ejecutar obtenerConsumosFiltrados después de poblar filtros
     const consumosFiltrados = obtenerConsumosFiltrados();
-
     calcularYMostrarTotalesPorEmpresa(consumosFiltrados);
     calcularYMostrarTotalesPorProveedor(consumosFiltrados);
     calcularYMostrarTotalesPorProyecto(consumosFiltrados);
@@ -228,13 +201,8 @@ function actualizarTodaLaUI() {
     mostrarHistorialAgrupado(consumosFiltrados);
     
     actualizarTarjetasResumen(); 
-    // Asegurar que los campos de distribución estén actualizados si la pestaña es visible
-    if (document.getElementById('tabDistribuir') && document.getElementById('tabDistribuir').style.display === 'block') {
-         actualizarCamposDistribucion();
-    }
 }
 
-// MODIFICACIÓN: Esta función ahora solo pobla los selectores de la pestaña "Registrar"
 function poblarSelectores() {
     const selectores = { 
         choferes: document.getElementById('selectChofer'), 
@@ -260,28 +228,19 @@ function poblarSelectores() {
         listasAdmin[tipo].forEach(item => { select.innerHTML += `<option value="${item.nombre}">${item.nombre}</option>`; });
         select.value = valorActual;
     }
-    // Llamar a la función de la pestaña de distribución para poblar sus selectores también
-    sincronizarSelectoresDistribucion();
 }
 
 function reiniciarFormulario() {
-    const form = document.getElementById('consumoForm');
-    if (form) {
-        form.reset();
-        document.getElementById('registroId').value = '';
-        const fechaInput = document.getElementById('fecha');
-        if (fechaInput) fechaInput.valueAsDate = new Date();
-        const titulo = document.getElementById('formularioTitulo');
-        if (titulo) titulo.textContent = 'Nuevo Registro';
-        poblarSelectores();
-    }
+    document.getElementById('consumoForm').reset();
+    document.getElementById('registroId').value = '';
+    document.getElementById('fecha').valueAsDate = new Date();
+    document.getElementById('formularioTitulo').textContent = 'Nuevo Registro';
+    poblarSelectores();
 }
 
 async function guardarOActualizar(e) {
     e.preventDefault();
     const btnGuardar = document.getElementById('btnGuardar');
-    if (!btnGuardar) return;
-
     btnGuardar.disabled = true;
     btnGuardar.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Guardando...';
 
@@ -291,6 +250,8 @@ async function guardarOActualizar(e) {
         volqueta: document.getElementById('selectVolqueta').value,
         fecha: document.getElementById('fecha').value,
         hora: document.getElementById('hora').value,
+        // *** MODIFICACIÓN APLICADA: Se elimina la referencia a numeroFactura ***
+        // numeroFactura: document.getElementById('numeroFactura').value, 
         galones: document.getElementById('galones').value,
         costo: document.getElementById('costo').value,
         descripcion: document.getElementById('descripcion').value,
@@ -344,8 +305,6 @@ async function agregarItemAdmin(tipo, inputElement) {
             mostrarNotificacion(`Elemento agregado correctamente.`, "exito");
             inputElement.value = '';
             await cargarDatosIniciales();
-            // Si se agregan proyectos, actualizar la pestaña de distribución si está activa
-            if (tipo === 'proyectos') { actualizarCamposDistribucion(); } 
         } catch (error) {
             console.error("Error agregando:", error);
             mostrarNotificacion("No se pudo agregar el elemento.", "error");
@@ -362,18 +321,8 @@ function manejarAccionesHistorial(e) {
     if (target.classList.contains('btn-borrar')) borrarConsumoHistorial(id); 
 }
 
-// CORRECCIÓN: Función blindada para evitar el TypeError al inicio
 function obtenerConsumosFiltrados() {
-    const obtenerValorFiltro = (syncId) => {
-        const elemento = document.querySelector(`.filtro-sincronizado[data-sync-id="${syncId}"]`);
-        if (!elemento) {
-            // Si el elemento no existe (porque la pestaña está oculta al inicio), 
-            // asumimos 'todos' para SELECTs o cadena vacía para INPUTs de fecha.
-            return (syncId === 'filtroMes' || syncId === 'filtroChofer' || syncId === 'filtroProveedor' || syncId === 'filtroEmpresa' || syncId === 'filtroProyecto') ? 'todos' : '';
-        }
-        return elemento.value;
-    };
-    
+    const obtenerValorFiltro = (syncId) => document.querySelector(`.filtro-sincronizado[data-sync-id="${syncId}"]`).value;
     const mes = obtenerValorFiltro('filtroMes');
     const fechaInicio = obtenerValorFiltro('filtroFechaInicio');
     const fechaFin = obtenerValorFiltro('filtroFechaFin');
@@ -381,31 +330,14 @@ function obtenerConsumosFiltrados() {
     const proveedor = obtenerValorFiltro('filtroProveedor');
     const empresa = obtenerValorFiltro('filtroEmpresa');
     const proyecto = obtenerValorFiltro('filtroProyecto');
-
     let consumosFiltrados = todosLosConsumos;
-    
-    // Aplicar filtros de fecha
-    if (fechaInicio && fechaFin) { 
-        if (fechaFin < fechaInicio) { 
-            mostrarNotificacion("La fecha de fin no puede ser anterior a la de inicio.", "error"); 
-            return []; 
-        } 
-        consumosFiltrados = consumosFiltrados.filter(c => c.fecha >= fechaInicio && c.fecha <= fechaFin); 
-    } else if (fechaInicio) { 
-        consumosFiltrados = consumosFiltrados.filter(c => c.fecha === fechaInicio); 
-    } else if (mes !== 'todos' && mes !== '') { 
-        consumosFiltrados = consumosFiltrados.filter(c => c.fecha.startsWith(mes)); 
-    }
-    
-    // Aplicar filtros de selección
-    if (chofer !== 'todos' && chofer !== '') { consumosFiltrados = consumosFiltrados.filter(c => c.chofer === chofer); }
-    if (proveedor !== 'todos' && proveedor !== '') { consumosFiltrados = consumosFiltrados.filter(c => c.proveedor === proveedor); }
-    if (empresa !== 'todos' && empresa !== '') { consumosFiltrados = consumosFiltrados.filter(c => c.empresa === empresa); }
-    if (proyecto !== 'todos' && proyecto !== '') { consumosFiltrados = consumosFiltrados.filter(c => c.proyecto === proyecto); }
-    
+    if (fechaInicio && fechaFin) { if (fechaFin < fechaInicio) { mostrarNotificacion("La fecha de fin no puede ser anterior a la de inicio.", "error"); return []; } consumosFiltrados = consumosFiltrados.filter(c => c.fecha >= fechaInicio && c.fecha <= fechaFin); } else if (fechaInicio) { consumosFiltrados = consumosFiltrados.filter(c => c.fecha === fechaInicio); } else if (mes !== 'todos') { consumosFiltrados = consumosFiltrados.filter(c => c.fecha.startsWith(mes)); }
+    if (chofer !== 'todos') { consumosFiltrados = consumosFiltrados.filter(c => c.chofer === chofer); }
+    if (proveedor !== 'todos') { consumosFiltrados = consumosFiltrados.filter(c => c.proveedor === proveedor); }
+    if (empresa !== 'todos') { consumosFiltrados = consumosFiltrados.filter(c => c.empresa === empresa); }
+    if (proyecto !== 'todos') { consumosFiltrados = consumosFiltrados.filter(c => c.proyecto === proyecto); }
     return consumosFiltrados;
 }
-
 
 function mostrarListasAdmin() {
     const contenedores = { 
@@ -457,6 +389,8 @@ function cargarDatosParaModificar(id) {
     document.getElementById('registroId').value = consumo.id; 
     document.getElementById('fecha').value = consumo.fecha; 
     document.getElementById('hora').value = consumo.hora || ''; 
+    // *** MODIFICACIÓN APLICADA: Se elimina la referencia a numeroFactura ***
+    // document.getElementById('numeroFactura').value = consumo.numeroFactura || ''; 
     document.getElementById('selectChofer').value = consumo.chofer; 
     document.getElementById('selectVolqueta').value = consumo.volqueta; 
     document.getElementById('galones').value = consumo.galones; 
@@ -527,13 +461,14 @@ function mostrarHistorialAgrupado(consumos) {
         const fechaConsumo = new Date(consumo.fecha + 'T00:00:00'); const mesAnio = fechaConsumo.toLocaleDateString('es-EC', { month: 'long', year: 'numeric' });
         if (mesAnio !== mesAnioActual && !(obtenerConsumosFiltrados.fechaInicio && obtenerConsumosFiltrados.fechaFin)) {
             mesAnioActual = mesAnio;
-            // Se ajusta el colspan a 13 
+            // Se ajusta el colspan a 13 porque hemos quitado la columna Factura # (14 columnas originales - 1)
             const filaGrupo = document.createElement('tr'); filaGrupo.className = 'fila-grupo'; 
             filaGrupo.innerHTML = `<td colspan="13">${mesAnioActual.charAt(0).toUpperCase() + mesAnioActual.slice(1)}</td>`;
             historialBody.appendChild(filaGrupo);
         }
         const filaDato = document.createElement('tr');
         
+        // *** MODIFICACIÓN APLICADA: Se elimina el dato de numeroFactura y se ajusta la fila ***
         filaDato.innerHTML = `<td class="no-print"><button class="btn-accion btn-modificar button-warning" data-id="${consumo.id}" title="Modificar"><i class="fa-solid fa-pencil" style="margin: 0;"></i></button><button class="btn-accion btn-borrar" data-id="${consumo.id}" title="Borrar"><i class="fa-solid fa-trash-can" style="margin: 0;"></i></button></td>
             <td>${consumo.fecha}</td><td>${consumo.hora || ''}</td><td>${consumo.chofer}</td><td>${consumo.volqueta}</td>
             <td>${consumo.detallesVolqueta || ''}</td><td>${consumo.kilometraje || ''}</td>
@@ -542,14 +477,14 @@ function mostrarHistorialAgrupado(consumos) {
     });
     
     let footerHtml;
-    // Colspan de 8 para la suma, excluyendo Acciones (no-print) y Descripcion
+    // Se ajusta el colspan a 8 (antes era 9) para la suma de Galones/Costo, ya que eliminamos la columna Factura #.
     const colspanTotal = 8; 
     
     if (esModoObservador) {
         // En modo observador, no hay columna 'Acciones' (no-print), por lo que el colspan es 8.
         footerHtml = `<tr><td colspan="${colspanTotal}" style="text-align: right;"><strong>TOTAL GALONES:</strong></td><td><strong>${totalGalones.toFixed(2)}</strong></td><td style="text-align: right;"><strong>VALOR TOTAL:</strong></td><td><strong>$${totalCosto.toFixed(2)}</strong></td><td></td></tr>`;
     } else {
-        // En modo administrador, la columna 'Acciones' existe.
+        // En modo administrador, la columna 'Acciones' existe, por lo que el colspan es 8 (Acciones no cuenta en colspan).
         footerHtml = `<tr><td class="no-print"></td><td colspan="${colspanTotal}" style="text-align: right;"><strong>TOTAL GALONES:</strong></td><td><strong>${totalGalones.toFixed(2)}</strong></td><td style="text-align: right;"><strong>VALOR TOTAL:</strong></td><td><strong>$${totalCosto.toFixed(2)}</strong></td><td></td></tr>`;
     }
     historialFooter.innerHTML = footerHtml;
@@ -571,78 +506,21 @@ function handleLogin(e) { e.preventDefault(); const email = document.getElementB
 function handleLogout() { signOut(auth).catch(error => { mostrarNotificacion("Error al cerrar sesión: " + error.message, "error"); }); }
 
 function asignarEventosApp() {
-    // Eventos de Navegación
+    btnAbrirModal.addEventListener('click', () => {
+        reiniciarFormulario(); 
+        abrirModal();
+    });
+    
+    btnCerrarModal.addEventListener('click', cerrarModal);
+    
     document.getElementById('btnTabInicio').addEventListener('click', (e) => openMainTab(e, 'tabInicio'));
     document.getElementById('btnTabRegistrar').addEventListener('click', (e) => openMainTab(e, 'tabRegistrar'));
     document.getElementById('btnTabReportes').addEventListener('click', (e) => openMainTab(e, 'tabReportes'));
     document.getElementById('btnTabHistorial').addEventListener('click', (e) => openMainTab(e, 'tabHistorial'));
-    
-    // Evento para la pestaña de Distribución
-    document.getElementById('btnTabDistribuir').addEventListener('click', (e) => {
-        openMainTab(e, 'tabDistribuir');
-        reiniciarFormularioDistribucion(); 
-        actualizarCamposDistribucion();
-        // Ocultar previsualización al abrir
-        document.getElementById('tablaDistribucionPreview').style.display = 'none';
-        document.getElementById('btnPrevisualizarDistribucion').style.display = 'block';
-        document.getElementById('btnCancelarPreview').style.display = 'none';
-        // Asegurarse de que el formulario esté habilitado
-        document.querySelectorAll('#distribucionForm input, #distribucionForm select, #distribucionForm textarea').forEach(el => el.disabled = false);
-    });
-    
-    // NUEVO EVENTO: Historial de Distribuciones
-    document.getElementById('btnTabDistHistorial').addEventListener('click', (e) => {
-        openMainTab(e, 'tabDistribucionHistorial');
-        cargarHistorialDistribuciones(); // Carga la nueva tabla
-    });
-
     document.getElementById('btnTabAdmin').addEventListener('click', (e) => openMainTab(e, 'tabAdmin'));
     
-    // Eventos de Formularios
     document.getElementById('consumoForm').addEventListener('submit', guardarOActualizar);
-    
-    // Evento para guardar distribución (Ahora es la función de previsualización)
-    const btnPrevisualizar = document.getElementById('btnPrevisualizarDistribucion');
-    const btnConfirmar = document.getElementById('btnConfirmarGuardado');
-    const btnCancelar = document.getElementById('btnCancelarPreview');
 
-    if (btnPrevisualizar) btnPrevisualizar.addEventListener('click', previsualizarDistribucion); 
-    if (btnConfirmar) btnConfirmar.addEventListener('click', confirmarGuardado);
-    
-    // Evento para cancelar previsualización/editar
-    if (btnCancelar) btnCancelar.addEventListener('click', () => {
-        document.getElementById('tablaDistribucionPreview').style.display = 'none';
-        document.getElementById('btnPrevisualizarDistribucion').style.display = 'block';
-        document.getElementById('btnCancelarPreview').style.display = 'none';
-        // Habilitar inputs del formulario
-        document.querySelectorAll('#distribucionForm input, #distribucionForm select, #distribucionForm textarea').forEach(el => el.disabled = false);
-        // Desactivar el botón de confirmar
-        document.getElementById('btnConfirmarGuardado').disabled = true;
-    });
-
-    
-    // Eventos de Cálculo de Distribución
-    const totalGalonesInput = document.getElementById('distribucionGalonesTotal');
-    const totalCostoInput = document.getElementById('distribucionCostoTotal');
-
-    if (totalGalonesInput) totalGalonesInput.addEventListener('input', calcularTotalesDistribucion); 
-    if (totalCostoInput) totalCostoInput.addEventListener('input', calcularTotalesDistribucion);
-
-    // CORRECCIÓN: Re-habilitar los Eventos del Modal
-    const modal = document.getElementById('modalRegistro');
-    const btnCerrarModal = modal ? modal.querySelector('.close-button') : null; 
-    
-    if (btnAbrirModal) {
-        btnAbrirModal.addEventListener('click', () => {
-            reiniciarFormulario(); 
-            abrirModal();
-        });
-    }
-
-    if (btnCerrarModal) {
-        btnCerrarModal.addEventListener('click', cerrarModal);
-    }
-    
     document.querySelectorAll('.btn-print').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const targetId = e.currentTarget.dataset.printTarget;
@@ -675,7 +553,6 @@ function asignarEventosApp() {
     
     document.getElementById('historialBody').addEventListener('click', manejarAccionesHistorial);
 
-    // Eventos de Administración
     document.getElementById('formAdminChofer').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('choferes', document.getElementById('nuevoChofer')); });
     document.getElementById('formAdminPlaca').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('placas', document.getElementById('nuevaPlaca')); });
     document.getElementById('formAdminDetallesVolqueta').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('detallesVolqueta', document.getElementById('nuevoDetalleVolqueta')); });
@@ -683,11 +560,10 @@ function asignarEventosApp() {
     document.getElementById('formAdminProveedor').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('proveedores', document.getElementById('nuevoProveedor')); });
     document.getElementById('formAdminProyecto').addEventListener('submit', (e) => { e.preventDefault(); agregarItemAdmin('proyectos', document.getElementById('nuevoProyecto')); });
     
-    // Eventos de Dashboard
     document.getElementById('btnDashRegistrar').addEventListener('click', () => {
         reiniciarFormulario(); 
         openMainTab(null, 'tabRegistrar');
-        abrirModal(); // Se abre el modal al navegar desde el dashboard
+        abrirModal(); 
     });
 
     document.getElementById('btnDashHistorial').addEventListener('click', () => {
@@ -705,10 +581,10 @@ function asignarEventosApp() {
         const mesActual = `${anio}-${mes}`;
 
         const filtroReportes = document.getElementById('filtroMesReportes');
-        if (filtroReportes && filtroReportes.querySelector(`option[value="${mesActual}"]`)) {
+        if (filtroReportes.querySelector(`option[value="${mesActual}"]`)) {
             filtroReportes.value = mesActual;
             filtroReportes.dispatchEvent(new Event('change', { 'bubbles': true }));
-        } else if (filtroReportes) {
+        } else {
             mostrarNotificacion("No hay datos para el mes actual.", "info");
             filtroReportes.value = 'todos';
             filtroReportes.dispatchEvent(new Event('change', { 'bubbles': true }));
@@ -734,434 +610,6 @@ function asignarEventosApp() {
 
     asignarSincronizacionDeFiltros();
 }
-
-
-// --- FUNCIONES DE HISTORIAL DE DISTRIBUCIONES ---
-
-async function cargarHistorialDistribuciones() {
-    try {
-        const querySnapshot = await getDocs(query(collection(db, "distribuciones"), orderBy("timestamp", "desc")));
-
-        historialDistribuciones = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-        const tbody = document.getElementById('distribucionHistorialBody');
-        if (!tbody) return;
-
-        tbody.innerHTML = '';
-
-        if (historialDistribuciones.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="8" class="empty-state">No hay registros de distribución guardados.</td></tr>`;
-            return;
-        }
-
-        historialDistribuciones.forEach(registro => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td>${registro.fecha}</td>
-                <td>${registro.hora || ''}</td>
-                <td>${registro.volqueta}</td>
-                <td>${registro.chofer}</td>
-                <td>${registro.proveedor || ''}</td>
-                <td>${(parseFloat(registro.galonesTotal) || 0).toFixed(2)}</td>
-                <td>$${(parseFloat(registro.costoTotal) || 0).toFixed(2)}</td>
-                <td>${registro.registrosCreados || 0}</td>
-            `;
-            tbody.appendChild(tr);
-        });
-
-    } catch (error) {
-        console.error("Error cargando historial de distribuciones:", error);
-        mostrarNotificacion("Error al cargar el Historial de Distribuciones.", "error");
-    }
-}
-
-
-// --- FUNCIONES DE DISTRIBUCIÓN POR PROYECTO ---
-
-function reiniciarFormularioDistribucion() {
-    const form = document.getElementById('distribucionForm');
-    if (form) form.reset();
-
-    const idInput = document.getElementById('distribucionRegistroId');
-    if (idInput) idInput.value = '';
-
-    const fechaInput = document.getElementById('distribucionFecha');
-    if (fechaInput) fechaInput.valueAsDate = new Date();
-
-    // Sincronizar selectores con los datos actuales
-    sincronizarSelectoresDistribucion();
-    
-    // Reiniciar totales pendientes
-    const galonesSpan = document.getElementById('galonesPendientes');
-    const costoSpan = document.getElementById('costoPendiente');
-
-    if (galonesSpan) { 
-        galonesSpan.textContent = '0.00';
-        galonesSpan.style.color = 'red';
-    }
-    if (costoSpan) { 
-        costoSpan.textContent = '$ 0.00';
-        costoSpan.style.color = 'red';
-    }
-    
-    // Volver a cargar campos de proyecto (incluye el recalculate)
-    actualizarCamposDistribucion();
-}
-
-function sincronizarSelectoresDistribucion() {
-    // Sincroniza los selectores de la pestaña "Distribución"
-    const selectores = { 
-        choferes: document.getElementById('distribucionSelectChofer'), 
-        placas: document.getElementById('distribucionSelectVolqueta'), 
-        proveedores: document.getElementById('distribucionSelectProveedor'),
-        proyectos: document.getElementById('distribucionSelectProyecto')
-    };
-    const titulos = { 
-        choferes: '--- Chofer ---', 
-        placas: '--- Placa ---', 
-        proveedores: '--- Proveedor ---',
-        proyectos: '--- Proyecto ---'
-    };
-    // Listas de Admin para referencia
-    const adminLists = {
-        choferes: listasAdmin.choferes,
-        placas: listasAdmin.placas,
-        proveedores: listasAdmin.proveedores,
-        proyectos: listasAdmin.proyectos
-    };
-    
-    for (const tipo in selectores) {
-        const select = selectores[tipo];
-        if (!select) continue;
-        const valorActual = select.value;
-        const lista = adminLists[tipo];
-        
-        select.innerHTML = `<option value="">${titulos[tipo]}</option>`; 
-        if (lista) {
-             lista.forEach(item => { select.innerHTML += `<option value="${item.nombre}">${item.nombre}</option>`; });
-        }
-        select.value = valorActual;
-    }
-}
-
-function actualizarCamposDistribucion() {
-    const container = document.getElementById('distribucionProyectosContainer');
-    if (!container) return; 
-
-    // Guardar el bloque de totales para reinsertarlo al final
-    const totalesElement = container.querySelector('#distribucionTotales');
-    const totalesHTML = totalesElement ? totalesElement.outerHTML : 
-        `<div id="distribucionTotales" style="grid-column: 1 / -1; display: flex; justify-content: space-between; font-weight: bold; margin-top: 10px; border-top: 1px dashed #ccc; padding-top: 10px;">
-            <span>Galones Pendientes: <span id="galonesPendientes" style="color: red;">0.00</span></span>
-            <span>Costo Pendiente: <span id="costoPendiente" style="color: red;">$ 0.00</span></span>
-        </div>`;
-    
-    container.innerHTML = '';
-    
-    if (listasAdmin.proyectos.length === 0) {
-        container.innerHTML = '<div style="grid-column: 1 / -1;"><p class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i> No hay proyectos registrados. Vaya a Administración.</p></div>';
-        return;
-    }
-
-    listasAdmin.proyectos.forEach(proyecto => {
-        const div = document.createElement('div');
-        div.className = 'distribucion-proyecto-item';
-        div.dataset.proyecto = proyecto.nombre;
-        div.innerHTML = `
-            <label>Galones (${proyecto.nombre}):</label>
-            <input type="number" step="0.01" data-type="galones" data-proyecto="${proyecto.nombre}" value="0.00" min="0">
-            <label>Costo ($) (${proyecto.nombre}):</label>
-            <input type="number" step="0.01" data-type="costo" data-proyecto="${proyecto.nombre}" value="0.00" min="0" disabled>
-        `;
-        container.appendChild(div);
-    });
-
-    // Reinsertar el bloque de totales pendientes
-    container.insertAdjacentHTML('beforeend', totalesHTML);
-    
-    // Asignar eventos de escucha a los inputs de volumen y totales principales
-    container.querySelectorAll('input[data-type="galones"]').forEach(input => {
-        input.addEventListener('input', calcularTotalesDistribucion);
-    });
-    document.getElementById('distribucionGalonesTotal')?.addEventListener('input', calcularTotalesDistribucion);
-    document.getElementById('distribucionCostoTotal')?.addEventListener('input', calcularTotalesDistribucion);
-    
-    // Aplicar la primera ejecución del cálculo
-    calcularTotalesDistribucion();
-}
-
-function calcularTotalesDistribucion() {
-    const totalGalonesInput = document.getElementById('distribucionGalonesTotal');
-    const totalCostoInput = document.getElementById('distribucionCostoTotal');
-    const totalGalones = parseFloat(totalGalonesInput?.value) || 0;
-    const totalCosto = parseFloat(totalCostoInput?.value) || 0;
-
-    let costoUnitario = 0;
-    if (totalGalones > 0 && totalCosto >= 0) {
-        costoUnitario = totalCosto / totalGalones;
-    }
-
-    let sumaGalonesDistribuidos = 0;
-
-    // 1. Calcular y actualizar los costos por proyecto
-    document.querySelectorAll('#distribucionProyectosContainer input[data-type="galones"]').forEach(galonesInput => {
-        const galones = parseFloat(galonesInput.value) || 0;
-        const proyectoNombre = galonesInput.dataset.proyecto;
-        const costoInput = document.querySelector(`input[data-proyecto="${proyectoNombre}"][data-type="costo"]`);
-        
-        // Calcular el costo basado en el volumen y el costo unitario
-        const costoCalculado = galones * costoUnitario;
-        
-        if (costoInput) {
-            costoInput.value = costoCalculado.toFixed(2);
-        }
-        
-        sumaGalonesDistribuidos += galones;
-    });
-    
-    // 2. Calcular pendientes (SOLO GALONES para validación principal)
-    const galonesPendientes = totalGalones - sumaGalonesDistribuidos;
-    
-    // El costo pendiente se calcula por diferencia para mostrar si hay desbalance
-    const sumaCostoDistribuido = sumaGalonesDistribuidos * costoUnitario;
-    const costoPendiente = totalCosto - sumaCostoDistribuido;
-    
-    // Mostrar en la UI
-    const galonesSpan = document.getElementById('galonesPendientes');
-    const costoSpan = document.getElementById('costoPendiente');
-
-    if (!galonesSpan || !costoSpan) return;
-
-    galonesSpan.textContent = galonesPendientes.toFixed(2);
-    costoSpan.textContent = `$ ${costoPendiente.toFixed(2)}`;
-
-    // Cambiar color si está OK (dentro de una pequeña tolerancia) o hay error
-    galonesSpan.style.color = (Math.abs(galonesPendientes) < 0.01) ? 'green' : 'red';
-    costoSpan.style.color = (Math.abs(costoPendiente) < 0.01) ? 'green' : 'red';
-}
-
-
-async function previsualizarDistribucion() {
-    // 1. Deshabilitar botón para evitar doble clic
-    const btnPrevisualizar = document.getElementById('btnPrevisualizarDistribucion');
-    if (btnPrevisualizar) {
-        btnPrevisualizar.disabled = true;
-        btnPrevisualizar.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Previsualizando...';
-    }
-
-    // 2. Obtener datos base
-    const totalGalones = parseFloat(document.getElementById('distribucionGalonesTotal')?.value) || 0;
-    const totalCosto = parseFloat(document.getElementById('distribucionCostoTotal')?.value) || 0;
-    const proyectoUnico = document.getElementById('distribucionSelectProyecto')?.value;
-
-    const datosBase = {
-        fecha: document.getElementById('distribucionFecha')?.value,
-        hora: document.getElementById('distribucionHora')?.value,
-        volqueta: document.getElementById('distribucionSelectVolqueta')?.value,
-        chofer: document.getElementById('distribucionSelectChofer')?.value,
-        proveedor: document.getElementById('distribucionSelectProveedor')?.value,
-        
-        // Campos fijos o vacíos para Firestore (se eliminaron del formulario)
-        empresa: "", 
-        detallesVolqueta: "", 
-        kilometraje: null,
-        descripcion: "Consumo distribuido (Automatizado)" 
-    };
-
-    // 3. Validación Mínima
-    if (!datosBase.chofer || !datosBase.volqueta || totalGalones <= 0 || totalCosto <= 0) {
-        mostrarNotificacion("Por favor, complete Chofer, Placa y que los Totales de galones/costo sean mayores a cero.", "error");
-        if (btnPrevisualizar) {
-            btnPrevisualizar.disabled = false;
-            btnPrevisualizar.innerHTML = '<i class="fa-solid fa-eye"></i> Previsualizar y Distribuir';
-        }
-        return;
-    }
-
-    // 4. Determinar Modo y Recopilar Registros
-    const registros = [];
-    const galonesDistribuidos = Array.from(document.querySelectorAll('#distribucionProyectosContainer input[data-type="galones"]'))
-        .map(input => parseFloat(input.value) || 0);
-    
-    const tieneDistribucion = galonesDistribuidos.some(g => g > 0);
-    const previewBody = document.getElementById('previewTableBody');
-    const validationMessage = document.getElementById('previewValidationMessage');
-    const previewContainer = document.getElementById('tablaDistribucionPreview');
-    const btnConfirmar = document.getElementById('btnConfirmarGuardado');
-
-    previewBody.innerHTML = '';
-    validationMessage.textContent = '';
-    btnConfirmar.disabled = true;
-
-    if (tieneDistribucion) {
-        // MODO DISTRIBUCIÓN
-        calcularTotalesDistribucion();
-        const galonesPendientes = parseFloat(document.getElementById('galonesPendientes')?.textContent);
-        
-        // **Validación enfocada SÓLO en galones**
-        if (Math.abs(galonesPendientes) >= 0.01) {
-            validationMessage.textContent = "⚠️ Error: La suma de GALONES distribuidos NO coincide con el Total. Ajuste los campos.";
-            previewContainer.style.display = 'block';
-            if (btnPrevisualizar) {
-                btnPrevisualizar.disabled = false;
-                btnPrevisualizar.innerHTML = '<i class="fa-solid fa-eye"></i> Previsualizar y Distribuir';
-            }
-            return;
-        }
-
-        // Crear múltiples registros para la preview
-        listasAdmin.proyectos.forEach(proyecto => {
-            const galonesInput = document.querySelector(`input[data-proyecto="${proyecto.nombre}"][data-type="galones"]`);
-            const costoInput = document.querySelector(`input[data-proyecto="${proyecto.nombre}"][data-type="costo"]`);
-            
-            const galones = parseFloat(galonesInput?.value) || 0;
-            const costo = parseFloat(costoInput?.value) || 0; // Se toma el valor auto-calculado
-
-            if (galones > 0 || costo > 0) {
-                registros.push({
-                    ...datosBase,
-                    proyecto: proyecto.nombre,
-                    galones: galones.toFixed(2),
-                    costo: costo.toFixed(2),
-                });
-            }
-        });
-
-    } else if (proyectoUnico) {
-        // MODO REGISTRO ÚNICO
-        registros.push({
-            ...datosBase,
-            proyecto: proyectoUnico,
-            galones: totalGalones.toFixed(2),
-            costo: totalCosto.toFixed(2),
-        });
-
-    } else {
-        // Ni distribución, ni proyecto único seleccionado.
-        validationMessage.textContent = "⚠️ Debe seleccionar un Proyecto (si es único) O ingresar la distribución por proyecto.";
-        previewContainer.style.display = 'block';
-        if (btnPrevisualizar) {
-            btnPrevisualizar.disabled = false;
-            btnPrevisualizar.innerHTML = '<i class="fa-solid fa-eye"></i> Previsualizar y Distribuir';
-        }
-        return;
-    }
-
-    if (registros.length === 0) {
-        validationMessage.textContent = "⚠️ No se generó ningún registro válido. Revise los campos de distribución.";
-        previewContainer.style.display = 'block';
-        if (btnPrevisualizar) {
-            btnPrevisualizar.disabled = false;
-            btnPrevisualizar.innerHTML = '<i class="fa-solid fa-eye"></i> Previsualizar y Distribuir';
-        }
-        return;
-    }
-    
-    // --- 5. Mostrar la tabla de previsualización ---
-    let htmlContent = '';
-    registros.forEach(r => {
-        htmlContent += `<tr>
-            <td>${r.proyecto}</td>
-            <td>${r.galones}</td>
-            <td>$${r.costo}</td>
-            <td>${r.fecha} ${r.hora}</td>
-            <td>${r.volqueta}</td>
-        </tr>`;
-    });
-
-    previewBody.innerHTML = htmlContent;
-    validationMessage.textContent = `✅ Se van a crear ${registros.length} registros. Revise y confirme.`;
-    btnConfirmar.disabled = false;
-    
-    // Deshabilitar el formulario para evitar cambios antes de guardar
-    document.querySelectorAll('#distribucionForm input, #distribucionForm select, #distribucionForm textarea').forEach(el => el.disabled = true);
-    
-    document.getElementById('btnPrevisualizarDistribucion').style.display = 'none';
-    document.getElementById('btnCancelarPreview').style.display = 'block';
-    previewContainer.style.display = 'block';
-    
-    // Almacenar registros temporalmente para la confirmación
-    registrosParaGuardar = registros;
-    
-    // Re-habilitar botón
-    if (btnPrevisualizar) {
-        btnPrevisualizar.disabled = false;
-        btnPrevisualizar.innerHTML = '<i class="fa-solid fa-eye"></i> Previsualizar y Distribuir';
-    }
-}
-
-
-// NUEVA FUNCIÓN: Confirma y guarda los registros temporales
-async function confirmarGuardado() {
-    if (registrosParaGuardar.length === 0) {
-        mostrarNotificacion("No hay registros para guardar. Previsualice primero.", "error");
-        return;
-    }
-    
-    const btnConfirmar = document.getElementById('btnConfirmarGuardado');
-    btnConfirmar.disabled = true;
-    btnConfirmar.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Guardando en Firebase...';
-
-    // Crear el registro de la carga total para la nueva colección 'distribuciones'
-    const primerRegistro = registrosParaGuardar[0];
-    const registroTotalDistribucion = {
-        fecha: primerRegistro.fecha,
-        hora: primerRegistro.hora,
-        volqueta: primerRegistro.volqueta,
-        chofer: primerRegistro.chofer,
-        proveedor: primerRegistro.proveedor,
-        // Recalcular totales desde los inputs, ya que los registros individuales son parciales
-        galonesTotal: parseFloat(document.getElementById('distribucionGalonesTotal')?.value) || 0,
-        costoTotal: parseFloat(document.getElementById('distribucionCostoTotal')?.value) || 0,
-        registrosCreados: registrosParaGuardar.length,
-        timestamp: new Date().toISOString() // Para ordenamiento y referencia
-    };
-
-    try {
-        // 1. Guardar el registro de la carga total en 'distribuciones'
-        await addDoc(collection(db, "distribuciones"), registroTotalDistribucion);
-        
-        // 2. Guardar los registros individuales en 'consumos'
-        const promesasConsumos = registrosParaGuardar.map(registro => addDoc(collection(db, "consumos"), registro));
-        await Promise.all(promesasConsumos);
-        
-        mostrarNotificacion(`Éxito: Se crearon ${registrosParaGuardar.length} registros distribuidos.`, "exito", 5000);
-        
-        // 3. Limpiar y resetear la UI y recargar datos
-        document.getElementById('tablaDistribucionPreview').style.display = 'none';
-        reiniciarFormularioDistribucion();
-        await cargarDatosIniciales();
-        
-        // 4. Recargar el historial de la nueva tabla
-        await cargarHistorialDistribuciones(); 
-        
-        if (!esModoObservador) {
-            openMainTab(null, 'tabInicio');
-        }
-        registrosParaGuardar = []; // Limpiar caché
-        
-    } catch (error) {
-        console.error("Error guardando distribución:", error);
-        mostrarNotificacion(`Error al guardar: ${error.message}`, "error", 5000);
-        
-        // Revertir el estado de los botones tras el error
-        document.querySelectorAll('#distribucionForm input, #distribucionForm select, #distribucionForm textarea').forEach(el => el.disabled = false);
-        document.getElementById('btnConfirmarGuardado').disabled = false;
-        document.getElementById('btnConfirmarGuardado').innerHTML = '<i class="fa-solid fa-cloud-upload-alt"></i> Confirmar y Guardar Registros';
-        document.getElementById('btnPrevisualizarDistribucion').style.display = 'block';
-        document.getElementById('btnCancelarPreview').style.display = 'none';
-        
-    } finally {
-        const btnPrevisualizar = document.getElementById('btnPrevisualizarDistribucion');
-        if (btnPrevisualizar) {
-            btnPrevisualizar.innerHTML = '<i class="fa-solid fa-eye"></i> Previsualizar y Distribuir';
-            btnPrevisualizar.disabled = false;
-        }
-    }
-}
-
-// --- FIN NUEVAS FUNCIONES DE DISTRIBUCIÓN POR PROYECTO ---
-
 
 function iniciarAplicacion() {
     asignarEventosApp();

@@ -32,9 +32,7 @@
         <div class="main-tabs">
             <button class="main-tab-link active" id="btnTabInicio"><i class="fa-solid fa-house"></i>Inicio</button>
             <button class="main-tab-link" id="btnTabRegistrar"><i class="fa-solid fa-pencil"></i>Registrar</button>
-            <button class="main-tab-link" id="btnTabDistribuir"><i class="fa-solid fa-sitemap"></i>Distribución</button>
             <button class="main-tab-link" id="btnTabReportes"><i class="fa-solid fa-chart-pie"></i>Reportes</button>
-            <button class="main-tab-link" id="btnTabDistHistorial"><i class="fa-solid fa-list-alt"></i>Reg. Distribución</button>
             <button class="main-tab-link" id="btnTabHistorial"><i class="fa-solid fa-list-ul"></i>Historial Detallado</button>
             <button class="main-tab-link" id="btnTabAdmin"><i class="fa-solid fa-gear"></i>Administración</button>
         </div>
@@ -97,7 +95,6 @@
                     </div>
                 </div>
             </div>
-            
             <div id="tabRegistrar" class="main-tab-content no-print">
                 <div class="container">
                     <h2><i class="fa-solid fa-file-circle-plus"></i>Registros de Consumo</h2>
@@ -138,114 +135,6 @@
                                 <button type="submit" id="btnGuardar" class="button-primary"><i class="fa-solid fa-floppy-disk"></i>Guardar Registro</button>
                             </form>
                         </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div id="tabDistribuir" class="main-tab-content no-print">
-                <div class="container">
-                    <h2><i class="fa-solid fa-sitemap"></i>Distribución de Consumo por Proyecto</h2>
-                    <p>Ingrese los datos de la carga y distribuya el consumo. **Haga clic en 'Previsualizar y Distribuir' antes de Guardar.**</p>
-                    
-                    <div id="formularioContainerDistribucion">
-                        <h3 style="text-align: left;">Datos del Registro Único</h3>
-                        <form id="distribucionForm">
-                            <input type="hidden" id="distribucionRegistroId">
-                            
-                            <div class="form-grid">
-                                <div>
-                                    <label for="distribucionFecha">Fecha:</label>
-                                    <input type="date" id="distribucionFecha" required>
-                                </div>
-                                <div>
-                                    <label for="distribucionHora">Hora de Carga:</label>
-                                    <input type="time" id="distribucionHora">
-                                </div>
-                                <div>
-                                    <label for="distribucionSelectChofer">Nombre del Chofer:</label>
-                                    <select id="distribucionSelectChofer" required></select>
-                                </div>
-                                <div>
-                                    <label for="distribucionSelectVolqueta">Placa de la Volqueta:</label>
-                                    <select id="distribucionSelectVolqueta" required></select>
-                                </div>
-                                <div>
-                                    <label for="distribucionSelectProveedor">Proveedor de Diesel:</label>
-                                    <select id="distribucionSelectProveedor" required></select>
-                                </div>
-                                <div>
-                                    <label for="distribucionSelectProyecto">Proyecto (Si no se distribuye):</label>
-                                    <select id="distribucionSelectProyecto"></select>
-                                </div>
-                                <div>
-                                    <label for="distribucionGalonesTotal">Galones de Diésel (TOTAL):</label>
-                                    <input type="number" id="distribucionGalonesTotal" step="0.01" required>
-                                </div>
-                                <div>
-                                    <label for="distribucionCostoTotal">Costo Total ($):</label>
-                                    <input type="number" id="distribucionCostoTotal" step="0.01" required>
-                                </div>
-                                </div>
-
-                            <hr style="margin: 20px 0;">
-                            
-                            <h3 style="text-align: left;">Distribución por Proyecto (Sólo si es multi-proyecto)</h3>
-                            <div id="distribucionProyectosContainer" class="form-grid" style="grid-template-columns: 1fr 1fr 1fr;">
-                                <div id="distribucionTotales" style="grid-column: 1 / -1; display: flex; justify-content: space-between; font-weight: bold; margin-top: 10px; border-top: 1px dashed #ccc; padding-top: 10px;">
-                                    <span>Galones Pendientes: <span id="galonesPendientes" style="color: red;">0.00</span></span>
-                                    <span>Costo Pendiente: <span id="costoPendiente" style="color: red;">$ 0.00</span></span>
-                                </div>
-                            </div>
-
-                            <div id="tablaDistribucionPreview" style="margin-top: 20px; display: none;">
-                                <h3 style="text-align: left; border-bottom: 2px solid var(--primary-color); padding-bottom: 5px;">✅ Registros a Guardar (Previsualización)</h3>
-                                <div class="table-container">
-                                    <table id="previewTable" class="table-striped">
-                                        <thead>
-                                            <tr>
-                                                <th>Proyecto</th>
-                                                <th>Galones</th>
-                                                <th>Costo ($)</th>
-                                                <th>Fecha/Hora</th>
-                                                <th>Volqueta</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="previewTableBody">
-                                            </tbody>
-                                    </table>
-                                </div>
-                                <p style="margin-top: 15px; font-weight: bold; color: var(--danger-color);" id="previewValidationMessage"></p>
-                                <button type="button" id="btnConfirmarGuardado" class="button-success" style="width: 100%; margin-top: 15px;"><i class="fa-solid fa-cloud-upload-alt"></i> Confirmar y Guardar Registros</button>
-                            </div>
-                            
-                            <button type="button" id="btnPrevisualizarDistribucion" class="button-info" style="width: 100%; margin-top: 20px;"><i class="fa-solid fa-eye"></i> Previsualizar y Distribuir</button>
-                            <button type="button" id="btnCancelarPreview" class="button-secondary" style="width: 100%; margin-top: 10px; display: none;"><i class="fa-solid fa-undo"></i> Editar Distribución</button>
-
-                        </form>
-                    </div>
-                </div>
-            </div>
-            <div id="tabDistribucionHistorial" class="main-tab-content">
-                <div class="container">
-                    <h2><i class="fa-solid fa-list-alt"></i> Registro de Distribuciones de Carga</h2>
-                    <p class="print-suggestion no-print">Este es el registro de cargas que fueron distribuidas entre varios proyectos.</p>
-                    <div class="table-container">
-                        <table id="distribucionHistorialTabla">
-                            <thead>
-                                <tr>
-                                    <th>Fecha</th>
-                                    <th>Hora</th>
-                                    <th>Volqueta</th>
-                                    <th>Chofer</th>
-                                    <th>Proveedor</th>
-                                    <th>Galones (Total)</th>
-                                    <th>Costo (Total)</th>
-                                    <th>Registros Creados</th>
-                                </tr>
-                            </thead>
-                            <tbody id="distribucionHistorialBody">
-                                </tbody>
-                        </table>
                     </div>
                 </div>
             </div>
