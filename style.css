@@ -363,19 +363,16 @@ button:hover { opacity: 0.9; }
 }
 
 /* --- NAVEGACIÓN CENTRADA EN EL PANEL DE INICIO --- */
-/* CORRECCIÓN APLICADA: Esta regla se elimina/modifica para que el modo Admin/Default VEA TODAS las pestañas. */
-/* Si se desea ocultar las pestañas al inicio para forzar el dashboard:
+/* Esta regla se mantiene vacía en el CSS para que todas las pestañas se muestren por defecto 
+   en modo Administrador, confiando en que script.js active la pestaña 'Inicio' al cargar.
+   Si ves pestañas duplicadas, revisa esta sección en tu style.css */
 body:not(.modo-observador) #btnTabRegistrar,
 body:not(.modo-observador) #btnTabReportes,
 body:not(.modo-observador) #btnTabHistorial,
 body:not(.modo-observador) #btnTabAdmin {
-    display: none;
+     /* display: none; */ 
 }
-*/
 
-/* LA REGLA A CONTINUACIÓN FUE LA CAUSANTE DE OCULTAR TODO. LA VAMOS A ELIMINAR/DEJAR VACÍA. */
-/* Si solo quieres que el botón de Inicio sea activo por defecto, no necesitas esta regla. */
-/* La visibilidad de pestañas debe ser manejada solo por el script.js en onAuthStateChanged. */
 
 /* --- ESTILOS PARA LA PESTAÑA DE DISTRIBUCIÓN --- */
 
@@ -401,4 +398,21 @@ body:not(.modo-observador) #btnTabAdmin {
 }
 .distribucion-proyecto-item input[type="number"] {
     margin-bottom: 5px;
+}
+
+/* Estilos para la tabla de previsualización */
+#tablaDistribucionPreview table {
+    width: 100%;
+    margin-top: 10px;
+}
+#tablaDistribucionPreview th {
+    background-color: var(--info-color);
+    color: var(--white-color);
+}
+#tablaDistribucionPreview td {
+    padding: 8px;
+    font-size: 0.9em;
+}
+#tablaDistribucionPreview .table-striped tbody tr:nth-child(even) {
+    background-color: #f8f9fa;
 }

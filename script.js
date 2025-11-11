@@ -24,6 +24,7 @@ let listasAdmin = { choferes: [], placas: [], detallesVolqueta: [], empresas: []
 let appInicializada = false;
 let tabActivaParaImprimir = null;
 let esModoObservador = false; // Variable global para el rol
+let registrosParaGuardar = []; // ALMACENA TEMPORALMENTE LOS REGISTROS PARA LA PREVISUALIZACIÓN
 
 onAuthStateChanged(auth, (user) => {
     if (user) {
@@ -576,14 +577,38 @@ function asignarEventosApp() {
         openMainTab(e, 'tabDistribuir');
         reiniciarFormularioDistribucion(); 
         actualizarCamposDistribucion();
+        // Ocultar previsualización al abrir
+        document.getElementById('tablaDistribucionPreview').style.display = 'none';
+        document.getElementById('btnPrevisualizarDistribucion').style.display = 'block';
+        document.getElementById('btnCancelarPreview').style.display = 'none';
+        // Asegurarse de que el formulario esté habilitado
+        document.querySelectorAll('#distribucionForm input, #distribucionForm select, #distribucionForm textarea').forEach(el => el.disabled = false);
     });
     
     document.getElementById('btnTabAdmin').addEventListener('click', (e) => openMainTab(e, 'tabAdmin'));
     
     // Eventos de Formularios
     document.getElementById('consumoForm').addEventListener('submit', guardarOActualizar);
-    // Evento para guardar distribución
-    document.getElementById('distribucionForm').addEventListener('submit', guardarDistribucion); 
+    
+    // Evento para guardar distribución (Ahora es la función de previsualización)
+    const btnPrevisualizar = document.getElementById('btnPrevisualizarDistribucion');
+    const btnConfirmar = document.getElementById('btnConfirmarGuardado');
+    const btnCancelar = document.getElementById('btnCancelarPreview');
+
+    if (btnPrevisualizar) btnPrevisualizar.addEventListener('click', previsualizarDistribucion); 
+    if (btnConfirmar) btnConfirmar.addEventListener('click', confirmarGuardado);
+    
+    // Evento para cancelar previsualización/editar
+    if (btnCancelar) btnCancelar.addEventListener('click', () => {
+        document.getElementById('tablaDistribucionPreview').style.display = 'none';
+        document.getElementById('btnPrevisualizarDistribucion').style.display = 'block';
+        document.getElementById('btnCancelarPreview').style.display = 'none';
+        // Habilitar inputs del formulario
+        document.querySelectorAll('#distribucionForm input, #distribucionForm select, #distribucionForm textarea').forEach(el => el.disabled = false);
+        // Desactivar el botón de confirmar
+        document.getElementById('btnConfirmarGuardado').disabled = true;
+    });
+
     
     // Eventos de Cálculo de Distribución
     const totalGalonesInput = document.getElementById('distribucionGalonesTotal');
@@ -593,7 +618,6 @@ function asignarEventosApp() {
     if (totalCostoInput) totalCostoInput.addEventListener('input', calcularTotalesDistribucion);
 
     // CORRECCIÓN: Re-habilitar los Eventos del Modal
-    const btnAbrirModal = document.getElementById('btnAbrirModal');
     const modal = document.getElementById('modalRegistro');
     const btnCerrarModal = modal ? modal.querySelector('.close-button') : null; 
     
@@ -841,79 +865,93 @@ function calcularTotalesDistribucion() {
 }
 
 
-async function guardarDistribucion(e) {
-    e.preventDefault();
-    const btnGuardar = document.getElementById('btnGuardarDistribucion');
-    btnGuardar.disabled = true;
-    btnGuardar.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Guardando...';
+async function previsualizarDistribucion() {
+    // 1. Deshabilitar botón para evitar doble clic
+    const btnPrevisualizar = document.getElementById('btnPrevisualizarDistribucion');
+    if (btnPrevisualizar) {
+        btnPrevisualizar.disabled = true;
+        btnPrevisualizar.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Previsualizando...';
+    }
 
-    const totalGalones = parseFloat(document.getElementById('distribucionGalonesTotal').value) || 0;
-    const totalCosto = parseFloat(document.getElementById('distribucionCostoTotal').value) || 0;
-    const proyectoUnico = document.getElementById('distribucionSelectProyecto').value;
+    // 2. Obtener datos base
+    const totalGalones = parseFloat(document.getElementById('distribucionGalonesTotal')?.value) || 0;
+    const totalCosto = parseFloat(document.getElementById('distribucionCostoTotal')?.value) || 0;
+    const proyectoUnico = document.getElementById('distribucionSelectProyecto')?.value;
 
     const datosBase = {
-        fecha: document.getElementById('distribucionFecha').value,
-        hora: document.getElementById('distribucionHora').value,
-        volqueta: document.getElementById('distribucionSelectVolqueta').value,
-        chofer: document.getElementById('distribucionSelectChofer').value,
-        empresa: document.getElementById('distribucionSelectEmpresa').value,
-        proveedor: document.getElementById('distribucionSelectProveedor').value,
-        detallesVolqueta: document.getElementById('distribucionSelectDetallesVolqueta').value || "", 
-        kilometraje: document.getElementById('distribucionKilometraje').value || null,
-        descripcion: document.getElementById('distribucionDescripcion').value,
+        fecha: document.getElementById('distribucionFecha')?.value,
+        hora: document.getElementById('distribucionHora')?.value,
+        volqueta: document.getElementById('distribucionSelectVolqueta')?.value,
+        chofer: document.getElementById('distribucionSelectChofer')?.value,
+        empresa: document.getElementById('distribucionSelectEmpresa')?.value,
+        proveedor: document.getElementById('distribucionSelectProveedor')?.value,
+        detallesVolqueta: document.getElementById('distribucionSelectDetallesVolqueta')?.value || "", 
+        kilometraje: document.getElementById('distribucionKilometraje')?.value || null,
+        descripcion: document.getElementById('distribucionDescripcion')?.value,
     };
 
+    // 3. Validación Mínima
     if (!datosBase.chofer || !datosBase.volqueta || totalGalones === 0 || totalCosto === 0) {
-        mostrarNotificacion("Por favor, complete al menos el chofer, la placa y los totales de galones/costo.", "error");
-        btnGuardar.disabled = false;
-        btnGuardar.innerHTML = '<i class="fa-solid fa-floppy-disk"></i>Guardar Distribución';
+        mostrarNotificacion("Por favor, complete Chofer, Placa y los Totales de galones/costo.", "error");
+        if (btnPrevisualizar) {
+            btnPrevisualizar.disabled = false;
+            btnPrevisualizar.innerHTML = '<i class="fa-solid fa-eye"></i> Previsualizar y Distribuir';
+        }
         return;
     }
 
-    const registrosADB = [];
-    let isMultiProyecto = false;
-
-    // 1. Verificar si hay distribución en los campos individuales de proyecto (MODO DISTRIBUCIÓN)
+    // 4. Determinar Modo y Recopilar Registros
+    const registros = [];
     const galonesDistribuidos = Array.from(document.querySelectorAll('#distribucionProyectosContainer input[data-type="galones"]'))
         .map(input => parseFloat(input.value) || 0);
     
     const tieneDistribucion = galonesDistribuidos.some(g => g > 0);
+    const previewBody = document.getElementById('previewTableBody');
+    const validationMessage = document.getElementById('previewValidationMessage');
+    const previewContainer = document.getElementById('tablaDistribucionPreview');
+    const btnConfirmar = document.getElementById('btnConfirmarGuardado');
+
+    previewBody.innerHTML = '';
+    validationMessage.textContent = '';
+    btnConfirmar.disabled = true;
 
     if (tieneDistribucion) {
-        // MODO DISTRIBUCIÓN: Se debe validar la suma contra el total.
+        // MODO DISTRIBUCIÓN
         calcularTotalesDistribucion();
-        const galonesPendientes = parseFloat(document.getElementById('galonesPendientes').textContent);
-        const costoPendiente = parseFloat(document.getElementById('costoPendiente').textContent.replace('$', '')) || 0;
+        const galonesPendientes = parseFloat(document.getElementById('galonesPendientes')?.textContent);
+        const costoPendiente = parseFloat(document.getElementById('costoPendiente')?.textContent.replace('$', '')) || 0;
 
         if (Math.abs(galonesPendientes) >= 0.01 || Math.abs(costoPendiente) >= 0.01) {
-            mostrarNotificacion("Error: La suma de proyectos NO coincide con los totales ingresados.", "error", 7000);
-            btnGuardar.disabled = false;
-            btnGuardar.innerHTML = '<i class="fa-solid fa-floppy-disk"></i>Guardar Distribución';
+            validationMessage.textContent = "⚠️ Error: La suma de proyectos NO coincide con los totales ingresados. Ajuste los campos.";
+            previewContainer.style.display = 'block';
+            if (btnPrevisualizar) {
+                btnPrevisualizar.disabled = false;
+                btnPrevisualizar.innerHTML = '<i class="fa-solid fa-eye"></i> Previsualizar y Distribuir';
+            }
             return;
         }
 
-        // Crear múltiples registros
+        // Crear múltiples registros para la preview
         listasAdmin.proyectos.forEach(proyecto => {
             const galonesInput = document.querySelector(`input[data-proyecto="${proyecto.nombre}"][data-type="galones"]`);
             const costoInput = document.querySelector(`input[data-proyecto="${proyecto.nombre}"][data-type="costo"]`);
             
-            const galones = parseFloat(galonesInput.value) || 0;
-            const costo = parseFloat(costoInput.value) || 0;
+            const galones = parseFloat(galonesInput?.value) || 0;
+            const costo = parseFloat(costoInput?.value) || 0;
 
             if (galones > 0 || costo > 0) {
-                registrosADB.push({
+                registros.push({
                     ...datosBase,
                     proyecto: proyecto.nombre,
                     galones: galones.toFixed(2),
                     costo: costo.toFixed(2),
                 });
-                isMultiProyecto = true;
             }
         });
 
     } else if (proyectoUnico) {
-        // MODO REGISTRO ÚNICO: Si se seleccionó un proyecto pero no se llenaron los campos de distribución.
-        registrosADB.push({
+        // MODO REGISTRO ÚNICO
+        registros.push({
             ...datosBase,
             proyecto: proyectoUnico,
             galones: totalGalones.toFixed(2),
@@ -922,40 +960,94 @@ async function guardarDistribucion(e) {
 
     } else {
         // Ni distribución, ni proyecto único seleccionado.
-        mostrarNotificacion("Debe seleccionar un Proyecto (si es único) O ingresar la distribución en los proyectos de abajo.", "error");
-        btnGuardar.disabled = false;
-        btnGuardar.innerHTML = '<i class="fa-solid fa-floppy-disk"></i>Guardar Distribución';
+        validationMessage.textContent = "⚠️ Debe seleccionar un Proyecto (si es único) O ingresar la distribución por proyecto.";
+        previewContainer.style.display = 'block';
+        if (btnPrevisualizar) {
+            btnPrevisualizar.disabled = false;
+            btnPrevisualizar.innerHTML = '<i class="fa-solid fa-eye"></i> Previsualizar y Distribuir';
+        }
         return;
     }
 
-    if (registrosADB.length === 0) {
-        mostrarNotificacion("No se generó ningún registro válido.", "error");
-        btnGuardar.disabled = false;
-        btnGuardar.innerHTML = '<i class="fa-solid fa-floppy-disk"></i>Guardar Distribución';
+    if (registros.length === 0) {
+        validationMessage.textContent = "⚠️ No se generó ningún registro válido. Revise los campos de distribución.";
+        previewContainer.style.display = 'block';
+        if (btnPrevisualizar) {
+            btnPrevisualizar.disabled = false;
+            btnPrevisualizar.innerHTML = '<i class="fa-solid fa-eye"></i> Previsualizar y Distribuir';
+        }
         return;
     }
+    
+    // --- 5. Mostrar la tabla de previsualización ---
+    let htmlContent = '';
+    registros.forEach(r => {
+        htmlContent += `<tr>
+            <td>${r.proyecto}</td>
+            <td>${r.galones}</td>
+            <td>$${r.costo}</td>
+            <td>${r.fecha} ${r.hora}</td>
+            <td>${r.volqueta}</td>
+        </tr>`;
+    });
+
+    previewBody.innerHTML = htmlContent;
+    validationMessage.textContent = `✅ Se van a crear ${registros.length} registros. Revise y confirme.`;
+    btnConfirmar.disabled = false;
+    
+    // Deshabilitar el formulario para evitar cambios antes de guardar
+    document.querySelectorAll('#distribucionForm input, #distribucionForm select, #distribucionForm textarea').forEach(el => el.disabled = true);
+    
+    document.getElementById('btnPrevisualizarDistribucion').style.display = 'none';
+    document.getElementById('btnCancelarPreview').style.display = 'block';
+    previewContainer.style.display = 'block';
+    
+    // Almacenar registros temporalmente para la confirmación
+    registrosParaGuardar = registros;
+}
+
+
+// NUEVA FUNCIÓN: Confirma y guarda los registros temporales
+async function confirmarGuardado() {
+    if (registrosParaGuardar.length === 0) {
+        mostrarNotificacion("No hay registros para guardar. Previsualice primero.", "error");
+        return;
+    }
+    
+    const btnConfirmar = document.getElementById('btnConfirmarGuardado');
+    btnConfirmar.disabled = true;
+    btnConfirmar.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Guardando en Firebase...';
 
     try {
-        const promesas = registrosADB.map(registro => addDoc(collection(db, "consumos"), registro));
+        const promesas = registrosParaGuardar.map(registro => addDoc(collection(db, "consumos"), registro));
         await Promise.all(promesas);
-        const mensaje = isMultiProyecto 
-            ? `Éxito: Se crearon ${registrosADB.length} registros distribuidos.`
-            : "Registro único guardado con éxito.";
-            
-        mostrarNotificacion(mensaje, "exito", 5000);
         
+        mostrarNotificacion(`Éxito: Se crearon ${registrosParaGuardar.length} registros distribuidos.`, "exito", 5000);
+        
+        // Limpiar y resetear la UI
+        document.getElementById('tablaDistribucionPreview').style.display = 'none';
         reiniciarFormularioDistribucion();
         await cargarDatosIniciales();
         
         if (!esModoObservador) {
             openMainTab(null, 'tabInicio');
         }
+        registrosParaGuardar = []; // Limpiar caché
+        
     } catch (error) {
         console.error("Error guardando distribución:", error);
         mostrarNotificacion(`Error al guardar: ${error.message}`, "error", 5000);
+        
+        // Revertir el estado de los botones tras el error
+        document.querySelectorAll('#distribucionForm input, #distribucionForm select, #distribucionForm textarea').forEach(el => el.disabled = false);
+        document.getElementById('btnConfirmarGuardado').disabled = false;
+        document.getElementById('btnConfirmarGuardado').innerHTML = '<i class="fa-solid fa-cloud-upload-alt"></i> Confirmar y Guardar Registros';
+        document.getElementById('btnPrevisualizarDistribucion').style.display = 'block';
+        document.getElementById('btnCancelarPreview').style.display = 'none';
+        
     } finally {
-        btnGuardar.disabled = false;
-        btnGuardar.innerHTML = '<i class="fa-solid fa-floppy-disk"></i>Guardar Distribución';
+        document.getElementById('btnPrevisualizarDistribucion').innerHTML = '<i class="fa-solid fa-eye"></i> Previsualizar y Distribuir';
+        document.getElementById('btnPrevisualizarDistribucion').disabled = false;
     }
 }
 
