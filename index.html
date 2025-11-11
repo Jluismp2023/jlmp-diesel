@@ -34,6 +34,7 @@
             <button class="main-tab-link" id="btnTabRegistrar"><i class="fa-solid fa-pencil"></i>Registrar</button>
             <button class="main-tab-link" id="btnTabDistribuir"><i class="fa-solid fa-sitemap"></i>Distribución</button>
             <button class="main-tab-link" id="btnTabReportes"><i class="fa-solid fa-chart-pie"></i>Reportes</button>
+            <button class="main-tab-link" id="btnTabDistHistorial"><i class="fa-solid fa-list-alt"></i>Reg. Distribución</button>
             <button class="main-tab-link" id="btnTabHistorial"><i class="fa-solid fa-list-ul"></i>Historial Detallado</button>
             <button class="main-tab-link" id="btnTabAdmin"><i class="fa-solid fa-gear"></i>Administración</button>
         </div>
@@ -224,6 +225,31 @@
                     </div>
                 </div>
             </div>
+            <div id="tabDistribucionHistorial" class="main-tab-content">
+                <div class="container">
+                    <h2><i class="fa-solid fa-list-alt"></i> Registro de Distribuciones de Carga</h2>
+                    <p class="print-suggestion no-print">Este es el registro de cargas que fueron distribuidas entre varios proyectos.</p>
+                    <div class="table-container">
+                        <table id="distribucionHistorialTabla">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Hora</th>
+                                    <th>Volqueta</th>
+                                    <th>Chofer</th>
+                                    <th>Proveedor</th>
+                                    <th>Galones (Total)</th>
+                                    <th>Costo (Total)</th>
+                                    <th>Registros Creados</th>
+                                </tr>
+                            </thead>
+                            <tbody id="distribucionHistorialBody">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
             <div id="tabReportes" class="main-tab-content"><div class="container no-print"><div class="filter-section"><div class="filter-group"><div><label for="filtroMesReportes">Por Mes:</label><select id="filtroMesReportes" class="filtro-sincronizado" data-sync-id="filtroMes"></select></div><div><label for="filtroFechaInicioReportes">Por Rango:</label><input type="date" id="filtroFechaInicioReportes" class="filtro-sincronizado" data-sync-id="filtroFechaInicio" title="Desde la Fecha"></div><div><label for="filtroFechaFinReportes">-</label><input type="date" id="filtroFechaFinReportes" class="filtro-sincronizado" data-sync-id="filtroFechaFin" title="Hasta la Fecha"></div></div><div class="filter-group"><div><label for="filtroChoferReportes">Por Chofer:</label><select id="filtroChoferReportes" class="filtro-sincronizado" data-sync-id="filtroChofer"></select></div><div><label for="filtroProveedorReportes">Por Proveedor:</label><select id="filtroProveedorReportes" class="filtro-sincronizado" data-sync-id="filtroProveedor"></select></div><div><label for="filtroEmpresaReportes">Por Empresa:</label><select id="filtroEmpresaReportes" class="filtro-sincronizado" data-sync-id="filtroEmpresa"></select></div><div><label for="filtroProyectoReportes">Por Proyecto:</label><select id="filtroProyectoReportes" class="filtro-sincronizado" data-sync-id="filtroProyecto"></select></div></div><div class="filter-group"><button id="btnAplicarFiltros" class="button-success"><i class="fa-solid fa-filter"></i>Aplicar Filtros</button><button id="btnLimpiarFiltros" class="button-secondary"><i class="fa-solid fa-eraser"></i>Limpiar Filtros</button><button class="button-info btn-print" data-print-target="tabReportes" style="margin-left: auto;"><i class="fa-solid fa-print"></i>Imprimir Reporte</button></div></div></div><div class="container" id="loaderContainer"><h2 id="loadingMessage" class="loader">Cargando datos desde la nube...</h2></div><div class="container report-cards-container"><div class="report-card"><div class="card-header"><i class="fa-solid fa-building"></i><h3>Por Empresa</h3></div><div class="card-body"><table id="resumenEmpresaTabla"><thead><tr><th>Empresa</th><th>Galones</th><th>Costo ($)</th></tr></thead><tbody id="resumenEmpresaBody"></tbody><tfoot id="resumenEmpresaFooter"></tfoot></table></div></div><div class="report-card"><div class="card-header"><i class="fa-solid fa-dolly"></i><h3>Por Proveedor</h3></div><div class="card-body"><table id="resumenProveedorTabla"><thead><tr><th>Proveedor</th><th>Galones</th><th>Costo ($)</th></tr></thead><tbody id="resumenProveedorBody"></tbody><tfoot id="resumenProveedorFooter"></tfoot></table></div></div><div class="report-card"><div class="card-header"><i class="fa-solid fa-list-check"></i><h3>Por Proyecto</h3></div><div class="card-body"><table id="resumenProyectoTabla"><thead><tr><th>Proyecto</th><th>Galones</th><th>Costo ($)</th></tr></thead><tbody id="resumenProyectoBody"></tbody><tfoot id="resumenProyectoFooter"></tfoot></table></div></div><div class="report-card"><div class="card-header"><i class="fa-solid fa-user-tie"></i><h3>Por Chofer</h3></div><div class="card-body"><table id="resumenChoferTabla"><thead><tr><th>Chofer</th><th>Galones</th><th>Costo ($)</th></tr></thead><tbody id="resumenChoferBody"></tbody><tfoot id="resumenChoferFooter"></tfoot></table></div></div><div class="report-card"><div class="card-header"><i class="fa-solid fa-truck"></i><h3>Por Placa</h3></div><div class="card-body"><table id="resumenTabla"><thead><tr><th>Placa</th><th>Galones</th><th>Costo ($)</th></tr></thead><tbody id="resumenBody"></tbody><tfoot id="resumenFooter"></tfoot></table></div></div></div></div>
 
             <div id="tabHistorial" class="main-tab-content">

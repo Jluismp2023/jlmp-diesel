@@ -25,6 +25,7 @@ let appInicializada = false;
 let tabActivaParaImprimir = null;
 let esModoObservador = false; // Variable global para el rol
 let registrosParaGuardar = []; // ALMACENA TEMPORALMENTE LOS REGISTROS PARA LA PREVISUALIZACIÓN
+let historialDistribuciones = []; // Variable para almacenar el historial de cargas distribuidas.
 
 onAuthStateChanged(auth, (user) => {
     if (user) {
@@ -130,7 +131,11 @@ async function cargarDatosIniciales() {
         listasAdmin.empresas = empresasRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         listasAdmin.proveedores = proveedoresRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         listasAdmin.proyectos = proyectosRes.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        
         actualizarTodaLaUI();
+        // NUEVO: Cargar el historial de distribuciones después de la carga inicial
+        cargarHistorialDistribuciones(); 
+        
     } catch (error) {
         console.error("Error cargando datos:", error);
         if (loadingMessage) {
@@ -542,7 +547,7 @@ function mostrarHistorialAgrupado(consumos) {
     
     if (esModoObservador) {
         // En modo observador, no hay columna 'Acciones' (no-print), por lo que el colspan es 8.
-        footerHtml = `<tr><td colspan="${colspanTotal}" style="text-align: right;"><strong>TOTAL GALONES:</strong></td><td><strong>${totalGalones.toFixed(2)}</strong></td><td style="text-align: right;"><strong>VALOR TOTAL:</strong></strong></td><td><strong>$${totalCosto.toFixed(2)}</strong></td><td></td></tr>`;
+        footerHtml = `<tr><td colspan="${colspanTotal}" style="text-align: right;"><strong>TOTAL GALONES:</strong></td><td><strong>${totalGalones.toFixed(2)}</strong></td><td style="text-align: right;"><strong>VALOR TOTAL:</strong></td><td><strong>$${totalCosto.toFixed(2)}</strong></td><td></td></tr>`;
     } else {
         // En modo administrador, la columna 'Acciones' existe.
         footerHtml = `<tr><td class="no-print"></td><td colspan="${colspanTotal}" style="text-align: right;"><strong>TOTAL GALONES:</strong></td><td><strong>${totalGalones.toFixed(2)}</strong></td><td style="text-align: right;"><strong>VALOR TOTAL:</strong></td><td><strong>$${totalCosto.toFixed(2)}</strong></td><td></td></tr>`;
@@ -585,6 +590,12 @@ function asignarEventosApp() {
         document.querySelectorAll('#distribucionForm input, #distribucionForm select, #distribucionForm textarea').forEach(el => el.disabled = false);
     });
     
+    // NUEVO EVENTO: Historial de Distribuciones
+    document.getElementById('btnTabDistHistorial').addEventListener('click', (e) => {
+        openMainTab(e, 'tabDistribucionHistorial');
+        cargarHistorialDistribuciones(); // Carga la nueva tabla
+    });
+
     document.getElementById('btnTabAdmin').addEventListener('click', (e) => openMainTab(e, 'tabAdmin'));
     
     // Eventos de Formularios
@@ -725,7 +736,47 @@ function asignarEventosApp() {
 }
 
 
-// --- NUEVAS FUNCIONES DE DISTRIBUCIÓN POR PROYECTO ---
+// --- FUNCIONES DE HISTORIAL DE DISTRIBUCIONES ---
+
+async function cargarHistorialDistribuciones() {
+    try {
+        const querySnapshot = await getDocs(query(collection(db, "distribuciones"), orderBy("timestamp", "desc")));
+
+        historialDistribuciones = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+        const tbody = document.getElementById('distribucionHistorialBody');
+        if (!tbody) return;
+
+        tbody.innerHTML = '';
+
+        if (historialDistribuciones.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="8" class="empty-state">No hay registros de distribución guardados.</td></tr>`;
+            return;
+        }
+
+        historialDistribuciones.forEach(registro => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${registro.fecha}</td>
+                <td>${registro.hora || ''}</td>
+                <td>${registro.volqueta}</td>
+                <td>${registro.chofer}</td>
+                <td>${registro.proveedor || ''}</td>
+                <td>${(parseFloat(registro.galonesTotal) || 0).toFixed(2)}</td>
+                <td>$${(parseFloat(registro.costoTotal) || 0).toFixed(2)}</td>
+                <td>${registro.registrosCreados || 0}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+    } catch (error) {
+        console.error("Error cargando historial de distribuciones:", error);
+        mostrarNotificacion("Error al cargar el Historial de Distribuciones.", "error");
+    }
+}
+
+
+// --- FUNCIONES DE DISTRIBUCIÓN POR PROYECTO ---
 
 function reiniciarFormularioDistribucion() {
     const form = document.getElementById('distribucionForm');
@@ -762,9 +813,7 @@ function sincronizarSelectoresDistribucion() {
     const selectores = { 
         choferes: document.getElementById('distribucionSelectChofer'), 
         placas: document.getElementById('distribucionSelectVolqueta'), 
-        // Eliminado: detallesVolqueta, empresas
         proveedores: document.getElementById('distribucionSelectProveedor'),
-        // Agregado el selector de Proyecto único
         proyectos: document.getElementById('distribucionSelectProyecto')
     };
     const titulos = { 
@@ -829,11 +878,11 @@ function actualizarCamposDistribucion() {
 
     // Reinsertar el bloque de totales pendientes
     container.insertAdjacentHTML('beforeend', totalesHTML);
-    // Volver a asignar el evento de cálculo a todos los nuevos inputs
+    
+    // Asignar eventos de escucha a los inputs de volumen y totales principales
     container.querySelectorAll('input[data-type="galones"]').forEach(input => {
         input.addEventListener('input', calcularTotalesDistribucion);
     });
-    // Escuchar cambios en los totales para recalcular costos unitarios
     document.getElementById('distribucionGalonesTotal')?.addEventListener('input', calcularTotalesDistribucion);
     document.getElementById('distribucionCostoTotal')?.addEventListener('input', calcularTotalesDistribucion);
     
@@ -870,7 +919,7 @@ function calcularTotalesDistribucion() {
         sumaGalonesDistribuidos += galones;
     });
     
-    // 2. Calcular pendientes (SOLO GALONES)
+    // 2. Calcular pendientes (SOLO GALONES para validación principal)
     const galonesPendientes = totalGalones - sumaGalonesDistribuidos;
     
     // El costo pendiente se calcula por diferencia para mostrar si hay desbalance
@@ -905,7 +954,6 @@ async function previsualizarDistribucion() {
     const totalCosto = parseFloat(document.getElementById('distribucionCostoTotal')?.value) || 0;
     const proyectoUnico = document.getElementById('distribucionSelectProyecto')?.value;
 
-    // Datos simplificados
     const datosBase = {
         fecha: document.getElementById('distribucionFecha')?.value,
         hora: document.getElementById('distribucionHora')?.value,
@@ -913,7 +961,7 @@ async function previsualizarDistribucion() {
         chofer: document.getElementById('distribucionSelectChofer')?.value,
         proveedor: document.getElementById('distribucionSelectProveedor')?.value,
         
-        // Campos fijos o vacíos
+        // Campos fijos o vacíos para Firestore (se eliminaron del formulario)
         empresa: "", 
         detallesVolqueta: "", 
         kilometraje: null,
@@ -1054,16 +1102,38 @@ async function confirmarGuardado() {
     btnConfirmar.disabled = true;
     btnConfirmar.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Guardando en Firebase...';
 
+    // Crear el registro de la carga total para la nueva colección 'distribuciones'
+    const primerRegistro = registrosParaGuardar[0];
+    const registroTotalDistribucion = {
+        fecha: primerRegistro.fecha,
+        hora: primerRegistro.hora,
+        volqueta: primerRegistro.volqueta,
+        chofer: primerRegistro.chofer,
+        proveedor: primerRegistro.proveedor,
+        // Recalcular totales desde los inputs, ya que los registros individuales son parciales
+        galonesTotal: parseFloat(document.getElementById('distribucionGalonesTotal')?.value) || 0,
+        costoTotal: parseFloat(document.getElementById('distribucionCostoTotal')?.value) || 0,
+        registrosCreados: registrosParaGuardar.length,
+        timestamp: new Date().toISOString() // Para ordenamiento y referencia
+    };
+
     try {
-        const promesas = registrosParaGuardar.map(registro => addDoc(collection(db, "consumos"), registro));
-        await Promise.all(promesas);
+        // 1. Guardar el registro de la carga total en 'distribuciones'
+        await addDoc(collection(db, "distribuciones"), registroTotalDistribucion);
+        
+        // 2. Guardar los registros individuales en 'consumos'
+        const promesasConsumos = registrosParaGuardar.map(registro => addDoc(collection(db, "consumos"), registro));
+        await Promise.all(promesasConsumos);
         
         mostrarNotificacion(`Éxito: Se crearon ${registrosParaGuardar.length} registros distribuidos.`, "exito", 5000);
         
-        // Limpiar y resetear la UI
+        // 3. Limpiar y resetear la UI y recargar datos
         document.getElementById('tablaDistribucionPreview').style.display = 'none';
         reiniciarFormularioDistribucion();
         await cargarDatosIniciales();
+        
+        // 4. Recargar el historial de la nueva tabla
+        await cargarHistorialDistribuciones(); 
         
         if (!esModoObservador) {
             openMainTab(null, 'tabInicio');

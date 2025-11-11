@@ -362,16 +362,6 @@ button:hover { opacity: 0.9; }
     display: none;
 }
 
-/* --- NAVEGACIÓN CENTRADA EN EL PANEL DE INICIO --- */
-/* Se mantiene vacía para que el script pueda controlar la visibilidad después del login */
-body:not(.modo-observador) #btnTabRegistrar,
-body:not(.modo-observador) #btnTabReportes,
-body:not(.modo-observador) #btnTabHistorial,
-body:not(.modo-observador) #btnTabAdmin {
-     /* display: none; */ 
-}
-
-
 /* --- ESTILOS PARA LA PESTAÑA DE DISTRIBUCIÓN --- */
 
 .form-grid {
