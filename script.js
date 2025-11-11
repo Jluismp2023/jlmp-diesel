@@ -37,6 +37,8 @@ onAuthStateChanged(auth, (user) => {
             // Oculta pestañas que no debe ver
             document.getElementById('tabInicio').style.display = 'none';
             document.getElementById('tabRegistrar').style.display = 'none';
+            // NUEVO: Ocultar Distribución para Observador
+            document.getElementById('tabDistribuir').style.display = 'none';
             document.getElementById('tabAdmin').style.display = 'none';
             
             // Muestra 'Reportes' por defecto y activa la pestaña
@@ -201,8 +203,13 @@ function actualizarTodaLaUI() {
     mostrarHistorialAgrupado(consumosFiltrados);
     
     actualizarTarjetasResumen(); 
+    // NUEVO: Asegurar que los campos de distribución estén actualizados al cargar los datos
+    if (document.getElementById('tabDistribuir').style.display === 'block') {
+         actualizarCamposDistribucion();
+    }
 }
 
+// MODIFICACIÓN: Esta función ahora solo pobla los selectores de la pestaña "Registrar"
 function poblarSelectores() {
     const selectores = { 
         choferes: document.getElementById('selectChofer'), 
@@ -250,8 +257,6 @@ async function guardarOActualizar(e) {
         volqueta: document.getElementById('selectVolqueta').value,
         fecha: document.getElementById('fecha').value,
         hora: document.getElementById('hora').value,
-        // *** MODIFICACIÓN APLICADA: Se elimina la referencia a numeroFactura ***
-        // numeroFactura: document.getElementById('numeroFactura').value, 
         galones: document.getElementById('galones').value,
         costo: document.getElementById('costo').value,
         descripcion: document.getElementById('descripcion').value,
@@ -305,6 +310,8 @@ async function agregarItemAdmin(tipo, inputElement) {
             mostrarNotificacion(`Elemento agregado correctamente.`, "exito");
             inputElement.value = '';
             await cargarDatosIniciales();
+            // NUEVO: Si se agregan proyectos, actualizar la pestaña de distribución si está activa
+            if (tipo === 'proyectos') { actualizarCamposDistribucion(); } 
         } catch (error) {
             console.error("Error agregando:", error);
             mostrarNotificacion("No se pudo agregar el elemento.", "error");
@@ -389,8 +396,6 @@ function cargarDatosParaModificar(id) {
     document.getElementById('registroId').value = consumo.id; 
     document.getElementById('fecha').value = consumo.fecha; 
     document.getElementById('hora').value = consumo.hora || ''; 
-    // *** MODIFICACIÓN APLICADA: Se elimina la referencia a numeroFactura ***
-    // document.getElementById('numeroFactura').value = consumo.numeroFactura || ''; 
     document.getElementById('selectChofer').value = consumo.chofer; 
     document.getElementById('selectVolqueta').value = consumo.volqueta; 
     document.getElementById('galones').value = consumo.galones; 
@@ -461,14 +466,13 @@ function mostrarHistorialAgrupado(consumos) {
         const fechaConsumo = new Date(consumo.fecha + 'T00:00:00'); const mesAnio = fechaConsumo.toLocaleDateString('es-EC', { month: 'long', year: 'numeric' });
         if (mesAnio !== mesAnioActual && !(obtenerConsumosFiltrados.fechaInicio && obtenerConsumosFiltrados.fechaFin)) {
             mesAnioActual = mesAnio;
-            // Se ajusta el colspan a 13 porque hemos quitado la columna Factura # (14 columnas originales - 1)
+            // Se ajusta el colspan a 13 
             const filaGrupo = document.createElement('tr'); filaGrupo.className = 'fila-grupo'; 
             filaGrupo.innerHTML = `<td colspan="13">${mesAnioActual.charAt(0).toUpperCase() + mesAnioActual.slice(1)}</td>`;
             historialBody.appendChild(filaGrupo);
         }
         const filaDato = document.createElement('tr');
         
-        // *** MODIFICACIÓN APLICADA: Se elimina el dato de numeroFactura y se ajusta la fila ***
         filaDato.innerHTML = `<td class="no-print"><button class="btn-accion btn-modificar button-warning" data-id="${consumo.id}" title="Modificar"><i class="fa-solid fa-pencil" style="margin: 0;"></i></button><button class="btn-accion btn-borrar" data-id="${consumo.id}" title="Borrar"><i class="fa-solid fa-trash-can" style="margin: 0;"></i></button></td>
             <td>${consumo.fecha}</td><td>${consumo.hora || ''}</td><td>${consumo.chofer}</td><td>${consumo.volqueta}</td>
             <td>${consumo.detallesVolqueta || ''}</td><td>${consumo.kilometraje || ''}</td>
@@ -477,14 +481,14 @@ function mostrarHistorialAgrupado(consumos) {
     });
     
     let footerHtml;
-    // Se ajusta el colspan a 8 (antes era 9) para la suma de Galones/Costo, ya que eliminamos la columna Factura #.
+    // Colspan de 8 para la suma, excluyendo Acciones (no-print) y Descripcion
     const colspanTotal = 8; 
     
     if (esModoObservador) {
         // En modo observador, no hay columna 'Acciones' (no-print), por lo que el colspan es 8.
         footerHtml = `<tr><td colspan="${colspanTotal}" style="text-align: right;"><strong>TOTAL GALONES:</strong></td><td><strong>${totalGalones.toFixed(2)}</strong></td><td style="text-align: right;"><strong>VALOR TOTAL:</strong></td><td><strong>$${totalCosto.toFixed(2)}</strong></td><td></td></tr>`;
     } else {
-        // En modo administrador, la columna 'Acciones' existe, por lo que el colspan es 8 (Acciones no cuenta en colspan).
+        // En modo administrador, la columna 'Acciones' existe.
         footerHtml = `<tr><td class="no-print"></td><td colspan="${colspanTotal}" style="text-align: right;"><strong>TOTAL GALONES:</strong></td><td><strong>${totalGalones.toFixed(2)}</strong></td><td style="text-align: right;"><strong>VALOR TOTAL:</strong></td><td><strong>$${totalCosto.toFixed(2)}</strong></td><td></td></tr>`;
     }
     historialFooter.innerHTML = footerHtml;
@@ -517,9 +521,23 @@ function asignarEventosApp() {
     document.getElementById('btnTabRegistrar').addEventListener('click', (e) => openMainTab(e, 'tabRegistrar'));
     document.getElementById('btnTabReportes').addEventListener('click', (e) => openMainTab(e, 'tabReportes'));
     document.getElementById('btnTabHistorial').addEventListener('click', (e) => openMainTab(e, 'tabHistorial'));
+    
+    // NUEVO: Evento para la pestaña de Distribución
+    document.getElementById('btnTabDistribuir').addEventListener('click', (e) => {
+        openMainTab(e, 'tabDistribuir');
+        reiniciarFormularioDistribucion(); 
+        actualizarCamposDistribucion();
+    });
+    
     document.getElementById('btnTabAdmin').addEventListener('click', (e) => openMainTab(e, 'tabAdmin'));
     
     document.getElementById('consumoForm').addEventListener('submit', guardarOActualizar);
+    // NUEVO: Evento para guardar distribución
+    document.getElementById('distribucionForm').addEventListener('submit', guardarDistribucion);
+    // NUEVO: Eventos para actualizar la suma pendiente al cambiar el TOTAL
+    document.getElementById('distribucionGalonesTotal').addEventListener('input', calcularTotalesDistribucion);
+    document.getElementById('distribucionCostoTotal').addEventListener('input', calcularTotalesDistribucion);
+
 
     document.querySelectorAll('.btn-print').forEach(btn => {
         btn.addEventListener('click', (e) => {
@@ -610,6 +628,218 @@ function asignarEventosApp() {
 
     asignarSincronizacionDeFiltros();
 }
+
+
+// --- NUEVAS FUNCIONES DE DISTRIBUCIÓN POR PROYECTO ---
+
+function reiniciarFormularioDistribucion() {
+    document.getElementById('distribucionForm').reset();
+    document.getElementById('distribucionRegistroId').value = '';
+    document.getElementById('distribucionFecha').valueAsDate = new Date();
+    // Sincronizar selectores con los datos actuales
+    sincronizarSelectoresDistribucion();
+    // Borrar campos de proyecto
+    document.getElementById('distribucionProyectosContainer').innerHTML = '';
+    // Reiniciar totales pendientes
+    document.getElementById('galonesPendientes').textContent = '0.00';
+    document.getElementById('costoPendiente').textContent = '$ 0.00';
+    // Volver a cargar campos de proyecto (incluye el recalculate)
+    actualizarCamposDistribucion();
+}
+
+function sincronizarSelectoresDistribucion() {
+    // Sincroniza los selectores de la pestaña "Distribución"
+    const selectores = { 
+        choferes: document.getElementById('distribucionSelectChofer'), 
+        placas: document.getElementById('distribucionSelectVolqueta'), 
+        detallesVolqueta: document.getElementById('distribucionSelectDetallesVolqueta'), 
+        empresas: document.getElementById('distribucionSelectEmpresa'), 
+        proveedores: document.getElementById('distribucionSelectProveedor')
+    };
+    const titulos = { 
+        choferes: '--- Chofer ---', 
+        placas: '--- Placa ---', 
+        detallesVolqueta: '--- Detalles Volqueta ---', 
+        empresas: '--- Empresa ---', 
+        proveedores: '--- Proveedor ---'
+    };
+    for (const tipo in selectores) {
+        const select = selectores[tipo];
+        if (!select) continue;
+        const valorActual = select.value;
+        select.innerHTML = `<option value="">${titulos[tipo]}</option>`; 
+        listasAdmin[tipo].forEach(item => { select.innerHTML += `<option value="${item.nombre}">${item.nombre}</option>`; });
+        select.value = valorActual;
+    }
+}
+
+function actualizarCamposDistribucion() {
+    const container = document.getElementById('distribucionProyectosContainer');
+    // Guardar el bloque de totales para reinsertarlo al final
+    const totalesElement = container.querySelector('#distribucionTotales');
+    const totalesHTML = totalesElement ? totalesElement.outerHTML : 
+        `<div id="distribucionTotales" style="grid-column: 1 / -1; display: flex; justify-content: space-between; font-weight: bold; margin-top: 10px; border-top: 1px dashed #ccc; padding-top: 10px;">
+            <span>Galones Pendientes: <span id="galonesPendientes" style="color: red;">0.00</span></span>
+            <span>Costo Pendiente: <span id="costoPendiente" style="color: red;">$ 0.00</span></span>
+        </div>`;
+    
+    container.innerHTML = '';
+    
+    if (listasAdmin.proyectos.length === 0) {
+        container.innerHTML = '<div style="grid-column: 1 / -1;"><p class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i> No hay proyectos registrados. Vaya a Administración.</p></div>';
+        return;
+    }
+
+    listasAdmin.proyectos.forEach(proyecto => {
+        const div = document.createElement('div');
+        div.className = 'distribucion-proyecto-item';
+        div.dataset.proyecto = proyecto.nombre;
+        div.innerHTML = `
+            <label>Galones (${proyecto.nombre}):</label>
+            <input type="number" step="0.01" data-type="galones" data-proyecto="${proyecto.nombre}" value="0.00" min="0">
+            <label>Costo ($) (${proyecto.nombre}):</label>
+            <input type="number" step="0.01" data-type="costo" data-proyecto="${proyecto.nombre}" value="0.00" min="0">
+        `;
+        container.appendChild(div);
+    });
+
+    // Reinsertar el bloque de totales pendientes
+    container.insertAdjacentHTML('beforeend', totalesHTML);
+    // Volver a asignar el evento de cálculo a todos los nuevos inputs
+    container.querySelectorAll('input[type="number"]').forEach(input => {
+        input.addEventListener('input', calcularTotalesDistribucion);
+    });
+    // Aplicar la primera ejecución del cálculo
+    calcularTotalesDistribucion();
+}
+
+function calcularTotalesDistribucion() {
+    const totalGalonesInput = document.getElementById('distribucionGalonesTotal');
+    const totalCostoInput = document.getElementById('distribucionCostoTotal');
+    const totalGalones = parseFloat(totalGalonesInput.value) || 0;
+    const totalCosto = parseFloat(totalCostoInput.value) || 0;
+
+    let sumaGalonesDistribuidos = 0;
+    let sumaCostoDistribuido = 0;
+
+    // Sumar todos los campos de galones y costo de los proyectos
+    document.querySelectorAll('#distribucionProyectosContainer input[data-type="galones"]').forEach(input => {
+        sumaGalonesDistribuidos += parseFloat(input.value) || 0;
+    });
+
+    document.querySelectorAll('#distribucionProyectosContainer input[data-type="costo"]').forEach(input => {
+        sumaCostoDistribuido += parseFloat(input.value) || 0;
+    });
+    
+    // Calcular pendientes
+    const galonesPendientes = totalGalones - sumaGalonesDistribuidos;
+    const costoPendiente = totalCosto - sumaCostoDistribuido;
+
+    // Mostrar en la UI
+    const galonesSpan = document.getElementById('galonesPendientes');
+    const costoSpan = document.getElementById('costoPendiente');
+
+    if (!galonesSpan || !costoSpan) return;
+
+    galonesSpan.textContent = galonesPendientes.toFixed(2);
+    costoSpan.textContent = `$ ${costoPendiente.toFixed(2)}`;
+
+    // Cambiar color si está OK (dentro de una pequeña tolerancia) o hay error
+    galonesSpan.style.color = (Math.abs(galonesPendientes) < 0.01) ? 'green' : 'red';
+    costoSpan.style.color = (Math.abs(costoPendiente) < 0.01) ? 'green' : 'red';
+}
+
+
+async function guardarDistribucion(e) {
+    e.preventDefault();
+    const btnGuardar = document.getElementById('btnGuardarDistribucion');
+    btnGuardar.disabled = true;
+    btnGuardar.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Guardando...';
+
+    // Se ejecuta el cálculo final para actualizar el estado de pendientes
+    calcularTotalesDistribucion();
+    const galonesPendientes = parseFloat(document.getElementById('galonesPendientes').textContent);
+    const costoPendiente = parseFloat(document.getElementById('costoPendiente').textContent.replace('$', '')) || 0;
+
+    if (Math.abs(galonesPendientes) >= 0.01 || Math.abs(costoPendiente) >= 0.01) {
+        mostrarNotificacion("Error: Los totales de galones y costos distribuidos NO coinciden con los totales ingresados.", "error", 7000);
+        btnGuardar.disabled = false;
+        btnGuardar.innerHTML = '<i class="fa-solid fa-floppy-disk"></i>Guardar Distribución';
+        return;
+    }
+    
+    // --- Recolectar Datos para los múltiples registros ---
+    const datosBase = {
+        fecha: document.getElementById('distribucionFecha').value,
+        hora: document.getElementById('distribucionHora').value,
+        volqueta: document.getElementById('distribucionSelectVolqueta').value,
+        chofer: document.getElementById('distribucionSelectChofer').value,
+        empresa: document.getElementById('distribucionSelectEmpresa').value,
+        proveedor: document.getElementById('distribucionSelectProveedor').value,
+        detallesVolqueta: document.getElementById('distribucionSelectDetallesVolqueta').value || "", 
+        kilometraje: document.getElementById('distribucionKilometraje').value || null,
+        descripcion: document.getElementById('distribucionDescripcion').value,
+    };
+
+    if (!datosBase.chofer || !datosBase.volqueta) {
+        mostrarNotificacion("Por favor, complete al menos el chofer y la placa.", "error");
+        btnGuardar.disabled = false;
+        btnGuardar.innerHTML = '<i class="fa-solid fa-floppy-disk"></i>Guardar Distribución';
+        return;
+    }
+
+    const registrosADB = [];
+    let registrosValidos = 0;
+
+    // Iterar sobre los proyectos para crear un registro por cada uno
+    listasAdmin.proyectos.forEach(proyecto => {
+        const galonesInput = document.querySelector(`input[data-proyecto="${proyecto.nombre}"][data-type="galones"]`);
+        const costoInput = document.querySelector(`input[data-proyecto="${proyecto.nombre}"][data-type="costo"]`);
+        
+        const galones = parseFloat(galonesInput.value) || 0;
+        const costo = parseFloat(costoInput.value) || 0;
+
+        // Solo crear un registro si hay consumo para ese proyecto
+        if (galones > 0 || costo > 0) {
+            registrosADB.push({
+                ...datosBase,
+                proyecto: proyecto.nombre, // Sobreescribe el proyecto
+                galones: galones.toFixed(2),
+                costo: costo.toFixed(2),
+            });
+            registrosValidos++;
+        }
+    });
+
+    if (registrosValidos === 0) {
+        mostrarNotificacion("Debe ingresar galones y costo en al menos un proyecto.", "error");
+        btnGuardar.disabled = false;
+        btnGuardar.innerHTML = '<i class="fa-solid fa-floppy-disk"></i>Guardar Distribución';
+        return;
+    }
+
+    try {
+        const promesas = registrosADB.map(registro => addDoc(collection(db, "consumos"), registro));
+        await Promise.all(promesas);
+        mostrarNotificacion(`Éxito: Se crearon ${registrosADB.length} registros distribuidos.`, "exito", 5000);
+        
+        reiniciarFormularioDistribucion();
+        await cargarDatosIniciales();
+        
+        if (!esModoObservador) {
+            openMainTab(null, 'tabInicio');
+        }
+    } catch (error) {
+        console.error("Error guardando distribución:", error);
+        mostrarNotificacion(`Error al guardar: ${error.message}`, "error", 5000);
+    } finally {
+        btnGuardar.disabled = false;
+        btnGuardar.innerHTML = '<i class="fa-solid fa-floppy-disk"></i>Guardar Distribución';
+    }
+}
+
+// --- FIN NUEVAS FUNCIONES DE DISTRIBUCIÓN POR PROYECTO ---
+
 
 function iniciarAplicacion() {
     asignarEventosApp();

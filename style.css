@@ -100,7 +100,6 @@ button:hover { opacity: 0.9; }
 .lista-gestion { list-style-type: none; padding: 0; max-height: 200px; overflow-y: auto; }
 .lista-gestion li { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #f0f0f0; }
 .lista-gestion li:last-child { border-bottom: none; }
-.lista-gestion button { margin-left: 5px; padding: 5px 10px; font-size: 12px; }
 .empty-state { text-align: center; padding: 20px; color: #999; }
 .empty-state .fa-solid { font-size: 2em; color: #ccc; margin-bottom: 10px; }
 .lista-gestion li small { color: var(--secondary-color); }
@@ -138,6 +137,8 @@ button:hover { opacity: 0.9; }
     .header-content { justify-content: center; width: 100%;}
     .report-card { flex-basis: 100%; }
     .admin-box { flex-basis: 100%; min-width: unset; }
+    /* Ajuste para el grid de formulario en móviles */
+    .form-grid { grid-template-columns: 1fr; }
 }
 
 @media print {
@@ -350,7 +351,8 @@ button:hover { opacity: 0.9; }
 /* --- ESTILOS PARA MODO OBSERVADOR (SOLO LECTURA) --- */
 .modo-observador #btnTabInicio,
 .modo-observador #btnTabRegistrar,
-.modo-observador #btnTabAdmin {
+.modo-observador #btnTabAdmin,
+.modo-observador #btnTabDistribuir { /* NUEVO: Ocultar Distribución */
     display: none;
 }
 .modo-observador #historialTabla th.no-print {
@@ -364,7 +366,33 @@ button:hover { opacity: 0.9; }
 body:not(.modo-observador) #btnTabRegistrar,
 body:not(.modo-observador) #btnTabReportes,
 body:not(.modo-observador) #btnTabHistorial,
-body:not(.modo-observador) #btnTabAdmin {
+body:not(.modo-observador) #btnTabAdmin,
+body:not(.modo-observador) #btnTabDistribuir { /* NUEVO: Ocultar Distribución */
     display: none;
 }
+
+/* --- ESTILOS PARA LA PESTAÑA DE DISTRIBUCIÓN --- */
+
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 15px;
+}
+
+.distribucion-proyecto-item {
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background-color: var(--light-gray);
+}
+.distribucion-proyecto-item label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 0.9em;
+}
+.distribucion-proyecto-item input {
+    width: calc(100% - 22px);
+}
+.distribucion-proyecto-item input[type="number"] {
+    margin-bottom: 5px;
 }
